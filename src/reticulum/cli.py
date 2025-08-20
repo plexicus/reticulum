@@ -21,15 +21,15 @@ def format_console_output(data: dict, args) -> str:
 def _format_containers_console(data: dict) -> str:
     """Format container analysis results for console output."""
     output = []
-    
+
     # Header
     output.append("🔍 Reticulum - Cloud Infrastructure Security Analysis")
     output.append("=" * 60)
     output.append(f"📁 Repository: {data['repo_path']}")
     output.append("")
-    
+
     # Scan Summary
-    summary = data.get('scan_summary', {})
+    summary = data.get("scan_summary", {})
     if summary:
         output.append("📊 Scan Summary")
         output.append("-" * 20)
@@ -37,46 +37,48 @@ def _format_containers_console(data: dict) -> str:
         output.append(f"   Containers found: {summary.get('containers_found', 0)}")
         output.append(f"   Total exposures: {summary.get('total_exposures', 0)}")
         output.append("")
-    
+
     # Containers
-    containers = data.get('containers', [])
+    containers = data.get("containers", [])
     if containers:
         output.append("🐳 Container Analysis")
         output.append("-" * 20)
-        
+
         # Group by exposure level
         by_level = {}
         for container in containers:
-            level = container.get('exposure_level', 'UNKNOWN')
+            level = container.get("exposure_level", "UNKNOWN")
             if level not in by_level:
                 by_level[level] = []
             by_level[level].append(container)
-        
+
         # Display by level (HIGH first, then MEDIUM, then LOW)
-        level_order = ['HIGH', 'MEDIUM', 'LOW']
+        level_order = ["HIGH", "MEDIUM", "LOW"]
         for level in level_order:
             if level in by_level:
                 level_containers = by_level[level]
-                level_emoji = {'HIGH': '🔴', 'MEDIUM': '🟡', 'LOW': '🟢'}.get(level, '⚪')
-                output.append(f"   {level_emoji} {level} Exposure ({len(level_containers)} containers)")
-                
+                level_emoji = {"HIGH": "🔴", "MEDIUM": "🟡", "LOW": "🟢"}.get(level, "⚪")
+                output.append(
+                    f"   {level_emoji} {level} Exposure ({len(level_containers)} containers)"
+                )
+
                 for container in level_containers:
-                    name = container.get('name', 'Unknown')
-                    chart = container.get('chart_name', 'Unknown')
-                    gateway = container.get('gateway_type', 'Unknown')
-                    host = container.get('host', 'N/A')
-                    
+                    name = container.get("name", "Unknown")
+                    chart = container.get("chart_name", "Unknown")
+                    gateway = container.get("gateway_type", "Unknown")
+                    host = container.get("host", "N/A")
+
                     output.append(f"      • {name}")
                     output.append(f"        Chart: {chart}")
                     output.append(f"        Gateway: {gateway}")
-                    if host != 'N/A':
+                    if host != "N/A":
                         output.append(f"        Host: {host}")
                     output.append("")
-        
+
         output.append("")
-    
+
     # Network Topology
-    topology = data.get('network_topology', {})
+    topology = data.get("network_topology", {})
     if topology:
         output.append("🌐 Network Topology")
         output.append("-" * 20)
@@ -86,46 +88,46 @@ def _format_containers_console(data: dict) -> str:
                 for host in hosts:
                     output.append(f"     • {host}")
                 output.append("")
-    
+
     # Mermaid Diagram
-    mermaid = data.get('mermaid_diagram', '')
+    mermaid = data.get("mermaid_diagram", "")
     if mermaid:
         output.append("📋 Mermaid Diagram")
         output.append("-" * 20)
         output.append("   (Use --json to see the full diagram)")
         output.append("")
-    
+
     return "\n".join(output)
 
 
 def _format_paths_console(data: dict) -> str:
     """Format paths analysis results for console output."""
     output = []
-    
+
     # Header
     output.append("🔍 Reticulum - Source Code Path Analysis")
     output.append("=" * 60)
     output.append(f"📁 Repository: {data['repo_path']}")
     output.append("")
-    
+
     # Scan Summary
-    summary = data.get('scan_summary', {})
+    summary = data.get("scan_summary", {})
     if summary:
         output.append("📊 Scan Summary")
         output.append("-" * 20)
         output.append(f"   Charts analyzed: {summary.get('charts_analyzed', 0)}")
         output.append(f"   Dockerfiles found: {summary.get('dockerfiles_found', 0)}")
         output.append("")
-    
+
     # Master Paths
-    master_paths = data.get('master_paths', [])
+    master_paths = data.get("master_paths", [])
     if master_paths:
         output.append("🛤️  Source Code Paths")
         output.append("-" * 20)
         for i, path in enumerate(master_paths, 1):
             output.append(f"   {i}. {path}")
         output.append("")
-    
+
     return "\n".join(output)
 
 
