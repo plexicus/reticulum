@@ -181,3 +181,23 @@ Desktop.ini
 # Poetry
 poetry.lock
 .venv/
+
+# Test results and temporary files
+test-results/
+test_*.json
+*_results.json
+*_implementation.json
+platform_results.json
+
+# Advanced test repository (should be cloned/generated, not committed)
+tests/advanced-test-repo/
+
+# Coverage reports
+htmlcov/
+coverage.xml
+.coverage
+
+# Temporary files
+*.tmp
+*.temp
+*.log
