@@ -61,6 +61,28 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
+    - name: Generate Changelog
+      id: changelog
+      run: |
+        # Get commits since last tag
+        if [ "${{ github.ref_name }}" != "v0.1.0" ]; then
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 ${{ github.ref_name }}^ 2>/dev/null || echo "v0.1.0")
+        else
+          PREVIOUS_TAG=""
+        fi
+        
+        if [ -n "$PREVIOUS_TAG" ]; then
+          CHANGELOG=$(git log --pretty=format:"- %s" $PREVIOUS_TAG..${{ github.ref_name }} | head -20)
+        else
+          CHANGELOG=$(git log --pretty=format:"- %s" --oneline | head -20)
+        fi
+        
+        echo "CHANGELOG<<EOF" >> $GITHUB_ENV
+        echo "$CHANGELOG" >> $GITHUB_ENV
+        echo "EOF" >> $GITHUB_ENV
+        
+        echo "changelog=$CHANGELOG" >> $GITHUB_OUTPUT
+
     - name: Create GitHub Release
       uses: actions/create-release@v1
       env:
@@ -73,11 +95,7 @@ jobs:
         body: |
           ## What's Changed
           
-          This release includes:
-          - Bug fixes and improvements
-          - Enhanced modular architecture
-          - Better error handling
-          - Quality assurance improvements
+          ${{ env.CHANGELOG }}
           
           ## Installation
           
