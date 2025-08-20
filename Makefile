@@ -19,6 +19,7 @@ help:
 	@echo "  quick-check  - Quick quality check (non-interactive)"
 	@echo "  pre-release  - Full pre-release verification (interactive)"
 	@echo "  version-sync - Check version consistency"
+	@echo "  release-strict # Strict release check (all tests + version sync)"
 	@echo ""
 	@echo "Utility targets:"
 	@echo "  clean        - Clean up temporary files"
@@ -80,3 +81,7 @@ dev: install check
 # Release workflow: quick-check + pre-release
 release: quick-check pre-release
 	@echo "🎉 Ready for release!"
+
+# Strict release workflow: all checks + version sync
+release-strict: check version-sync
+	@echo "🎉 Strict release check completed - All tests passed, versions synced!"

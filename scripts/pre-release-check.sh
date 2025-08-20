@@ -147,7 +147,8 @@ print_status "INFO" "Running tests..."
 if poetry run pytest -v; then
     print_status "PASS" "All tests passed"
 else
-    print_status "FAIL" "Tests failed"
+    print_status "FAIL" "Tests failed - CANNOT PROCEED WITH RELEASE"
+    print_status "FAIL" "Fix all test failures before creating tags"
     exit 1
 fi
 
@@ -182,7 +183,8 @@ print_status "INFO" "Final linting check..."
 if poetry run ruff check src/; then
     print_status "PASS" "Final linting check passed"
 else
-    print_status "FAIL" "Final linting check failed - please fix remaining issues"
+    print_status "FAIL" "Final linting check failed - CANNOT PROCEED WITH RELEASE"
+    print_status "FAIL" "Fix all linting issues before creating tags"
     exit 1
 fi
 
@@ -212,6 +214,7 @@ echo
 echo "🎉 Pre-release check completed successfully!"
 echo "=========================================="
 print_status "PASS" "All quality checks passed"
+print_status "PASS" "✅ READY FOR RELEASE - All tests passed, all linting clean"
 print_status "INFO" "You can now safely create a tag"
 
 # Show current status

@@ -122,12 +122,23 @@ else
     git status --short
 fi
 
+# Check if tests pass
+print_status "INFO" "Running tests to ensure code quality..."
+if poetry run pytest --quiet; then
+    print_status "PASS" "All tests passed"
+else
+    print_status "FAIL" "Tests failed - CANNOT PROCEED WITH RELEASE"
+    print_status "FAIL" "Fix all test failures before creating tags"
+    exit 1
+fi
+
 echo
 echo "📊 Version Status Summary:"
 echo "=========================="
 
 if [ "$pyproject_version" = "$init_version" ] && [ "$latest_tag" = "v$pyproject_version" ] && is_working_directory_clean; then
     print_status "PASS" "All versions are synchronized and ready for release!"
+    print_status "PASS" "✅ READY FOR RELEASE - All tests passed, all versions synced"
     echo
     echo "🚀 You can safely create a new tag:"
     echo "   git tag v$pyproject_version"
