@@ -131,29 +131,21 @@ class ExposureAnalyzer:
         
         # Look for values files (any YAML file that might contain configuration)
         values_patterns = [
-            r'values.*\.ya?ml$',
-            r'config.*\.ya?ml$',
-            r'\.ya?ml$'  # Any YAML file
+            '*.yaml',
+            '*.yml'
         ]
         
-        # Search in the chart directory itself
+        # Search in the chart directory itself for values files
         for pattern in values_patterns:
             for file_path in chart_dir.glob(pattern):
                 if file_path.is_file() and not self._is_ignored_file(file_path):
                     files.append((file_path, 'values'))
-            
-            # Also search recursively for YAML files
-            for file_path in chart_dir.rglob(pattern):
-                if file_path.is_file() and not self._is_ignored_file(file_path):
-                    # Avoid duplicates
-                    if (file_path, 'values') not in files:
-                        files.append((file_path, 'values'))
         
         # Look for template files (Kubernetes manifests)
         template_patterns = [
-            r'*.yaml',
-            r'*.yml',
-            r'*.json'
+            '*.yaml',
+            '*.yml',
+            '*.json'
         ]
         
         templates_dir = chart_dir / "templates"
