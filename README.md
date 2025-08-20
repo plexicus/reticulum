@@ -11,6 +11,7 @@ Reticulum is a powerful tool that analyzes monorepos containing Helm charts to i
 - **Source code path mapping** from Dockerfiles
 - **Master paths consolidation** with highest exposure level
 - **JSON output** with network topology and Mermaid diagrams
+- **Modular architecture** with specialized analyzers for each concern
 
 ## Requirements
 
@@ -141,6 +142,28 @@ Returns JSON with:
 - **🟡 MEDIUM**: Connected to HIGH exposure containers (internal services)
 - **🟢 LOW**: Internal only, no internet access or HIGH container connections
 
+## Architecture
+
+Reticulum is built with a **modular architecture** that separates concerns for better maintainability, testing, and extensibility:
+
+### Core Modules
+
+- **`ExposureAnalyzer`** - Analyzes Helm charts for exposure patterns
+- **`DockerfileAnalyzer`** - Parses Dockerfiles and extracts source code paths
+- **`DependencyAnalyzer`** - Analyzes service dependencies and exposure levels
+- **`PathConsolidator`** - Consolidates source code paths and builds master paths
+- **`MermaidBuilder`** - Generates network topology diagrams
+- **`CLI`** - Command-line interface and argument parsing
+
+### Benefits
+
+- **🎯 Single Responsibility** - Each module has one clear purpose
+- **🧪 Easier Testing** - Test individual components in isolation
+- **👥 Better Collaboration** - Multiple developers can work on different modules
+- **🔧 Easier Maintenance** - Fix bugs in specific functionality without touching others
+- **📚 Better Documentation** - Each module can be documented separately
+- **🚀 Easier Extension** - Add new features by creating new modules
+
 ## Development
 
 ### Prerequisites
@@ -160,6 +183,20 @@ poetry run black src/
 
 # Lint code
 poetry run ruff check src/
+```
+
+### Project Structure
+```
+src/reticulum/
+├── __init__.py          # Package exports
+├── main.py              # Main ExposureScanner orchestrator
+├── exposure_analyzer.py # Helm chart exposure detection
+├── dockerfile_analyzer.py # Dockerfile parsing & path extraction
+├── dependency_analyzer.py # Service dependency analysis
+├── path_consolidator.py # Source code path consolidation
+├── mermaid_builder.py   # Mermaid diagram generation
+├── cli.py               # Command-line interface
+└── __main__.py          # Module execution entry point
 ```
 
 ### Dev Container
