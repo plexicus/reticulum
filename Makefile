@@ -1,7 +1,7 @@
 # Makefile for Reticulum project
 # Provides convenient targets for development and release
 
-.PHONY: help install test lint format check quick-check pre-release clean
+.PHONY: help install test lint format check quick-check pre-release version-sync clean
 
 # Default target
 help:
@@ -18,6 +18,7 @@ help:
 	@echo "Release targets:"
 	@echo "  quick-check  - Quick quality check (non-interactive)"
 	@echo "  pre-release  - Full pre-release verification (interactive)"
+	@echo "  version-sync - Check version consistency"
 	@echo ""
 	@echo "Utility targets:"
 	@echo "  clean        - Clean up temporary files"
@@ -56,6 +57,11 @@ quick-check:
 pre-release:
 	@echo "🚀 Running full pre-release check..."
 	./scripts/pre-release-check.sh
+
+# Check version consistency
+version-sync:
+	@echo "🔄 Checking version consistency..."
+	./scripts/version-sync.sh
 
 # Clean up temporary files
 clean:
