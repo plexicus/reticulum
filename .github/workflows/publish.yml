@@ -28,6 +28,7 @@ jobs:
         version: latest
         virtualenvs-create: true
         virtualenvs-in-project: true
+      timeout-minutes: 10
     
     - name: Load cached venv
       id: cached-poetry-dependencies
@@ -38,15 +39,19 @@ jobs:
     
     - name: Install dependencies
       run: poetry install --no-interaction
+      timeout-minutes: 15
     
     - name: Run tests
       run: poetry run pytest
+      timeout-minutes: 10
     
     - name: Lint with ruff
       run: poetry run ruff check src/
+      timeout-minutes: 5
     
     - name: Format check with black
       run: poetry run black --check src/
+      timeout-minutes: 5
 
   build-and-publish:
     needs: test
@@ -67,16 +72,20 @@ jobs:
         version: latest
         virtualenvs-create: true
         virtualenvs-in-project: true
+      timeout-minutes: 10
     
     - name: Install dependencies
       run: poetry install --no-interaction
+      timeout-minutes: 15
     
     - name: Build package
       run: poetry build
+      timeout-minutes: 10
     
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
         password: ${{ secrets.PYPI_API_TOKEN }}
-        username: __token__
-        skip_existing: true
+        user: __token__
+        skip-existing: true
+      timeout-minutes: 15
