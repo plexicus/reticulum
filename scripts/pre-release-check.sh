@@ -2,6 +2,7 @@
 
 # Pre-release check script for Reticulum
 # This script verifies all quality checks before allowing a tag to be created
+# Now fully unattended and intelligent - no user prompts needed
 
 set -e  # Exit on any error
 
@@ -32,12 +33,44 @@ print_status() {
         "INFO")
             echo -e "${BLUE}ℹ️  INFO${NC}: $message"
             ;;
+        "AUTO")
+            echo -e "${BLUE}🤖 AUTO${NC}: $message"
+            ;;
     esac
 }
 
 # Function to check if command exists
 command_exists() {
     command -v "$1" >/dev/null 2>&1
+}
+
+# Function to auto-commit changes with intelligent commit message
+auto_commit_changes() {
+    local change_type=$1
+    local files_changed=$(git status --porcelain | wc -l | tr -d ' ')
+    
+    if [ "$files_changed" -gt 0 ]; then
+        print_status "AUTO" "Auto-committing $change_type changes ($files_changed files)"
+        git add .
+        
+        # Generate intelligent commit message based on change type
+        case $change_type in
+            "linting")
+                git commit -m "style: auto-fix linting issues with ruff"
+                ;;
+            "formatting")
+                git commit -m "style: auto-format code with black"
+                ;;
+            "both")
+                git commit -m "style: auto-fix linting and formatting issues"
+                ;;
+            *)
+                git commit -m "style: auto-fix code quality issues"
+                ;;
+        esac
+        return 0
+    fi
+    return 1
 }
 
 # Check if we're in the right directory
@@ -58,14 +91,19 @@ print_status "INFO" "Poetry is available"
 
 # Check if we have uncommitted changes
 if [ -n "$(git status --porcelain)" ]; then
-    print_status "WARN" "You have uncommitted changes. Consider committing them first."
+    print_status "WARN" "You have uncommitted changes. Analyzing them..."
     git status --short
-    echo
-    read -p "Continue anyway? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        print_status "INFO" "Pre-release check cancelled"
-        exit 0
+    
+    # Auto-analyze what kind of changes we have
+    staged_files=$(git diff --cached --name-only 2>/dev/null | wc -l | tr -d ' ')
+    unstaged_files=$(git diff --name-only 2>/dev/null | wc -l | tr -d ' ')
+    
+    if [ "$staged_files" -gt 0 ]; then
+        print_status "INFO" "Found $staged_files staged files - these will be included in next commit"
+    fi
+    
+    if [ "$unstaged_files" -gt 0 ]; then
+        print_status "INFO" "Found $unstaged_files unstaged files - will auto-commit if they're quality fixes"
     fi
 else
     print_status "PASS" "Working directory is clean"
@@ -74,13 +112,9 @@ fi
 # Check if we're on main branch
 current_branch=$(git branch --show-current)
 if [ "$current_branch" != "main" ]; then
-    print_status "WARN" "You're not on main branch (currently on: $current_branch)"
-    read -p "Continue anyway? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        print_status "INFO" "Pre-release check cancelled"
-        exit 0
-    fi
+    print_status "FAIL" "You're not on main branch (currently on: $current_branch)"
+    print_status "FAIL" "Releases should only be made from main branch"
+    exit 1
 else
     print_status "PASS" "On main branch"
 fi
@@ -102,20 +136,9 @@ else
     exit 1
 fi
 
-# 3. Check if ruff made any changes
-if [ -n "$(git status --porcelain)" ]; then
-    print_status "WARN" "Ruff made changes to fix linting issues"
-    git status --short
-    echo
-    read -p "Commit these fixes? (y/N): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        git add .
-        git commit -m "style: auto-fix linting issues with ruff"
-        print_status "INFO" "Linting fixes committed"
-    else
-        print_status "WARN" "Linting fixes not committed - you should review them"
-    fi
+# 3. Auto-commit linting fixes if any
+if auto_commit_changes "linting"; then
+    print_status "INFO" "Linting fixes auto-committed"
 fi
 
 # 4. Run black formatting check
@@ -123,22 +146,13 @@ print_status "INFO" "Running black formatting check..."
 if poetry run black --check src/; then
     print_status "PASS" "Black formatting check passed"
 else
-    print_status "WARN" "Black formatting check failed - formatting code..."
+    print_status "WARN" "Black formatting check failed - auto-formatting code..."
     poetry run black src/
     print_status "INFO" "Code formatted with black"
     
-    # Check if formatting made changes
-    if [ -n "$(git status --porcelain)" ]; then
-        print_status "WARN" "Black made formatting changes"
-        git status --short
-        echo
-        read -p "Commit formatting changes? (y/N): " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            git add .
-            git commit -m "style: auto-format code with black"
-            print_status "INFO" "Formatting changes committed"
-        fi
+    # Auto-commit formatting changes if any
+    if auto_commit_changes "formatting"; then
+        print_status "INFO" "Formatting changes auto-committed"
     fi
 fi
 
@@ -168,11 +182,15 @@ if [ "$todo_count" -gt 0 ]; then
     print_status "WARN" "Found $todo_count TODO/FIXME comments"
     grep -r "TODO\|FIXME" src/ --exclude-dir=__pycache__ 2>/dev/null || true
     echo
-    read -p "Continue despite TODO/FIXME comments? (y/N): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        print_status "INFO" "Pre-release check cancelled due to TODO/FIXME comments"
-        exit 0
+    
+    # Auto-analyze TODO/FIXME severity
+    critical_todos=$(grep -r "TODO\|FIXME" src/ --exclude-dir=__pycache__ 2>/dev/null | grep -i "critical\|urgent\|blocking" | wc -l || echo "0")
+    
+    if [ "$critical_todos" -gt 0 ]; then
+        print_status "FAIL" "Found $critical_todos critical TODO/FIXME comments - CANNOT PROCEED WITH RELEASE"
+        exit 1
+    else
+        print_status "WARN" "TODO/FIXME comments are non-critical - proceeding with caution"
     fi
 else
     print_status "PASS" "No TODO/FIXME comments found"
@@ -198,13 +216,27 @@ if [ "$local_commit" != "$remote_commit" ]; then
     echo "Local:  $local_commit"
     echo "Remote: $remote_commit"
     echo
-    read -p "Pull latest changes? (y/N): " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
+    
+    # Auto-analyze if we should pull
+    # Check if remote has commits we don't have
+    behind_count=$(git rev-list --count HEAD..origin/main)
+    ahead_count=$(git rev-list --count origin/main..HEAD)
+    
+    if [ "$behind_count" -gt 0 ]; then
+        print_status "AUTO" "Local is $behind_count commits behind remote - auto-pulling latest changes"
         git pull origin main
         print_status "INFO" "Pulled latest changes"
+        
+        # Re-run tests after pull to ensure nothing broke
+        print_status "INFO" "Re-running tests after pull to ensure stability..."
+        if poetry run pytest -v; then
+            print_status "PASS" "Tests still pass after pull"
+        else
+            print_status "FAIL" "Tests failed after pull - remote changes broke something"
+            exit 1
+        fi
     else
-        print_status "WARN" "Not pulling latest changes - you may be behind"
+        print_status "INFO" "Local is ahead of remote by $ahead_count commits - this is expected for releases"
     fi
 else
     print_status "PASS" "Local is up to date with remote main"

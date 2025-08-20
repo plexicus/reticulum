@@ -2,6 +2,7 @@
 
 # Version synchronization script for Reticulum
 # This script helps ensure version consistency across all files
+# Now fully unattended and intelligent - no user prompts needed
 
 set -e  # Exit on any error
 
@@ -31,6 +32,9 @@ print_status() {
             ;;
         "INFO")
             echo -e "${BLUE}ℹ️  INFO${NC}: $message"
+            ;;
+        "AUTO")
+            echo -e "${BLUE}🤖 AUTO${NC}: $message"
             ;;
     esac
 }
@@ -66,6 +70,29 @@ is_working_directory_clean() {
     [ -z "$(git status --porcelain)" ]
 }
 
+# Function to auto-fix version mismatches
+auto_fix_version_mismatch() {
+    local pyproject_version=$1
+    local init_version=$2
+    
+    print_status "AUTO" "Auto-fixing version mismatch..."
+    
+    # Update __init__.py to match pyproject.toml (source of truth)
+    sed -i.bak "s/^__version__ = \".*\"/__version__ = \"$pyproject_version\"/" src/reticulum/__init__.py
+    rm -f src/reticulum/__init__.py.bak
+    
+    print_status "INFO" "Updated __init__.py to version $pyproject_version"
+    
+    # Commit the fix
+    if git add src/reticulum/__init__.py && git commit -m "fix: sync __init__.py version with pyproject.toml"; then
+        print_status "INFO" "Version fix committed"
+        return 0
+    else
+        print_status "FAIL" "Failed to commit version fix"
+        return 1
+    fi
+}
+
 echo "📋 Checking version consistency..."
 echo "================================"
 
@@ -85,7 +112,20 @@ if [ "$pyproject_version" = "$init_version" ]; then
     print_status "PASS" "pyproject.toml and __init__.py versions match"
 else
     print_status "FAIL" "Version mismatch: pyproject.toml ($pyproject_version) != __init__.py ($init_version)"
-    exit 1
+    
+    # Auto-fix the mismatch
+    if auto_fix_version_mismatch "$pyproject_version" "$init_version"; then
+        # Re-check after fix
+        init_version=$(get_init_version)
+        if [ "$pyproject_version" = "$init_version" ]; then
+            print_status "PASS" "Version mismatch auto-fixed"
+        else
+            print_status "FAIL" "Version mismatch persists after auto-fix"
+            exit 1
+        fi
+    else
+        exit 1
+    fi
 fi
 
 # Check if latest tag matches current version
@@ -98,19 +138,17 @@ else
     if [ "$latest_tag" != "none" ]; then
         echo
         echo "🔍 Analyzing tag situation..."
+        print_status "INFO" "Latest tag ($latest_tag) points to commit $(git rev-parse --short $latest_tag)"
+        print_status "INFO" "Current commit is $current_commit"
         
-        # Check if the latest tag points to the current commit
-        tag_commit=$(git rev-parse --short "$latest_tag" 2>/dev/null || echo "none")
-        if [ "$tag_commit" = "$current_commit" ]; then
-            print_status "INFO" "Latest tag ($latest_tag) points to current commit ($current_commit)"
-            print_status "WARN" "But version doesn't match - you may need to update version files"
+        # Check if current commit is ahead of latest tag
+        if git merge-base --is-ancestor $latest_tag HEAD 2>/dev/null; then
+            print_status "INFO" "Current commit is ahead of latest tag - this is expected for new releases"
         else
-            print_status "INFO" "Latest tag ($latest_tag) points to commit $tag_commit"
-            print_status "INFO" "Current commit is $current_commit"
-            print_status "WARN" "You may need to create a new tag for version $pyproject_version"
+            print_status "WARN" "Current commit is not a descendant of latest tag - unusual situation"
         fi
     else
-        print_status "INFO" "No git tags found - you may want to create v$pyproject_version"
+        print_status "INFO" "No tags found - this appears to be the first release"
     fi
 fi
 
@@ -120,6 +158,20 @@ if is_working_directory_clean; then
 else
     print_status "WARN" "Working directory has uncommitted changes"
     git status --short
+    
+    # Auto-analyze if changes are safe to commit
+    unstaged_files=$(git diff --name-only 2>/dev/null | wc -l | tr -d ' ')
+    staged_files=$(git diff --cached --name-only 2>/dev/null | wc -l | tr -d ' ')
+    
+    if [ "$unstaged_files" -gt 0 ] || [ "$staged_files" -gt 0 ]; then
+        print_status "WARN" "Found $unstaged_files unstaged and $staged_files staged files"
+        
+        # Check if changes are only in source files (likely safe)
+        source_changes=$(git diff --name-only 2>/dev/null | grep -E '^src/|^tests/' | wc -l | tr -d ' ')
+        if [ "$source_changes" -gt 0 ]; then
+            print_status "INFO" "Changes include $source_changes source/test files - these should be committed before release"
+        fi
+    fi
 fi
 
 # Check if tests pass
@@ -135,6 +187,11 @@ fi
 echo
 echo "📊 Version Status Summary:"
 echo "=========================="
+
+# Final version check
+pyproject_version=$(get_pyproject_version)
+init_version=$(get_init_version)
+latest_tag=$(get_latest_tag)
 
 if [ "$pyproject_version" = "$init_version" ] && [ "$latest_tag" = "v$pyproject_version" ] && is_working_directory_clean; then
     print_status "PASS" "All versions are synchronized and ready for release!"
@@ -154,15 +211,14 @@ else
     
     if [ "$latest_tag" != "v$pyproject_version" ]; then
         echo "   2. Create new tag: git tag v$pyproject_version"
-        echo "   3. Push tag: git push origin v$pyproject_version"
     fi
     
     if ! is_working_directory_clean; then
-        echo "   4. Commit or stash uncommitted changes"
+        echo "   3. Commit or stash uncommitted changes"
     fi
+    
+    echo "   4. Push tag: git push origin v$pyproject_version"
 fi
 
 echo
 echo "💡 Pro tip: Run this script before creating tags to ensure consistency!"
-
-exit 0
