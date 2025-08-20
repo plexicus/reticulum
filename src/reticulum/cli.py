@@ -10,6 +10,14 @@ import sys
 from .main import ExposureScanner
 
 
+def format_json_output(data: dict, args) -> str:
+    """Format JSON output - always pretty formatted like jq."""
+    if args.json:
+        return json.dumps(data, indent=2, sort_keys=True)
+    else:
+        return json.dumps(data)
+
+
 def create_parser():
     """Create and configure the argument parser."""
     parser = argparse.ArgumentParser(
@@ -19,7 +27,7 @@ def create_parser():
 Examples:
   reticulum /path/to/repo                 # Container exposure analysis
   reticulum /path/to/repo --paths         # Source code path analysis
-  reticulum /path/to/repo --paths --json  # Pretty JSON output
+  reticulum /path/to/repo --json          # Pretty JSON output (formatted like jq)
         """,
         formatter_class=argparse.RawDescriptionHelpFormatter,
     )
@@ -36,10 +44,12 @@ Examples:
     )
 
     parser.add_argument(
-        "--json", action="store_true", help="Pretty print JSON output with indentation"
+        "--json",
+        action="store_true",
+        help="Pretty print JSON output (always formatted like jq)",
     )
 
-    parser.add_argument("--version", action="version", version="%(prog)s 0.1.0")
+    parser.add_argument("--version", action="version", version="%(prog)s 0.3.0")
 
     return parser
 
@@ -71,11 +81,8 @@ def main():
                 "mermaid_diagram": results["mermaid_diagram"],
             }
 
-        # Output JSON with optional pretty printing
-        if args.json:
-            print(json.dumps(filtered_results, indent=2))
-        else:
-            print(json.dumps(filtered_results))
+        # Output JSON with enhanced formatting options
+        print(format_json_output(filtered_results, args))
 
     except Exception as e:
         error_result = {
@@ -92,11 +99,8 @@ def main():
                 {"containers": [], "network_topology": {}, "mermaid_diagram": ""}
             )
 
-        # Output error JSON with optional pretty printing
-        if args.json:
-            print(json.dumps(error_result, indent=2))
-        else:
-            print(json.dumps(error_result))
+        # Output error JSON with enhanced formatting options
+        print(format_json_output(error_result, args))
         sys.exit(1)
 
 

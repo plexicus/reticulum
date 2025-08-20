@@ -6,7 +6,7 @@ and map affected source code paths. It provides comprehensive security assessmen
 for DevSecOps and Cloud Security teams.
 """
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 __author__ = "Jose Palanco <jose.palanco@plexicus.ai>"
 __license__ = "MIT"
 
