@@ -26,11 +26,23 @@ Reticulum is a powerful tool that analyzes monorepos containing Helm charts to i
 
 ## Installation
 
+### From PyPI (Recommended)
+
+```bash
+# Install the latest version
+pip install reticulum
+
+# Or with uv (faster)
+uv add reticulum
+```
+
+### From Source
+
 This project uses Poetry for dependency management. To get started:
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/plexicus/reticulum.git
 cd reticulum
 
 # Install dependencies
