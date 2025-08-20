@@ -1,0 +1,28 @@
+[tool.poetry]
+name = "reticulum"
+version = "0.1.0"
+description = "Exposure Scanner for Cloud Infrastructure Security Analysis"
+authors = ["Jose Palanco <jose.palanco@plexicus.ai>"]
+license = "MIT"
+readme = "README.md"
+packages = [{include = "reticulum", from = "src"}]
+
+[tool.poetry.dependencies]
+python = "^3.9"
+pyyaml = "^6.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.0"
+ruff = "^0.1.0"
+black = "^23.0"
+
+[tool.poetry.scripts]
+reticulum = "reticulum.cli:main"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.urls]
+"Homepage" = "https://github.com/plexicus/reticulum"
+"Repository" = "https://github.com/plexicus/reticulum"

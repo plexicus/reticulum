@@ -1,0 +1,12 @@
+{
+  "name": "Reticulum Dev Environment",
+  "build": { "dockerfile": "Dockerfile" },
+  "postCreateCommand": "poetry config virtualenvs.in-project true && poetry install",
+  "customizations": {
+    "vscode": {
+      "settings": { "python.defaultInterpreterPath": "${containerEnv:workspaceFolder}/.venv/bin/python" },
+      "extensions": [ "ms-python.python", "charliermarsh.ruff" ]
+    }
+  },
+  "user": "vscode"
+}
