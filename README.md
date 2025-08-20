@@ -197,6 +197,43 @@ poetry run black src/
 poetry run ruff check src/
 ```
 
+### Quality Assurance & Release Management
+
+Reticulum includes a comprehensive quality assurance system with **strict gates** that **require all tests to pass** before allowing releases.
+
+#### Quick Quality Checks
+```bash
+# Daily development checks (non-interactive)
+make quick-check
+
+# All quality checks (lint + format + test)
+make check
+```
+
+#### Pre-Release Verification
+```bash
+# Full pre-release verification (interactive)
+make pre-release
+
+# Strict release check (all tests + version sync)
+make release-strict
+```
+
+#### Version Synchronization
+```bash
+# Check version consistency across all files
+make version-sync
+```
+
+**⚠️ IMPORTANT: Tests MUST pass before creating tags or releases!**
+
+The system includes multiple quality gates:
+- ✅ **Linting** with ruff (auto-fix enabled)
+- ✅ **Formatting** with black (auto-format enabled)  
+- ✅ **Tests** with pytest (11 test suite)
+- ✅ **Version sync** between pyproject.toml, __init__.py, and git tags
+- ❌ **Blocks release** if any gate fails
+
 ### Project Structure
 ```
 src/reticulum/
@@ -209,10 +246,85 @@ src/reticulum/
 ├── mermaid_builder.py   # Mermaid diagram generation
 ├── cli.py               # Command-line interface
 └── __main__.py          # Module execution entry point
+
+scripts/
+├── quick-check.sh       # Quick quality checks (non-interactive)
+├── pre-release-check.sh # Full pre-release verification
+├── version-sync.sh      # Version consistency verification
+└── README.md            # Scripts documentation
+
+.github/workflows/
+├── publish.yml          # CI/CD: test, lint, build, publish to PyPI
+└── release.yml          # GitHub release automation
 ```
 
 ### Dev Container
 This project includes VS Code Dev Container configuration for consistent development environments.
+
+### Release Workflow
+
+**🚨 CRITICAL: Always run quality checks before releases!**
+
+```bash
+# 1. Ensure all tests pass
+make release-strict
+
+# 2. If successful, create tag
+git tag v0.x.x
+git push origin v0.x.x
+
+# 3. GitHub Actions will automatically:
+#    - Run all tests
+#    - Build package
+#    - Publish to PyPI
+```
+
+**Never create tags without passing all quality gates!**
+
+## Quality Assurance System
+
+Reticulum implements a **zero-tolerance quality system** that prevents releases with failing tests or quality issues.
+
+### Quality Gates
+
+| Gate | Tool | Action | Failure Result |
+|------|------|--------|----------------|
+| **Linting** | ruff | Auto-fix + verify | ❌ Release blocked |
+| **Formatting** | black | Auto-format + verify | ❌ Release blocked |
+| **Testing** | pytest | Run 11 test suite | ❌ Release blocked |
+| **Version Sync** | Custom script | Verify consistency | ❌ Release blocked |
+
+### Available Commands
+
+```bash
+# Development
+make install          # Install dependencies
+make test            # Run tests only
+make lint            # Run linting only
+make format          # Format code only
+make check           # All quality checks
+make dev             # Setup development environment
+
+# Quality Assurance
+make quick-check     # Quick daily checks
+make pre-release     # Full pre-release verification
+make version-sync    # Version consistency check
+make release-strict  # Strict release workflow
+
+# Utilities
+make clean           # Clean temporary files
+make help            # Show all available commands
+```
+
+### Why This Matters
+
+- **🚫 Prevents broken releases** - No tags without passing tests
+- **🔒 Maintains code quality** - Automated linting and formatting
+- **📊 Ensures consistency** - Version sync across all files
+- **🧪 Guarantees reliability** - All tests must pass
+- **🚀 Streamlines workflow** - One command for complete verification
+
+For detailed script documentation, see [`scripts/README.md`](scripts/README.md).
 
 ## License
 
