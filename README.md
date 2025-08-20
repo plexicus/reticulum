@@ -65,6 +65,9 @@ poetry run reticulum /path/to/your/repo
 
 # Paths mode - Source code path analysis
 poetry run reticulum /path/to/your/repo --paths
+
+# Pretty JSON output (formatted like jq)
+poetry run reticulum /path/to/your/repo --json
 ```
 
 #### Via Python Module
@@ -74,6 +77,9 @@ python -m reticulum /path/to/your/repo
 
 # Paths mode - Source code path analysis  
 python -m reticulum /path/to/your/repo --paths
+
+# Pretty JSON output (formatted like jq)
+python -m reticulum /path/to/your/repo --json
 ```
 
 #### After Installation
@@ -82,8 +88,9 @@ python -m reticulum /path/to/your/repo --paths
 pip install .
 
 # Use directly
-reticulum /path/to/your/repo
-reticulum /path/to/your/repo --paths
+reticulum /path/to/repo
+reticulum /path/to/repo --paths
+reticulum /path/to/repo --json
 ```
 
 ### Python API
@@ -102,6 +109,13 @@ print(f"High exposure: {results['scan_summary']['high_exposure']}")
 ```
 
 ## Output Formats
+
+### JSON Formatting Options
+
+Reticulum provides flexible JSON output formatting:
+
+- **Default**: Compact single-line JSON
+- **`--json`**: Pretty formatted JSON with 2-space indentation (like `jq`)
 
 ### Default Mode (Container Analysis)
 Returns JSON with:
