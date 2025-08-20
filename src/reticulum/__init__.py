@@ -1,11 +1,8 @@
 """
-Reticulum - Exposure Scanner for Cloud Infrastructure Security Analysis
-
-A comprehensive tool for analyzing Helm charts and identifying potential security exposures
-for DevSecOps and Cloud Security teams.
+Reticulum - Cloud Infrastructure Exposure Scanner
 """
 
-__version__ = "4.1.1"
+__version__ = "4.1.2"
 __author__ = "Jose Palanco <jose.palanco@plexicus.ai>"
 __license__ = "MIT"
 
