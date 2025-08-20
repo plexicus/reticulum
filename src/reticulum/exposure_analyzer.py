@@ -4,7 +4,6 @@ Exposure Analysis Module for Reticulum.
 Handles the analysis of Helm charts and Kubernetes resources for exposure detection.
 """
 
-import re
 from pathlib import Path
 from typing import Dict, List, Any
 import yaml
@@ -108,16 +107,18 @@ class ExposureAnalyzer:
             ("dev", chart_dir / "dev.yaml"),
             ("prod", chart_dir / "prod.yaml"),
             ("staging", chart_dir / "staging.yaml"),
-            ("stg", chart_dir / "stg.yaml")
+            ("stg", chart_dir / "stg.yaml"),
         ]
 
         for env_name, values_file in value_files:
             if values_file.exists():
                 try:
-                    with open(values_file, 'r', encoding='utf-8') as f:
+                    with open(values_file, "r", encoding="utf-8") as f:
                         values = yaml.safe_load(f)
                         if values:
-                            exposure_info = self._analyze_exposure(values, chart_name, chart_dir, repo_path, env_name)
+                            exposure_info = self._analyze_exposure(
+                                values, chart_name, chart_dir, repo_path, env_name
+                            )
                             if exposure_info:
                                 chart_info["exposure_found"] = True
                                 chart_info["containers"].extend(exposure_info)
@@ -130,12 +131,14 @@ class ExposureAnalyzer:
             for template_file in templates_dir.glob("*.yaml"):
                 if template_file.name == "ingress.yaml":
                     continue  # Already handled above
-                    
+
                 try:
-                    with open(template_file, 'r', encoding='utf-8') as f:
+                    with open(template_file, "r", encoding="utf-8") as f:
                         template = yaml.safe_load(f)
                         if template:
-                            template_exposure = self._analyze_template_exposure(template, chart_name, chart_dir, repo_path)
+                            template_exposure = self._analyze_template_exposure(
+                                template, chart_name, chart_dir, repo_path
+                            )
                             if template_exposure:
                                 chart_info["exposure_found"] = True
                                 chart_info["containers"].extend(template_exposure)
@@ -158,8 +161,12 @@ class ExposureAnalyzer:
             return containers
 
         # Check if there are environment-specific containers (non-base)
-        env_containers = [c for c in containers if c.get("environment", "base") != "base"]
-        base_containers = [c for c in containers if c.get("environment", "base") == "base"]
+        env_containers = [
+            c for c in containers if c.get("environment", "base") != "base"
+        ]
+        base_containers = [
+            c for c in containers if c.get("environment", "base") == "base"
+        ]
 
         # If there are environment-specific containers, only keep base if they're different
         if env_containers:
@@ -170,7 +177,12 @@ class ExposureAnalyzer:
         return containers
 
     def _analyze_exposure(
-        self, values: Dict[str, Any], chart_name: str, chart_dir: Path, repo_path: Path, env_name: str = "base"
+        self,
+        values: Dict[str, Any],
+        chart_name: str,
+        chart_dir: Path,
+        repo_path: Path,
+        env_name: str = "base",
     ) -> List[Dict[str, Any]]:
         """Analyze values.yaml for exposure patterns (like original scanner)."""
         containers = []
@@ -181,8 +193,14 @@ class ExposureAnalyzer:
             if isinstance(service, dict):
                 if service.get("type") in ["LoadBalancer", "NodePort"]:
                     container_info = self._create_container_info(
-                        chart_name, "LoadBalancer/NodePort", "Direct Internet Access",
-                        chart_dir, repo_path, 3, "HIGH", env_name
+                        chart_name,
+                        "LoadBalancer/NodePort",
+                        "Direct Internet Access",
+                        chart_dir,
+                        repo_path,
+                        3,
+                        "HIGH",
+                        env_name,
                     )
                     containers.append(container_info)
 
@@ -191,17 +209,25 @@ class ExposureAnalyzer:
             ingress = values["ingress"]
             if isinstance(ingress, dict):
                 hosts = ingress.get("hosts", [])
-                
+
                 # If ingress is explicitly enabled, it's HIGH exposure
                 if ingress.get("enabled", False) and hosts:
                     for host in hosts:
                         if isinstance(host, dict) and host.get("host"):
                             host_name = host["host"]
-                            if host_name != "chart-example.local":  # Skip placeholder hosts
+                            if (
+                                host_name != "chart-example.local"
+                            ):  # Skip placeholder hosts
                                 gateway_class = ingress.get("className", "Ingress")
                                 container_info = self._create_container_info(
-                                    chart_name, gateway_class, f"{host_name}",
-                                    chart_dir, repo_path, 3, "HIGH", env_name
+                                    chart_name,
+                                    gateway_class,
+                                    f"{host_name}",
+                                    chart_dir,
+                                    repo_path,
+                                    3,
+                                    "HIGH",
+                                    env_name,
                                 )
                                 containers.append(container_info)
 
@@ -210,8 +236,14 @@ class ExposureAnalyzer:
             external = values["external"]
             if isinstance(external, dict) and external.get("host"):
                 container_info = self._create_container_info(
-                    chart_name, "External", f"External: {external['host']}",
-                    chart_dir, repo_path, 3, "HIGH", env_name
+                    chart_name,
+                    "External",
+                    f"External: {external['host']}",
+                    chart_dir,
+                    repo_path,
+                    3,
+                    "HIGH",
+                    env_name,
                 )
                 containers.append(container_info)
 
@@ -220,20 +252,36 @@ class ExposureAnalyzer:
             if cloud in values:
                 cloud_config = values[cloud]
                 if isinstance(cloud_config, dict):
-                    if cloud_config.get("enabled", False) or cloud_config.get("expose", False):
+                    if cloud_config.get("enabled", False) or cloud_config.get(
+                        "expose", False
+                    ):
                         container_info = self._create_container_info(
-                            chart_name, f"{cloud.upper()}", f"{cloud.upper()} Cloud Exposure",
-                            chart_dir, repo_path, 3, "HIGH", env_name
+                            chart_name,
+                            f"{cloud.upper()}",
+                            f"{cloud.upper()} Cloud Exposure",
+                            chart_dir,
+                            repo_path,
+                            3,
+                            "HIGH",
+                            env_name,
                         )
                         containers.append(container_info)
 
         # Check for direct port exposure
         if "ports" in values:
             ports = values["ports"]
-            if isinstance(ports, list) and any(p.get("external", False) for p in ports if isinstance(p, dict)):
+            if isinstance(ports, list) and any(
+                p.get("external", False) for p in ports if isinstance(p, dict)
+            ):
                 container_info = self._create_container_info(
-                    chart_name, "Direct Ports", "External Port Exposure",
-                    chart_dir, repo_path, 3, "HIGH", env_name
+                    chart_name,
+                    "Direct Ports",
+                    "External Port Exposure",
+                    chart_dir,
+                    repo_path,
+                    3,
+                    "HIGH",
+                    env_name,
                 )
                 containers.append(container_info)
 
@@ -287,29 +335,45 @@ class ExposureAnalyzer:
         }
 
     def _analyze_template_exposure(
-        self, template: Dict[str, Any], chart_name: str, chart_dir: Path, repo_path: Path
+        self,
+        template: Dict[str, Any],
+        chart_name: str,
+        chart_dir: Path,
+        repo_path: Path,
     ) -> List[Dict[str, Any]]:
         """Analyze template files for additional exposure patterns."""
         containers = []
-        
+
         # Check for OpenShift Route
         if template.get("kind") == "Route":
             spec = template.get("spec", {})
             if spec.get("host"):
                 container_info = self._create_container_info(
-                    chart_name, "OpenShift Route", f"Route: {spec['host']}",
-                    chart_dir, repo_path, 3, "HIGH", "base"
+                    chart_name,
+                    "OpenShift Route",
+                    f"Route: {spec['host']}",
+                    chart_dir,
+                    repo_path,
+                    3,
+                    "HIGH",
+                    "base",
                 )
                 containers.append(container_info)
-        
+
         # Check for Istio Gateway
         if template.get("kind") == "Gateway":
             spec = template.get("spec", {})
             if spec.get("servers"):
                 container_info = self._create_container_info(
-                    chart_name, "Istio Gateway", "Istio Gateway Exposure",
-                    chart_dir, repo_path, 3, "HIGH", "base"
+                    chart_name,
+                    "Istio Gateway",
+                    "Istio Gateway Exposure",
+                    chart_dir,
+                    repo_path,
+                    3,
+                    "HIGH",
+                    "base",
                 )
                 containers.append(container_info)
-        
+
         return containers

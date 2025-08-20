@@ -177,7 +177,7 @@ Examples:
         help="Display beautiful formatted output in console",
     )
 
-    parser.add_argument("--version", action="version", version="%(prog)s 0.3.2")
+    parser.add_argument("--version", action="version", version="%(prog)s 0.4.0")
 
     return parser
 
