@@ -1,12 +1,11 @@
 """
 Reticulum - Exposure Scanner for Cloud Infrastructure Security Analysis
 
-This tool analyzes monorepos containing Helm charts to identify internet exposure
-and map affected source code paths. It provides comprehensive security assessment
+A comprehensive tool for analyzing Helm charts and identifying potential security exposures
 for DevSecOps and Cloud Security teams.
 """
 
-__version__ = "0.3.1"
+__version__ = "0.3.2"
 __author__ = "Jose Palanco <jose.palanco@plexicus.ai>"
 __license__ = "MIT"
 

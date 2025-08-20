@@ -68,6 +68,9 @@ poetry run reticulum /path/to/your/repo --paths
 
 # Pretty JSON output (formatted like jq)
 poetry run reticulum /path/to/your/repo --json
+
+# Beautiful console output
+poetry run reticulum /path/to/your/repo --console
 ```
 
 #### Via Python Module
@@ -110,12 +113,13 @@ print(f"High exposure: {results['scan_summary']['high_exposure']}")
 
 ## Output Formats
 
-### JSON Formatting Options
+### Output Formatting Options
 
-Reticulum provides flexible JSON output formatting:
+Reticulum provides flexible output formatting:
 
 - **Default**: Compact single-line JSON
 - **`--json`**: Pretty formatted JSON with 2-space indentation (like `jq`)
+- **`--console`**: Beautiful formatted console output (human-readable)
 
 ### Default Mode (Container Analysis)
 Returns JSON with:
