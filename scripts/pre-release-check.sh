@@ -3,6 +3,13 @@
 # Pre-release check script for Reticulum
 # This script verifies all quality checks before allowing a tag to be created
 # Now fully unattended and intelligent - no user prompts needed
+# 
+# EXECUTION PHASES (strict order to prevent race conditions):
+# 1. PREPARATION: Check environment, branch, working directory
+# 2. CODE QUALITY: Lint, format, and fix code (NO COMMITS YET)
+# 3. VALIDATION: Run tests and final checks
+# 4. SYNCHRONIZATION: Sync with remote if needed
+# 5. FINALIZATION: Commit all changes at once, final validation
 
 set -e  # Exit on any error
 
@@ -36,6 +43,9 @@ print_status() {
         "AUTO")
             echo -e "${BLUE}🤖 AUTO${NC}: $message"
             ;;
+        "PHASE")
+            echo -e "${BLUE}🚀 PHASE${NC}: $message"
+            ;;
     esac
 }
 
@@ -44,30 +54,43 @@ command_exists() {
     command -v "$1" >/dev/null 2>&1
 }
 
-# Function to auto-commit changes with intelligent commit message
-auto_commit_changes() {
-    local change_type=$1
-    local files_changed=$(git status --porcelain | wc -l | tr -d ' ')
+# Function to check if there are any changes to commit
+has_changes_to_commit() {
+    [ -n "$(git status --porcelain)" ]
+}
+
+# Function to get change summary
+get_change_summary() {
+    local staged_files=$(git diff --cached --name-only 2>/dev/null | wc -l | tr -d ' ')
+    local unstaged_files=$(git diff --name-only 2>/dev/null | wc -l | tr -d ' ')
+    echo "staged:$staged_files,unstaged:$unstaged_files"
+}
+
+# Function to commit all accumulated changes at once
+commit_all_changes() {
+    local phase=$1
     
-    if [ "$files_changed" -gt 0 ]; then
-        print_status "AUTO" "Auto-committing $change_type changes ($files_changed files)"
+    if has_changes_to_commit; then
+        local change_summary=$(get_change_summary)
+        print_status "AUTO" "Committing all accumulated changes from $phase phase ($change_summary)"
+        
+        # Add all changes before committing
         git add .
         
-        # Generate intelligent commit message based on change type
-        case $change_type in
-            "linting")
-                git commit -m "style: auto-fix linting issues with ruff"
+        # Generate intelligent commit message based on phase
+        case $phase in
+            "quality")
+                git commit -m "style: auto-fix code quality issues (linting + formatting)"
                 ;;
-            "formatting")
-                git commit -m "style: auto-format code with black"
-                ;;
-            "both")
-                git commit -m "style: auto-fix linting and formatting issues"
+            "sync")
+                git commit -m "chore: sync with remote changes"
                 ;;
             *)
-                git commit -m "style: auto-fix code quality issues"
+                git commit -m "chore: auto-fix issues from $phase phase"
                 ;;
         esac
+        
+        print_status "INFO" "All changes committed successfully"
         return 0
     fi
     return 1
@@ -89,25 +112,11 @@ fi
 
 print_status "INFO" "Poetry is available"
 
-# Check if we have uncommitted changes
-if [ -n "$(git status --porcelain)" ]; then
-    print_status "WARN" "You have uncommitted changes. Analyzing them..."
-    git status --short
-    
-    # Auto-analyze what kind of changes we have
-    staged_files=$(git diff --cached --name-only 2>/dev/null | wc -l | tr -d ' ')
-    unstaged_files=$(git diff --name-only 2>/dev/null | wc -l | tr -d ' ')
-    
-    if [ "$staged_files" -gt 0 ]; then
-        print_status "INFO" "Found $staged_files staged files - these will be included in next commit"
-    fi
-    
-    if [ "$unstaged_files" -gt 0 ]; then
-        print_status "INFO" "Found $unstaged_files unstaged files - will auto-commit if they're quality fixes"
-    fi
-else
-    print_status "PASS" "Working directory is clean"
-fi
+# ============================================================================
+# PHASE 1: PREPARATION - Check environment and working directory
+# ============================================================================
+print_status "PHASE" "1. PREPARATION - Checking environment and working directory"
+echo "=================================================================="
 
 # Check if we're on main branch
 current_branch=$(git branch --show-current)
@@ -119,16 +128,32 @@ else
     print_status "PASS" "On main branch"
 fi
 
-echo
-echo "🧪 Running quality checks..."
-echo "============================"
+# Check initial working directory state
+if has_changes_to_commit; then
+    print_status "WARN" "Initial working directory has uncommitted changes"
+    git status --short
+    
+    change_summary=$(get_change_summary)
+    print_status "INFO" "Change summary: $change_summary"
+    
+    # Don't commit yet - we'll handle all changes at the end
+    print_status "INFO" "Changes will be committed after all quality checks pass"
+else
+    print_status "PASS" "Working directory is clean"
+fi
 
-# 1. Install dependencies
+# ============================================================================
+# PHASE 2: CODE QUALITY - Lint, format, and fix code (NO COMMITS YET)
+# ============================================================================
+print_status "PHASE" "2. CODE QUALITY - Linting, formatting, and fixing code"
+echo "=================================================================="
+
+# Install dependencies
 print_status "INFO" "Installing dependencies..."
 poetry install --no-interaction
 
-# 2. Run linting with ruff
-print_status "INFO" "Running ruff linting..."
+# Run linting with ruff (with auto-fix)
+print_status "INFO" "Running ruff linting with auto-fix..."
 if poetry run ruff check src/ --fix; then
     print_status "PASS" "Ruff linting passed"
 else
@@ -136,12 +161,7 @@ else
     exit 1
 fi
 
-# 3. Auto-commit linting fixes if any
-if auto_commit_changes "linting"; then
-    print_status "INFO" "Linting fixes auto-committed"
-fi
-
-# 4. Run black formatting check
+# Run black formatting check (with auto-fix if needed)
 print_status "INFO" "Running black formatting check..."
 if poetry run black --check src/; then
     print_status "PASS" "Black formatting check passed"
@@ -149,14 +169,23 @@ else
     print_status "WARN" "Black formatting check failed - auto-formatting code..."
     poetry run black src/
     print_status "INFO" "Code formatted with black"
-    
-    # Auto-commit formatting changes if any
-    if auto_commit_changes "formatting"; then
-        print_status "INFO" "Formatting changes auto-committed"
-    fi
 fi
 
-# 5. Run tests
+# Check if any quality fixes were made
+if has_changes_to_commit; then
+    change_summary=$(get_change_summary)
+    print_status "INFO" "Quality fixes made ($change_summary) - will commit after validation"
+else
+    print_status "PASS" "No quality fixes needed"
+fi
+
+# ============================================================================
+# PHASE 3: VALIDATION - Run tests and final checks
+# ============================================================================
+print_status "PHASE" "3. VALIDATION - Running tests and final checks"
+echo "=================================================================="
+
+# Run tests
 print_status "INFO" "Running tests..."
 if poetry run pytest -v; then
     print_status "PASS" "All tests passed"
@@ -166,7 +195,7 @@ else
     exit 1
 fi
 
-# 6. Check test coverage (if available)
+# Check test coverage (if available)
 if command_exists coverage; then
     print_status "INFO" "Checking test coverage..."
     poetry run coverage run -m pytest
@@ -175,7 +204,7 @@ else
     print_status "INFO" "Coverage not available, skipping coverage check"
 fi
 
-# 7. Check if there are any TODO or FIXME comments
+# Check for TODO/FIXME comments
 print_status "INFO" "Checking for TODO/FIXME comments..."
 todo_count=$(grep -r "TODO\|FIXME" src/ --exclude-dir=__pycache__ 2>/dev/null | wc -l || echo "0")
 if [ "$todo_count" -gt 0 ]; then
@@ -196,7 +225,7 @@ else
     print_status "PASS" "No TODO/FIXME comments found"
 fi
 
-# 8. Check for any remaining linting issues
+# Final linting check
 print_status "INFO" "Final linting check..."
 if poetry run ruff check src/; then
     print_status "PASS" "Final linting check passed"
@@ -206,11 +235,17 @@ else
     exit 1
 fi
 
-# 9. Check if we're up to date with remote
+# ============================================================================
+# PHASE 4: SYNCHRONIZATION - Sync with remote if needed
+# ============================================================================
+print_status "PHASE" "4. SYNCHRONIZATION - Checking remote sync status"
+echo "=================================================================="
+
 print_status "INFO" "Checking if local is up to date with remote..."
 git fetch origin
 local_commit=$(git rev-parse HEAD)
 remote_commit=$(git rev-parse origin/main)
+
 if [ "$local_commit" != "$remote_commit" ]; then
     print_status "WARN" "Local is not up to date with remote main"
     echo "Local:  $local_commit"
@@ -218,7 +253,6 @@ if [ "$local_commit" != "$remote_commit" ]; then
     echo
     
     # Auto-analyze if we should pull
-    # Check if remote has commits we don't have
     behind_count=$(git rev-list --count HEAD..origin/main)
     ahead_count=$(git rev-list --count origin/main..HEAD)
     
@@ -242,6 +276,31 @@ else
     print_status "PASS" "Local is up to date with remote main"
 fi
 
+# ============================================================================
+# PHASE 5: FINALIZATION - Commit all changes and final validation
+# ============================================================================
+print_status "PHASE" "5. FINALIZATION - Committing changes and final validation"
+echo "=================================================================="
+
+# Commit all accumulated changes from quality fixes
+if has_changes_to_commit; then
+    commit_all_changes "quality"
+else
+    print_status "PASS" "No changes to commit"
+fi
+
+# Final working directory check
+if has_changes_to_commit; then
+    print_status "FAIL" "Working directory still has uncommitted changes after finalization"
+    git status --short
+    exit 1
+else
+    print_status "PASS" "Working directory is clean"
+fi
+
+# ============================================================================
+# SUCCESS - All checks passed
+# ============================================================================
 echo
 echo "🎉 Pre-release check completed successfully!"
 echo "=========================================="
