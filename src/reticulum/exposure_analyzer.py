@@ -393,8 +393,13 @@ class ExposureAnalyzer:
         else:
             access_chain = f"Internet -> {gateway_type} -> {chart_name} Service"
 
+        # Create unique container name for different environments
+        container_name = f"{chart_name}-container"
+        if env_name != "base":
+            container_name = f"{chart_name}-{env_name}-container"
+        
         return {
-            "name": f"{chart_name}-container",
+            "name": container_name,
             "chart": chart_name,
             "environment": env_name,
             "gateway_type": gateway_type,
