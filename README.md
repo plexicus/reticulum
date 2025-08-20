@@ -204,7 +204,7 @@ This project includes VS Code Dev Container configuration for consistent develop
 
 ## License
 
-MIT License - Copyright (c) 2024 Plexicus, LLC
+MIT License - Copyright (c) 2025 Plexicus, LLC
 
 ## Author
 
