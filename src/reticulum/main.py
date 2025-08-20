@@ -67,7 +67,7 @@ class ExposureScanner:
             if chart_info["containers"]:
                 # Filter out base containers with placeholder hosts if specific env containers exist
                 filtered_containers = (
-                    self.exposure_analyzer.filter_redundant_base_containers(
+                    self.exposure_analyzer._filter_redundant_base_containers(
                         chart_info["containers"], chart_name
                     )
                 )
