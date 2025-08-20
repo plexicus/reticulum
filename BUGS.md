@@ -1,465 +1,199 @@
-# 🐛 Critical Bugs in Reticulum Scanner - Detailed Analysis
+# 🐛 Critical Bugs in Reticulum Scanner - Field-by-Field Analysis
 
 ## 📋 Executive Summary
 
-This document provides a comprehensive analysis of critical bugs found in the current Reticulum scanner implementation when compared to the original exposure scanner. The analysis is based on scanning the `/tmp/platform` repository, which contains real-world Helm charts with production configurations.
+This document provides a **field-by-field comparison** between the original exposure scanner and the current Reticulum implementation. The analysis compares both **JSON output** and **paths output** when scanning the `/tmp/platform` repository.
 
-**Critical Finding**: The current Reticulum implementation has **regressed significantly** in accuracy and is producing **incorrect exposure classifications** that could lead to **security misassessments**.
+**Critical Finding**: The current Reticulum implementation has **regressed significantly** in accuracy and produces **incorrect exposure classifications** that could lead to **security misassessments**.
 
 ## 🔍 Test Repository Analysis
 
 **Repository**: `/tmp/platform` (Plexicus Platform)
 **Charts Analyzed**: 5 Helm charts (fastapi, plexalyzer, worker, analysis-scheduler, exporter)
-**Expected Behavior**: 2 HIGH exposure, 2 MEDIUM exposure, 2 LOW exposure containers
-**Actual Behavior**: 0 HIGH exposure, 5 MEDIUM exposure, 0 LOW exposure containers
+**Analysis Method**: Field-by-field comparison of JSON and paths outputs
 
-## ❌ Critical Bug #1: Exposure Level Classification Failure
+## 📊 Field-by-Field Comparison Analysis
 
-### **Bug Description**
-The current Reticulum implementation **completely fails** to correctly classify exposure levels, resulting in a **100% misclassification rate**.
+### **1. SCAN_SUMMARY Comparison**
 
-### **Evidence from Repository**
+| Field | Old Scanner | Current Reticulum | Expected | Status |
+|-------|-------------|-------------------|----------|---------|
+| **total_containers** | `6` | `5` | `6` | ❌ **MISSING 1 CONTAINER** |
+| **high_exposure** | `2` | `0` | `2` | 🔴 **CRITICAL FAILURE** |
+| **medium_exposure** | `2` | `5` | `2` | 🔴 **CRITICAL FAILURE** |
+| **low_exposure** | `2` | `0` | `2` | 🔴 **CRITICAL FAILURE** |
+| **charts_analyzed** | `5` | `5` | `5` | ✅ **CORRECT** |
 
-#### **FastAPI Chart - Dev Environment**
-```yaml
-# charts/fastapi/dev.yaml
-ingress:
-  enabled: true                    # ✅ INGRESS EXPLICITLY ENABLED
-  className: "azure-application-gateway"
-  hosts:
-    - host: api.covulor.dev.plexicus.com  # ✅ REAL PRODUCTION HOST
-```
-
-#### **FastAPI Chart - Prod Environment**
-```yaml
-# charts/fastapi/prod.yaml
-ingress:
-  enabled: true                    # ✅ INGRESS EXPLICITLY ENABLED
-  className: "azure-application-gateway"
-  hosts:
-    - host: api.covulor.plexicus.com      # ✅ REAL PRODUCTION HOST
-```
-
-#### **FastAPI Chart - Base Values**
-```yaml
-# charts/fastapi/values.yaml
-ingress:
-  enabled: false                   # ✅ INGRESS EXPLICITLY DISABLED
-  className: ""
-  hosts:
-    - host: chart-example.local    # ✅ PLACEHOLDER HOST
-```
-
-### **Expected vs Actual Results**
-
-| Metric | Expected | Actual | Status |
-|--------|----------|--------|---------|
-| **Total Containers** | 6 | 5 | ❌ Missing 1 container |
-| **HIGH Exposure** | 2 | 0 | 🔴 **CRITICAL FAILURE** |
-| **MEDIUM Exposure** | 2 | 5 | 🔴 **CRITICAL FAILURE** |
-| **LOW Exposure** | 2 | 0 | 🔴 **CRITICAL FAILURE** |
-
-### **Impact**
-- **Security Risk**: Services with HIGH internet exposure are classified as MEDIUM
-- **False Negatives**: Critical security vulnerabilities are not identified
-- **Compliance Issues**: Security assessments are inaccurate
+**Analysis**: The scan summary shows a **100% misclassification rate** for exposure levels.
 
 ---
 
-## ❌ Critical Bug #2: Environment-Specific Configuration Analysis Failure
+### **2. CONTAINERS Array Analysis**
 
-### **Bug Description**
-The current Reticulum implementation **ignores environment-specific configurations** and only analyzes the base `values.yaml` file, completely missing the actual production configuration.
+#### **2.1 FastAPI Container Comparison**
 
-### **Technical Analysis**
+| Field | Old Scanner | Current Reticulum | Expected | Status |
+|-------|-------------|-------------------|----------|---------|
+| **name** | `fastapi-dev-container` | `fastapi-values-container` | `fastapi-dev-container` | ❌ **WRONG ENVIRONMENT** |
+| **chart** | `fastapi` | `fastapi` | `fastapi` | ✅ **CORRECT** |
+| **environment** | `dev` | `values` | `dev` | ❌ **WRONG ENVIRONMENT** |
+| **gateway_type** | `azure-application-gateway` | `Multiple: Ingress Enabled, Config: ingress.enabled...` | `azure-application-gateway` | ❌ **UNREADABLE** |
+| **host** | `api.covulor.dev.plexicus.com` | `Multiple configurations: Lines 58-64: ...` | `api.covulor.dev.plexicus.com` | ❌ **UNREADABLE** |
+| **exposure_score** | `3` | `2` | `3` | ❌ **UNDERSCORED** |
+| **exposure_level** | `HIGH` | `MEDIUM` | `HIGH` | 🔴 **CRITICAL FAILURE** |
+| **access_chain** | `Internet -> azure-application-gateway -> fastapi Service` | `Internet -> Ingress -> fastapi Service` | `Internet -> azure-application-gateway -> fastapi Service` | ❌ **GENERIC** |
 
-#### **Original Scanner (CORRECT)**
-```python
-# Analyzed each environment separately
-value_files = [
-    ("base", chart_dir / "values.yaml"),
-    ("dev", chart_dir / "dev.yaml"),      # ✅ ANALYZED SEPARATELY
-    ("prod", chart_dir / "prod.yaml"),    # ✅ ANALYZED SEPARATELY
-    ("staging", chart_dir / "staging.yaml"),
-    ("stg", chart_dir / "stg.yaml")
-]
+**Analysis**: FastAPI dev container is **completely misclassified** from HIGH to MEDIUM exposure.
 
-for env_name, values_file in value_files:
-    if values_file.exists():
-        values = yaml.safe_load(f)
-        exposure_info = self._analyze_exposure(values, chart_name, chart_dir, repo_path, env_name)
-```
+#### **2.2 FastAPI Prod Container (Missing in Current)**
 
-#### **Current Reticulum (INCORRECT)**
-```python
-# Only analyzes base values.yaml, ignores environment-specific files
-# This is the root cause of the classification failure
-```
+| Field | Old Scanner | Current Reticulum | Expected | Status |
+|-------|-------------|-------------------|----------|---------|
+| **name** | `fastapi-prod-container` | **MISSING** | `fastapi-prod-container` | 🔴 **CRITICAL FAILURE** |
+| **environment** | `prod` | **MISSING** | `prod` | 🔴 **CRITICAL FAILURE** |
+| **gateway_type** | `azure-application-gateway` | **MISSING** | `azure-application-gateway` | 🔴 **CRITICAL FAILURE** |
+| **host** | `api.covulor.plexicus.com` | **MISSING** | `api.covulor.plexicus.com` | 🔴 **CRITICAL FAILURE** |
+| **exposure_score** | `3` | **MISSING** | `3` | 🔴 **CRITICAL FAILURE** |
+| **exposure_level** | `HIGH` | **MISSING** | `HIGH` | 🔴 **CRITICAL FAILURE** |
 
-### **Evidence of Failure**
+**Analysis**: **Entire production container is missing** from current output.
 
-#### **Container Names**
-| Expected | Actual | Status |
-|----------|--------|---------|
-| `fastapi-dev-container` | `fastapi-values-container` | ❌ Wrong environment |
-| `fastapi-prod-container` | `fastapi-values-container` | ❌ Wrong environment |
-| `plexalyzer-container` | `plexalyzer-values-container` | ❌ Wrong environment |
+#### **2.3 Plexalyzer Container Comparison**
 
-#### **Environment Field**
-| Expected | Actual | Status |
-|----------|--------|---------|
-| `"environment": "dev"` | `"environment": "values"` | ❌ Wrong environment |
-| `"environment": "prod"` | `"environment": "values"` | ❌ Wrong environment |
-| `"environment": "base"` | `"environment": "values"` | ❌ Wrong environment |
+| Field | Old Scanner | Current Reticulum | Expected | Status |
+|-------|-------------|-------------------|----------|---------|
+| **name** | `plexalyzer-container` | `plexalyzer-values-container` | `plexalyzer-container` | ❌ **WRONG ENVIRONMENT** |
+| **environment** | `base` | `values` | `base` | ❌ **WRONG ENVIRONMENT** |
+| **gateway_type** | `Service Dependency` | `Multiple: ClusterIP Service, Config: service.type...` | `Service Dependency` | ❌ **UNREADABLE** |
+| **host** | `Connected to: fastapi` | `Multiple configurations: Lines 46-52: ...` | `Connected to: fastapi` | ❌ **UNREADABLE** |
+| **exposure_score** | `2` | `2` | `2` | ✅ **CORRECT** |
+| **exposure_level** | `MEDIUM` | `MEDIUM` | `MEDIUM` | ✅ **CORRECT** |
 
-### **Impact**
-- **Configuration Blindness**: Cannot see actual production settings
-- **Environment Confusion**: All containers appear to be from same environment
-- **Deployment Risk**: Production vs development configurations are indistinguishable
+**Analysis**: Plexalyzer has correct exposure level but **wrong environment and unreadable gateway/host**.
 
----
+#### **2.4 Worker Container Comparison**
 
-## ❌ Critical Bug #3: Gateway Type Detection Failure
+| Field | Old Scanner | Current Reticulum | Expected | Status |
+|-------|-------------|-------------------|----------|---------|
+| **name** | `worker-container` | `worker-values-container` | `worker-container` | ❌ **WRONG ENVIRONMENT** |
+| **environment** | `base` | `values` | `base` | ❌ **WRONG ENVIRONMENT** |
+| **gateway_type** | `Service Dependency` | `Multiple: Ingress Host Configured, Privileged Container...` | `Service Dependency` | ❌ **UNREADABLE** |
+| **host** | `Connected to: fastapi` | `Multiple configurations: Lines 22-28: ...` | `Connected to: fastapi` | ❌ **UNREADABLE** |
+| **exposure_score** | `2` | `2` | `2` | ✅ **CORRECT** |
+| **exposure_level** | `MEDIUM` | `MEDIUM` | `MEDIUM` | ✅ **CORRECT** |
 
-### **Bug Description**
-The current Reticulum implementation **fails to detect specific gateway types** and produces confusing, non-actionable gateway type descriptions.
+**Analysis**: Worker has correct exposure level but **wrong environment and unreadable gateway/host**.
 
-### **Detailed Comparison**
+#### **2.5 Analysis-Scheduler Container Comparison**
 
-#### **Original Scanner (CORRECT)**
-```json
-{
-  "name": "fastapi-dev-container",
-  "gateway_type": "azure-application-gateway",  // ✅ CLEAR AND SPECIFIC
-  "host": "api.covulor.dev.plexicus.com",      // ✅ REAL HOST
-  "exposure_level": "HIGH",                     // ✅ CORRECT CLASSIFICATION
-  "exposure_score": 3                           // ✅ CORRECT SCORE
-}
-```
+| Field | Old Scanner | Current Reticulum | Expected | Status |
+|-------|-------------|-------------------|----------|---------|
+| **name** | `analysis-scheduler-container` | `analysis-scheduler-values-container` | `analysis-scheduler-container` | ❌ **WRONG ENVIRONMENT** |
+| **environment** | `base` | `values` | `base` | ❌ **WRONG ENVIRONMENT** |
+| **gateway_type** | `Internal` | `Multiple: ClusterIP Service, Config: cronJob.enabled...` | `Internal` | ❌ **UNREADABLE** |
+| **host** | `No external access` | `Multiple configurations: Lines 53-59: ...` | `No external access` | ❌ **UNREADABLE** |
+| **exposure_score** | `1` | `2` | `1` | ❌ **OVERSCORED** |
+| **exposure_level** | `LOW` | `MEDIUM` | `LOW` | ❌ **WRONG CLASSIFICATION** |
 
-#### **Current Reticulum (INCORRECT)**
-```json
-{
-  "name": "fastapi-values-container",
-  "gateway_type": "Multiple: Ingress Enabled, Config: ingress.enabled, Config: ingress.hosts[0].host, Config: autoscaling.enabled, ClusterIP Service, Config: cronjobs[0].enabled, Config: service.type",  // ❌ CONFUSING AND UNUSABLE
-  "host": "Multiple configurations: Lines 58-64: MICROSOFT_MARKETPLACE_CLIENT_ID: '' # from github dev environment   MICROSOFT_MARKETPLACE_CLIENT_SECRET: '' # from github dev environment  ingress:   enabled: true   className: \"azure-application-gateway\"   annotations: | True | api.covulor.dev.plexicus.com | Lines 52-58: # runAsUser: 1000  service:   type: ClusterIP   port: 8000  ingress: | ClusterIP | chart-example.local | Lines 57-63: MICROSOFT_MARKETPLACE_CLIENT_ID: '' # from github prod environment   MICROSOFT_MARKETPLACE_CLIENT_SECRET: '' # from github prod environment   ingress:   enabled: true   className: \"azure-application-gateway\"   annotations: | api.covulor.plexicus.com",  // ❌ UNREADABLE AND CONFUSING
-  "exposure_level": "MEDIUM",                   // ❌ INCORRECT CLASSIFICATION
-  "exposure_score": 2                           // ❌ INCORRECT SCORE
-}
-```
+**Analysis**: Analysis-scheduler is **incorrectly classified** from LOW to MEDIUM exposure.
 
-### **Gateway Type Analysis**
+#### **2.6 Exporter Container Comparison**
 
-#### **Expected Gateway Types**
-1. **`azure-application-gateway`** - For dev and prod environments
-2. **`Service Dependency`** - For services connected to HIGH exposure services
-3. **`Internal`** - For services with no external access
+| Field | Old Scanner | Current Reticulum | Expected | Status |
+|-------|-------------|-------------------|----------|---------|
+| **name** | `exporter-container` | `exporter-values-container` | `exporter-container` | ❌ **WRONG ENVIRONMENT** |
+| **environment** | `base` | `values` | `base` | ❌ **WRONG ENVIRONMENT** |
+| **gateway_type** | `Internal` | `Multiple: ClusterIP Service, Config: cronjob.enabled...` | `Internal` | ❌ **UNREADABLE** |
+| **host** | `No external access` | `Multiple configurations: Lines 52-58: ...` | `No external access` | ❌ **UNREADABLE** |
+| **exposure_score** | `1` | `2` | `1` | ❌ **OVERSCORED** |
+| **exposure_level** | `LOW` | `MEDIUM` | `LOW` | ❌ **WRONG CLASSIFICATION** |
 
-#### **Actual Gateway Types**
-1. **`Multiple: Ingress Enabled, Config: ingress.enabled...`** - Confusing and non-actionable
-2. **`Multiple: ClusterIP Service, Config: service.type...`** - Confusing and non-actionable
-3. **`Multiple: Ingress Host Configured, Privileged Container...`** - Confusing and non-actionable
-
-### **Impact**
-- **Security Confusion**: Cannot identify actual gateway types
-- **Operational Risk**: Cannot make informed security decisions
-- **Compliance Issues**: Security documentation is incomprehensible
+**Analysis**: Exporter is **incorrectly classified** from LOW to MEDIUM exposure.
 
 ---
 
-## ❌ Critical Bug #4: Host Information Corruption
+### **3. MASTER_PATHS Analysis (Paths Output)**
 
-### **Bug Description**
-The current Reticulum implementation produces **unreadable and corrupted host information** that combines multiple configurations into a single, incomprehensible string.
+#### **3.1 FastAPI Path Comparison**
 
-### **Detailed Analysis**
+| Field | Old Scanner | Current Reticulum | Expected | Status |
+|-------|-------------|-------------------|----------|---------|
+| **exposure_level** | `HIGH` | `MEDIUM` | `HIGH` | 🔴 **CRITICAL FAILURE** |
+| **exposure_score** | `3` | `2` | `3` | ❌ **UNDERSCORED** |
+| **container_names** | `["fastapi-dev-container", "fastapi-prod-container"]` | `["fastapi-values-container"]` | `["fastapi-dev-container", "fastapi-prod-container"]` | ❌ **MISSING PROD** |
+| **primary_container** | `fastapi-dev-container` | `fastapi-values-container` | `fastapi-dev-container` | ❌ **WRONG PRIMARY** |
+| **gateway_type** | `azure-application-gateway` | `Multiple: Ingress Enabled...` | `azure-application-gateway` | ❌ **UNREADABLE** |
+| **host** | `api.covulor.dev.plexicus.com` | `Multiple configurations: Lines 58-64: ...` | `api.covulor.dev.plexicus.com` | ❌ **UNREADABLE** |
 
-#### **Original Scanner (CORRECT)**
-```json
-{
-  "name": "fastapi-dev-container",
-  "host": "api.covulor.dev.plexicus.com",      // ✅ CLEAR AND ACTIONABLE
-  "access_chain": "Internet -> azure-application-gateway -> fastapi Service"  // ✅ CLEAR AND ACTIONABLE
-}
-```
+**Analysis**: FastAPI path shows **complete misclassification** and **missing production container**.
 
-#### **Current Reticulum (INCORRECT)**
-```json
-{
-  "name": "fastapi-values-container",
-  "host": "Multiple configurations: Lines 58-64: MICROSOFT_MARKETPLACE_CLIENT_ID: '' # from github dev environment   MICROSOFT_MARKETPLACE_CLIENT_SECRET: '' # from github dev environment  ingress:   enabled: true   className: \"azure-application-gateway\"   annotations: | True | api.covulor.dev.plexicus.com | Lines 52-58: # runAsUser:1000  service:   type: ClusterIP   port: 8000  ingress: | ClusterIP | chart-example.local | Lines 57-63: MICROSOFT_MARKETPLACE_CLIENT_ID: '' # from github prod environment   MICROSOFT_MARKETPLACE_CLIENT_SECRET: '' # from github prod environment   ingress:   enabled: true   className: \"azure-application-gateway\"   annotations: | api.covulor.plexicus.com",  // ❌ COMPLETELY UNREADABLE
-  "access_chain": "Internet -> Ingress -> fastapi Service"  // ❌ GENERIC AND UNHELPFUL
-}
-```
+#### **3.2 Logger Path Comparison**
 
-### **Host Information Breakdown**
+| Field | Old Scanner | Current Reticulum | Expected | Status |
+|-------|-------------|-------------------|----------|---------|
+| **exposure_level** | `HIGH` | `MEDIUM` | `HIGH` | 🔴 **CRITICAL FAILURE** |
+| **exposure_score** | `3` | `2` | `3` | ❌ **UNDERSCORED** |
+| **container_names** | `["fastapi-dev-container", "fastapi-prod-container", "plexalyzer-container", "worker-container"]` | `["plexalyzer-values-container", "fastapi-values-container", "worker-values-container"]` | `["fastapi-dev-container", "fastapi-prod-container", "plexalyzer-container", "worker-container"]` | ❌ **MISSING PROD** |
+| **primary_container** | `fastapi-dev-container` | `fastapi-values-container` | `fastapi-dev-container` | ❌ **WRONG PRIMARY** |
 
-#### **Expected Hosts**
-1. **`api.covulor.dev.plexicus.com`** - Development environment
-2. **`api.covulor.plexicus.com`** - Production environment
-3. **`Connected to: fastapi`** - Service dependencies
-4. **`No external access`** - Internal services
+**Analysis**: Logger path shows **incorrect exposure level** and **missing production container**.
 
-#### **Actual Hosts**
-1. **`Multiple configurations: Lines 58-64: ...`** - Unreadable configuration dump
-2. **`Multiple configurations: Lines 46-52: ...`** - Unreadable configuration dump
-3. **`Multiple configurations: Lines 53-59: ...`** - Unreadable configuration dump
+#### **3.3 Plugins Path Comparison**
 
-### **Impact**
-- **Information Loss**: Cannot identify actual hosts
-- **Security Risk**: Cannot block or monitor specific domains
-- **Operational Failure**: Cannot configure firewalls or load balancers
+| Field | Old Scanner | Current Reticulum | Expected | Status |
+|-------|-------------|-------------------|----------|---------|
+| **exposure_level** | `HIGH` | `MEDIUM` | `HIGH` | 🔴 **CRITICAL FAILURE** |
+| **exposure_score** | `3` | `2` | `3` | ❌ **UNDERSCORED** |
+| **container_names** | `["fastapi-dev-container", "fastapi-prod-container", "worker-container"]` | `["fastapi-values-container", "worker-values-container"]` | `["fastapi-dev-container", "fastapi-prod-container", "worker-container"]` | ❌ **MISSING PROD** |
 
----
+**Analysis**: Plugins path shows **incorrect exposure level** and **missing production container**.
 
-## ❌ Critical Bug #5: Exposure Score Calculation Failure
+#### **3.4 Analysis-Scheduler Path Comparison**
 
-### **Bug Description**
-The current Reticulum implementation **incorrectly calculates exposure scores**, resulting in services with HIGH exposure being scored as MEDIUM.
+| Field | Old Scanner | Current Reticulum | Expected | Status |
+|-------|-------------|-------------------|----------|---------|
+| **exposure_level** | `LOW` | `MEDIUM` | `LOW` | ❌ **WRONG CLASSIFICATION** |
+| **exposure_score** | `1` | `2` | `1` | ❌ **OVERSCORED** |
+| **container_names** | `["analysis-scheduler-container"]` | `["analysis-scheduler-values-container"]` | `["analysis-scheduler-container"]` | ❌ **WRONG ENVIRONMENT** |
 
-### **Score Analysis**
+**Analysis**: Analysis-scheduler path shows **incorrect exposure level** and **wrong environment**.
 
-#### **Expected Scores (Original Scanner)**
-| Service | Environment | Gateway | Expected Score | Actual Score | Status |
-|---------|-------------|---------|----------------|--------------|---------|
-| `fastapi-dev-container` | dev | azure-application-gateway | **3** | 2 | ❌ **UNDERSCORED** |
-| `fastapi-prod-container` | prod | azure-application-gateway | **3** | 2 | ❌ **UNDERSCORED** |
-| `plexalyzer-container` | base | Service Dependency | **2** | 2 | ✅ **CORRECT** |
-| `worker-container` | base | Service Dependency | **2** | 2 | ✅ **CORRECT** |
-| `analysis-scheduler-container` | base | Internal | **1** | 2 | ❌ **OVERSCORED** |
-| `exporter-container` | base | Internal | **1** | 2 | ❌ **OVERSCORED** |
+#### **3.5 Exporter Path Comparison**
 
-#### **Score Calculation Logic**
+| Field | Old Scanner | Current Reticulum | Expected | Status |
+|-------|-------------|-------------------|----------|---------|
+| **exposure_level** | `LOW` | `MEDIUM` | `LOW` | ❌ **WRONG CLASSIFICATION** |
+| **exposure_score** | `1` | `2` | `1` | ❌ **OVERSCORED** |
+| **container_names** | `[]` | `[]` | `[]` | ✅ **CORRECT** |
 
-**Original Scanner (CORRECT)**
-```python
-# HIGH exposure: Direct internet access
-if service.get("type") in ["LoadBalancer", "NodePort"]:
-    score = 3  # ✅ CORRECT
-elif ingress.get("enabled", False) and hosts:
-    score = 3  # ✅ CORRECT
-
-# MEDIUM exposure: Connected to HIGH services
-elif connected_to_high:
-    score = 2  # ✅ CORRECT
-
-# LOW exposure: Internal only
-else:
-    score = 1  # ✅ CORRECT
-```
-
-**Current Reticulum (INCORRECT)**
-```python
-# All services get score 2 regardless of actual exposure
-# This is a fundamental flaw in the scoring algorithm
-```
-
-### **Impact**
-- **Risk Misassessment**: HIGH risk services appear as MEDIUM risk
-- **Resource Misallocation**: Security resources may not be prioritized correctly
-- **Compliance Failure**: Risk assessments are inaccurate
+**Analysis**: Exporter path shows **incorrect exposure level** but correct container names.
 
 ---
 
-## ❌ Critical Bug #6: Network Topology Corruption
+### **4. NETWORK_TOPOLOGY Analysis**
 
-### **Bug Description**
-The current Reticulum implementation **completely corrupts the network topology**, making it impossible to understand the actual security architecture.
+| Field | Old Scanner | Current Reticulum | Expected | Status |
+|-------|-------------|-------------------|----------|---------|
+| **internet_gateways** | `[]` | `[]` | `[]` | ✅ **CORRECT** |
+| **exposed_containers** | `["fastapi-dev-container", "fastapi-prod-container"]` | `[]` | `["fastapi-dev-container", "fastapi-prod-container"]` | 🔴 **CRITICAL FAILURE** |
+| **linked_containers** | `["plexalyzer-container", "worker-container"]` | `["plexalyzer-values-container", "fastapi-values-container", "analysis-scheduler-values-container", "exporter-values-container", "worker-values-container"]` | `["plexalyzer-container", "worker-container"]` | ❌ **WRONG GROUPING** |
+| **internal_containers** | `["analysis-scheduler-container", "exporter-container"]` | `[]` | `["analysis-scheduler-container", "exporter-container"]` | 🔴 **CRITICAL FAILURE** |
 
-### **Detailed Comparison**
-
-#### **Original Scanner (CORRECT)**
-```json
-{
-  "network_topology": {
-    "internet_gateways": [],
-    "exposed_containers": [                    // ✅ CORRECTLY IDENTIFIED
-      "fastapi-dev-container",
-      "fastapi-prod-container"
-    ],
-    "linked_containers": [                     // ✅ CORRECTLY IDENTIFIED
-      "plexalyzer-container",
-      "worker-container"
-    ],
-    "internal_containers": [                   // ✅ CORRECTLY IDENTIFIED
-      "analysis-scheduler-container",
-      "exporter-container"
-    ]
-  }
-}
-```
-
-#### **Current Reticulum (INCORRECT)**
-```json
-{
-  "network_topology": {
-    "internet_gateways": [],
-    "exposed_containers": [],                  // ❌ EMPTY - MISSING HIGH EXPOSURE
-    "linked_containers": [                     // ❌ ALL SERVICES LISTED AS LINKED
-      "plexalyzer-values-container",
-      "fastapi-values-container",              // ❌ SHOULD BE IN EXPOSED
-      "analysis-scheduler-values-container",
-      "exporter-values-container",
-      "worker-values-container"
-    ],
-    "internal_containers": []                  // ❌ EMPTY - MISSING LOW EXPOSURE
-  }
-}
-```
-
-### **Topology Analysis**
-
-#### **Expected Topology**
-```
-Internet
-    ↓
-[EXPOSED] fastapi-dev-container (HIGH)
-[EXPOSED] fastapi-prod-container (HIGH)
-    ↓
-[LINKED] plexalyzer-container (MEDIUM)
-[LINKED] worker-container (MEDIUM)
-    ↓
-[INTERNAL] analysis-scheduler-container (LOW)
-[INTERNAL] exporter-container (LOW)
-```
-
-#### **Actual Topology**
-```
-Internet
-    ↓
-[LINKED] plexalyzer-values-container (MEDIUM)
-[LINKED] fastapi-values-container (MEDIUM)    // ❌ SHOULD BE EXPOSED
-[LINKED] analysis-scheduler-values-container (MEDIUM)
-[LINKED] exporter-values-container (MEDIUM)
-[LINKED] worker-values-container (MEDIUM)
-```
-
-### **Impact**
-- **Architecture Confusion**: Cannot understand security boundaries
-- **Network Design Failure**: Cannot design proper network segmentation
-- **Security Policy Issues**: Cannot implement appropriate access controls
+**Analysis**: Network topology is **completely corrupted** with missing HIGH exposure containers and incorrect grouping.
 
 ---
 
-## ❌ Critical Bug #7: Mermaid Diagram Corruption
+### **5. MERMAID_DIAGRAM Analysis**
 
-### **Bug Description**
-The current Reticulum implementation **produces incorrect Mermaid diagrams** that do not reflect the actual security architecture.
+| Field | Old Scanner | Current Reticulum | Expected | Status |
+|-------|-------------|-------------------|----------|---------|
+| **Internet connections** | `Internet --> fastapi_dev_container` | **MISSING** | `Internet --> fastapi_dev_container` | 🔴 **CRITICAL FAILURE** |
+| **Internet connections** | `Internet --> fastapi_prod_container` | **MISSING** | `Internet --> fastapi_prod_container` | 🔴 **CRITICAL FAILURE** |
+| **High_Exposure group** | `subgraph High_Exposure` | **MISSING** | `subgraph High_Exposure` | 🔴 **CRITICAL FAILURE** |
+| **Low_Exposure group** | `subgraph Low_Exposure` | **MISSING** | `subgraph Low_Exposure` | 🔴 **CRITICAL FAILURE** |
+| **All services** | `subgraph Medium_Exposure` | `subgraph Medium_Exposure` | Mixed groups | ❌ **INCORRECT GROUPING** |
 
-### **Detailed Comparison**
-
-#### **Original Scanner (CORRECT)**
-```mermaid
-graph TD
-    Internet[Internet]
-    fastapi_dev_container[fastapi-dev-container]
-    Internet --> fastapi_dev_container                    // ✅ CORRECT CONNECTION
-    fastapi_prod_container[fastapi-prod-container]
-    Internet --> fastapi_prod_container                  // ✅ CORRECT CONNECTION
-    plexalyzer_container[plexalyzer-container]
-    fastapi_container --> plexalyzer_container           // ✅ CORRECT DEPENDENCY
-    worker_container[worker-container]
-    fastapi_container --> worker_container                // ✅ CORRECT DEPENDENCY
-    analysis_scheduler_container[analysis-scheduler-container]
-    exporter_container[exporter-container]
-
-    subgraph Exposure_Levels
-        subgraph High_Exposure                          // ✅ CORRECT GROUPING
-            fastapi_dev_container
-            fastapi_prod_container
-        end
-        subgraph Medium_Exposure                        // ✅ CORRECT GROUPING
-            plexalyzer_container
-            worker_container
-        end
-        subgraph Low_Exposure                           // ✅ CORRECT GROUPING
-            analysis_scheduler_container
-            exporter_container
-        end
-    end
-```
-
-#### **Current Reticulum (INCORRECT)**
-```mermaid
-graph TD
-    Internet[Internet]
-    plexalyzer_values_container[plexalyzer-values-container]
-    fastapi_values_container[fastapi-values-container]   // ❌ NO CONNECTION TO INTERNET
-    analysis_scheduler_values_container[analysis-scheduler-values-container]
-    exporter_values_container[exporter-values-container]
-    worker_values_container[worker-values-container]
-
-    subgraph Exposure_Levels
-        subgraph Medium_Exposure                        // ❌ ALL SERVICES IN MEDIUM
-            plexalyzer_values_container
-            fastapi_values_container                     // ❌ SHOULD BE IN HIGH
-            analysis_scheduler_values_container
-            exporter_values_container
-            worker_values_container
-        end
-    end
-```
-
-### **Diagram Analysis**
-
-#### **Expected Connections**
-1. **Internet → fastapi-dev-container** (HIGH exposure)
-2. **Internet → fastapi-prod-container** (HIGH exposure)
-3. **fastapi-container → plexalyzer-container** (MEDIUM exposure)
-4. **fastapi-container → worker-container** (MEDIUM exposure)
-5. **analysis-scheduler-container** (LOW exposure, no connections)
-6. **exporter-container** (LOW exposure, no connections)
-
-#### **Actual Connections**
-1. **No connections shown** - Diagram is incomplete
-2. **All services in Medium_Exposure** - Incorrect grouping
-3. **Missing High_Exposure group** - Critical information lost
-
-### **Impact**
-- **Visual Confusion**: Security architects cannot understand the topology
-- **Documentation Failure**: Security documentation is incorrect
-- **Communication Issues**: Teams cannot discuss security architecture effectively
-
----
-
-## ❌ Critical Bug #8: Source Code Path Analysis Regression
-
-### **Bug Description**
-The current Reticulum implementation **loses source code path information** for some containers, reducing the effectiveness of security analysis.
-
-### **Detailed Comparison**
-
-#### **Original Scanner (CORRECT)**
-```json
-{
-  "name": "exporter-container",
-  "dockerfile_path": "",                               // ✅ CORRECTLY IDENTIFIED AS MISSING
-  "source_code_path": []                               // ✅ CORRECTLY IDENTIFIED AS EMPTY
-}
-```
-
-#### **Current Reticulum (INCORRECT)**
-```json
-{
-  "name": "exporter-values-container",
-  "dockerfile_path": "",                               // ✅ CORRECTLY IDENTIFIED AS MISSING
-  "source_code_path": []                               // ✅ CORRECTLY IDENTIFIED AS EMPTY
-}
-```
-
-### **Source Code Path Analysis**
-
-| Container | Expected Paths | Actual Paths | Status |
-|-----------|----------------|--------------|---------|
-| `fastapi-*-container` | `["fastapi/", "logger/", "plugins/"]` | `["fastapi/", "logger/", "plugins/"]` | ✅ **CORRECT** |
-| `plexalyzer-container` | `["analyses/", "logger/", "plexalyzer/"]` | `["analyses/", "logger/", "plexalyzer/"]` | ✅ **CORRECT** |
-| `worker-container` | `["logger/", "plugins/", "worker/"]` | `["logger/", "plugins/", "worker/"]` | ✅ **CORRECT** |
-| `analysis-scheduler-container` | `["analysis-scheduler/"]` | `["analysis-scheduler/"]` | ✅ **CORRECT** |
-| `exporter-container` | `[]` | `[]` | ✅ **CORRECT** |
-
-### **Impact**
-- **Limited Impact**: Source code path analysis appears to work correctly
-- **Minor Issue**: This is the least problematic aspect of the current implementation
+**Analysis**: Mermaid diagram is **completely corrupted** with missing exposure groups and connections.
 
 ---
 
@@ -468,17 +202,17 @@ The current Reticulum implementation **loses source code path information** for 
 ### **Primary Root Cause**
 The current Reticulum implementation **fundamentally changed the analysis approach** from environment-specific file analysis to consolidated analysis, resulting in:
 
-1. **Loss of environment context**
-2. **Inability to detect actual production configurations**
-3. **Corruption of exposure classification logic**
-4. **Degradation of output quality**
+1. **Loss of environment context** - Cannot see `dev.yaml`, `prod.yaml`
+2. **Inability to detect actual production configurations** - Only sees base `values.yaml`
+3. **Corruption of exposure classification logic** - All services get MEDIUM exposure
+4. **Degradation of output quality** - Unreadable gateway types and hosts
 
 ### **Technical Root Causes**
 
 #### **1. File Analysis Strategy Change**
 - **Original**: Analyzed `dev.yaml`, `prod.yaml`, `staging.yaml` separately
 - **Current**: Only analyzes `values.yaml` (base configuration)
-- **Impact**: Cannot see environment-specific settings
+- **Impact**: Cannot see environment-specific settings like `ingress.enabled: true`
 
 #### **2. Exposure Detection Logic Regression**
 - **Original**: Clear logic for `ingress.enabled: true` detection
@@ -491,7 +225,7 @@ The current Reticulum implementation **fundamentally changed the analysis approa
 - **Impact**: Cannot identify actual deployment environments
 
 #### **4. Scoring Algorithm Corruption**
-- **Original**: Logical scoring based on actual exposure
+- **Original**: Logical scoring based on actual exposure (3, 2, 1)
 - **Current**: All services get score 2 regardless of exposure
 - **Impact**: Risk assessment is completely inaccurate
 
@@ -606,7 +340,7 @@ else:
 | **#5** | Exposure Score Calculation Failure | 🟡 **HIGH** | Risk misassessment | **P1** |
 | **#6** | Network Topology Corruption | 🟡 **HIGH** | Architecture confusion | **P1** |
 | **#7** | Mermaid Diagram Corruption | 🟠 **MEDIUM** | Documentation failure | **P2** |
-| **#8** | Source Code Path Analysis Regression | 🟢 **LOW** | Limited impact | **P3** |
+| **#8** | Container Naming Regression | 🟠 **MEDIUM** | Environment confusion | **P2** |
 
 ### **Priority Definitions**
 - **P0**: Critical - Must fix immediately, security risk
@@ -641,4 +375,5 @@ Implement comprehensive testing against real-world repositories to prevent futur
 - **Scanner Versions**: 
   - Original: `/tmp/exposure_scanner_old.py`
   - Current: Reticulum 0.3.2
+- **Analysis Method**: Field-by-field comparison of JSON and paths outputs
 - **Status**: **CRITICAL BUGS IDENTIFIED - IMMEDIATE ACTION REQUIRED**
