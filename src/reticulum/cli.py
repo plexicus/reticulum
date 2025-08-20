@@ -35,13 +35,13 @@ def _format_containers_console(data: dict) -> str:
         output.append("-" * 20)
         output.append(f"   Charts analyzed: {summary.get('charts_analyzed', 0)}")
         output.append(f"   Containers found: {summary.get('total_containers', 0)}")
-        
+
         # Calculate total exposures from individual exposure levels
-        high_exposure = summary.get('high_exposure', 0)
-        medium_exposure = summary.get('medium_exposure', 0)
-        low_exposure = summary.get('low_exposure', 0)
+        high_exposure = summary.get("high_exposure", 0)
+        medium_exposure = summary.get("medium_exposure", 0)
+        low_exposure = summary.get("low_exposure", 0)
         total_exposures = high_exposure + medium_exposure + low_exposure
-        
+
         output.append(f"   Total exposures: {total_exposures}")
         output.append(f"   🔴 High: {high_exposure}")
         output.append(f"   🟡 Medium: {medium_exposure}")
