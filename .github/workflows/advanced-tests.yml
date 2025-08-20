@@ -1,0 +1,168 @@
+name: Advanced Test Scenarios
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'tests/advanced-test-repo/**'
+      - 'tests/test_advanced_scenarios.py'
+      - 'scripts/run-advanced-tests.sh'
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'tests/advanced-test-repo/**'
+      - 'tests/test_advanced_scenarios.py'
+      - 'scripts/run-advanced-tests.sh'
+  workflow_dispatch:
+    inputs:
+      test_type:
+        description: 'Type of test to run'
+        required: true
+        default: 'all'
+        type: choice
+        options:
+          - all
+          - basic
+          - advanced
+          - performance
+
+jobs:
+  advanced-testing:
+    name: Advanced Test Scenarios
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        python-version: ["3.9", "3.10", "3.11"]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+    
+    - name: Install dependencies
+      run: poetry install --no-interaction
+      timeout-minutes: 5
+    
+    - name: Verify advanced test repository
+      run: |
+        echo "🔍 Verifying advanced test repository structure..."
+        ls -la tests/advanced-test-repo/
+        echo "📊 Chart count:"
+        ls tests/advanced-test-repo/charts/ | wc -l
+        echo "📁 Dockerfiles count:"
+        ls tests/advanced-test-repo/dockerfiles/ | wc -l
+    
+    - name: Run basic tests
+      run: poetry run pytest tests/test_exposure_scanner.py -v
+      timeout-minutes: 10
+    
+    - name: Run advanced test scenarios
+      run: poetry run pytest tests/test_advanced_scenarios.py -v
+      timeout-minutes: 15
+    
+    - name: Run advanced test script
+      run: |
+        echo "🔬 Running advanced test script..."
+        chmod +x scripts/run-advanced-tests.sh
+        scripts/run-advanced-tests.sh
+      timeout-minutes: 20
+    
+    - name: Generate test coverage report
+      run: |
+        poetry run pytest tests/ --cov=src/reticulum --cov-report=xml --cov-report=html
+      timeout-minutes: 10
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        file: ./coverage.xml
+        flags: advanced-tests
+        name: advanced-test-coverage
+    
+    - name: Archive test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: advanced-test-results-${{ matrix.python-version }}
+        path: |
+          test-results/
+          htmlcov/
+          coverage.xml
+        retention-days: 30
+    
+    - name: Performance benchmark validation
+      run: |
+        echo "🚀 Validating performance benchmarks..."
+        if [ -d "test-results" ]; then
+          echo "📊 Test results found:"
+          ls -la test-results/
+          
+          # Check for performance issues
+          if find test-results/ -name "*.log" -exec grep -l "Performance Benchmark: FAILED" {} \;; then
+            echo "⚠️  Performance benchmarks failed - check logs for details"
+          else
+            echo "✅ All performance benchmarks passed"
+          fi
+        else
+          echo "❌ No test results directory found"
+        fi
+      timeout-minutes: 5
+
+  performance-benchmark:
+    name: Performance Benchmark
+    runs-on: ubuntu-latest
+    needs: advanced-testing
+    if: github.event.inputs.test_type == 'performance' || github.event_name == 'workflow_dispatch'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: "3.11"
+    
+    - name: Install Poetry
+      uses: snok/install-poetry@v1
+      with:
+        version: latest
+        virtualenvs-create: true
+        virtualenvs-in-project: true
+    
+    - name: Install dependencies
+      run: poetry install --no-interaction
+      timeout-minutes: 5
+    
+    - name: Run performance benchmarks
+      run: |
+        echo "⚡ Running performance benchmarks..."
+        poetry run pytest tests/test_advanced_scenarios.py::TestAdvancedScenarios::test_performance_benchmarks -v
+        
+        # Run multiple scans to measure consistency
+        echo "🔄 Running multiple scans for performance analysis..."
+        for i in {1..5}; do
+          echo "Scan $i:"
+          time poetry run python -m reticulum tests/advanced-test-repo --json > /dev/null
+        done
+      timeout-minutes: 15
+    
+    - name: Performance analysis
+      run: |
+        echo "📈 Performance analysis completed"
+        echo "Check the workflow logs for detailed timing information"
+      timeout-minutes: 5

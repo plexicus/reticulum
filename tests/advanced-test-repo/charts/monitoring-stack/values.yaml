@@ -1,0 +1,67 @@
+# Monitoring Stack - LOW Exposure (Internal only)
+service:
+  type: "ClusterIP"
+  port: 9090
+  targetPort: 9090
+
+# No ingress - internal service only
+ingress:
+  enabled: false
+
+# Monitoring components
+components:
+  prometheus:
+    enabled: true
+    version: "2.45"
+    enablePersistence: true
+    retention: "30d"
+  
+  grafana:
+    enabled: true
+    version: "10.0"
+    enablePersistence: true
+    enableDashboardProvisioning: true
+  
+  alertmanager:
+    enabled: true
+    version: "0.25"
+    enablePersistence: true
+    enableClusterMode: true
+  
+  nodeExporter:
+    enabled: true
+    version: "1.6"
+    enableCollectors: true
+  
+  kubeStateMetrics:
+    enabled: true
+    version: "2.8"
+    enableMetrics: true
+
+# Storage configuration
+storage:
+  type: "persistent"
+  size: "200Gi"
+  storageClass: "fast-ssd"
+  enableEncryption: true
+
+# Security configuration
+security:
+  enableTLS: true
+  enableNetworkPolicies: true
+  enableRBAC: true
+  enableServiceAccounts: true
+
+# Alerting configuration
+alerting:
+  enableSlack: true
+  enableEmail: true
+  enablePagerDuty: true
+  enableWebhooks: true
+
+# Retention and cleanup
+retention:
+  metrics: "30d"
+  logs: "7d"
+  traces: "3d"
+  enableCompression: true

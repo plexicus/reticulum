@@ -1,0 +1,5 @@
+apiVersion: v2
+name: cache-service
+description: Redis cache service (LOW exposure - internal only)
+version: 0.1.0
+appVersion: "1.0.0"

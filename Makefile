@@ -1,87 +1,80 @@
 # Makefile for Reticulum project
 # Provides convenient targets for development and release
 
-.PHONY: help install test lint format check quick-check pre-release version-sync clean
+.PHONY: help check test lint format clean quick-check pre-release version-sync release-strict advanced-tests test-all dev-setup ci-test ci-lint ci-format-check
 
-# Default target
-help:
-	@echo "Reticulum - Makefile Help"
-	@echo "========================="
+help: ## Show this help message
+	@echo "Reticulum - Development and Release Management"
+	@echo "=============================================="
 	@echo ""
-	@echo "Development targets:"
-	@echo "  install      - Install dependencies with Poetry"
-	@echo "  test         - Run tests with pytest"
-	@echo "  lint         - Run ruff linting with auto-fix"
-	@echo "  format       - Format code with black"
-	@echo "  check        - Run all quality checks (lint + format + test)"
+	@echo "Available targets:"
 	@echo ""
-	@echo "Release targets:"
-	@echo "  quick-check  - Quick quality check (non-interactive)"
-	@echo "  pre-release  - Full pre-release verification (interactive)"
-	@echo "  version-sync - Check version consistency"
-	@echo "  release-strict # Strict release check (all tests + version sync)"
-	@echo ""
-	@echo "Utility targets:"
-	@echo "  clean        - Clean up temporary files"
-	@echo "  help         - Show this help message"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-# Install dependencies
-install:
-	@echo "📦 Installing dependencies..."
-	poetry install --no-interaction
+check: lint format test ## Run all quality checks (lint, format, test)
 
-# Run tests
-test:
+test: ## Run the test suite
 	@echo "🧪 Running tests..."
-	poetry run pytest -v
+	poetry run pytest tests/ -v
 
-# Run linting with auto-fix
-lint:
-	@echo "🔍 Running ruff linting with auto-fix..."
+lint: ## Run linting checks
+	@echo "🔍 Running linting checks..."
 	poetry run ruff check src/ --fix
+	@echo "✅ Linting completed"
 
-# Format code
-format:
-	@echo "🎨 Formatting code with black..."
+format: ## Format code with black
+	@echo "🎨 Formatting code..."
 	poetry run black src/
+	@echo "✅ Code formatting completed"
 
-# Run all quality checks
-check: lint format test
-	@echo "✅ All quality checks completed!"
+clean: ## Clean up generated files
+	@echo "🧹 Cleaning up..."
+	rm -rf dist/
+	rm -rf build/
+	rm -rf *.egg-info/
+	rm -rf .pytest_cache/
+	rm -rf test-results/
+	@echo "✅ Cleanup completed"
 
-# Quick quality check (non-interactive)
-quick-check:
-	@echo "🚀 Running quick quality check..."
-	./scripts/quick-check.sh
+quick-check: ## Quick quality check for daily development
+	@echo "⚡ Running quick quality check..."
+	@scripts/quick-check.sh
 
-# Full pre-release verification (interactive)
-pre-release:
-	@echo "🚀 Running full pre-release check..."
-	./scripts/pre-release-check.sh
+pre-release: ## Comprehensive pre-release quality check
+	@echo "🚀 Running pre-release quality check..."
+	@scripts/pre-release-check.sh
 
-# Check version consistency
-version-sync:
-	@echo "🔄 Checking version consistency..."
-	./scripts/version-sync.sh
+version-sync: ## Verify and sync version numbers
+	@echo "🔄 Running version synchronization..."
+	@scripts/version-sync.sh
 
-# Clean up temporary files
-clean:
-	@echo "🧹 Cleaning up temporary files..."
-	find . -type f -name "*.pyc" -delete
-	find . -type d -name "__pycache__" -delete
-	find . -type d -name "*.egg-info" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name ".pytest_cache" -exec rm -rf {} + 2>/dev/null || true
-	find . -type d -name ".coverage" -delete 2>/dev/null || true
-	@echo "✅ Cleanup completed!"
+release-strict: ## Strict release preparation (check + version-sync)
+	@echo "🎯 Running strict release preparation..."
+	@make check
+	@make version-sync
 
-# Development workflow: install + check
-dev: install check
-	@echo "🚀 Development environment ready!"
+advanced-tests: ## Run advanced test scenarios against complex repository
+	@echo "🔬 Running advanced test scenarios..."
+	@scripts/run-advanced-tests.sh
 
-# Release workflow: quick-check + pre-release
-release: quick-check pre-release
-	@echo "🎉 Ready for release!"
+test-all: test advanced-tests ## Run all tests including advanced scenarios
+	@echo "🎉 All tests completed!"
 
-# Strict release workflow: all checks + version sync
-release-strict: check version-sync
-	@echo "🎉 Strict release check completed - All tests passed, versions synced!"
+# Development helpers
+dev-setup: ## Set up development environment
+	@echo "🔧 Setting up development environment..."
+	poetry install
+	@echo "✅ Development environment ready"
+
+# CI/CD helpers
+ci-test: ## Run tests for CI environment
+	@echo "🔄 Running CI tests..."
+	poetry run pytest tests/ --junitxml=test-results.xml
+
+ci-lint: ## Run linting for CI environment
+	@echo "🔄 Running CI linting..."
+	poetry run ruff check src/
+
+ci-format-check: ## Check code formatting for CI
+	@echo "🔄 Checking code formatting..."
+	poetry run black --check src/

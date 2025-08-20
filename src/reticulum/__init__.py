@@ -5,7 +5,7 @@ A comprehensive tool for analyzing Helm charts and identifying potential securit
 for DevSecOps and Cloud Security teams.
 """
 
-__version__ = "4.1.0"
+__version__ = "4.1.1"
 __author__ = "Jose Palanco <jose.palanco@plexicus.ai>"
 __license__ = "MIT"
 

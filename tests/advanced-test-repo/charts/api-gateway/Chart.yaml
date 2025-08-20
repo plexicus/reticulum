@@ -1,0 +1,5 @@
+apiVersion: v2
+name: api-gateway
+description: API Gateway with LoadBalancer and Ingress (HIGH exposure)
+version: 0.1.0
+appVersion: "1.0.0"

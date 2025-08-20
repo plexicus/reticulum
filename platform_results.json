@@ -1,0 +1,154 @@
+{
+  "containers": [
+    {
+      "access_chain": "Internet -> azure-application-gateway -> fastapi Service",
+      "chart": "fastapi",
+      "depends_on": [],
+      "dockerfile_path": "fastapi/Dockerfile",
+      "environment": "dev",
+      "exposed_by": [],
+      "exposes": [
+        {
+          "description": "Ingress endpoint (Prefix)",
+          "protocol": "HTTP/HTTPS",
+          "type": "endpoint",
+          "value": "api.covulor.dev.plexicus.com/"
+        }
+      ],
+      "exposure_level": "HIGH",
+      "exposure_score": 3,
+      "gateway_type": "azure-application-gateway",
+      "host": "api.covulor.dev.plexicus.com",
+      "name": "fastapi-dev-container",
+      "source_code_path": [
+        "fastapi/",
+        "logger/",
+        "plugins/"
+      ]
+    },
+    {
+      "access_chain": "Internet -> azure-application-gateway -> fastapi Service",
+      "chart": "fastapi",
+      "depends_on": [],
+      "dockerfile_path": "fastapi/Dockerfile",
+      "environment": "prod",
+      "exposed_by": [],
+      "exposes": [
+        {
+          "description": "Ingress endpoint (Prefix)",
+          "protocol": "HTTP/HTTPS",
+          "type": "endpoint",
+          "value": "api.covulor.plexicus.com/"
+        }
+      ],
+      "exposure_level": "HIGH",
+      "exposure_score": 3,
+      "gateway_type": "azure-application-gateway",
+      "host": "api.covulor.plexicus.com",
+      "name": "fastapi-prod-container",
+      "source_code_path": [
+        "fastapi/",
+        "logger/",
+        "plugins/"
+      ]
+    },
+    {
+      "access_chain": "Connected to HIGH exposure services: fastapi",
+      "chart": "plexalyzer",
+      "depends_on": [],
+      "dockerfile_path": "plexalyzer/Dockerfile",
+      "environment": "base",
+      "exposed_by": [
+        "fastapi-container"
+      ],
+      "exposes": [],
+      "exposure_level": "MEDIUM",
+      "exposure_score": 2,
+      "gateway_type": "Service Dependency",
+      "host": "Connected to: fastapi",
+      "name": "plexalyzer-container",
+      "source_code_path": [
+        "analyses/",
+        "logger/",
+        "plexalyzer/"
+      ]
+    },
+    {
+      "access_chain": "Connected to HIGH exposure services: fastapi",
+      "chart": "worker",
+      "depends_on": [],
+      "dockerfile_path": "worker/Dockerfile",
+      "environment": "base",
+      "exposed_by": [
+        "fastapi-container"
+      ],
+      "exposes": [],
+      "exposure_level": "MEDIUM",
+      "exposure_score": 2,
+      "gateway_type": "Service Dependency",
+      "host": "Connected to: fastapi",
+      "name": "worker-container",
+      "source_code_path": [
+        "logger/",
+        "plugins/",
+        "worker/"
+      ]
+    },
+    {
+      "access_chain": "Internal Only - No internet access or HIGH container connections",
+      "chart": "analysis-scheduler",
+      "depends_on": [],
+      "dockerfile_path": "analysis-scheduler/Dockerfile",
+      "environment": "base",
+      "exposed_by": [],
+      "exposes": [],
+      "exposure_level": "LOW",
+      "exposure_score": 1,
+      "gateway_type": "Internal",
+      "host": "No external access",
+      "name": "analysis-scheduler-container",
+      "source_code_path": [
+        "analysis-scheduler/"
+      ]
+    },
+    {
+      "access_chain": "Internal Only - No internet access or HIGH container connections",
+      "chart": "exporter",
+      "depends_on": [],
+      "dockerfile_path": "",
+      "environment": "base",
+      "exposed_by": [],
+      "exposes": [],
+      "exposure_level": "LOW",
+      "exposure_score": 1,
+      "gateway_type": "Internal",
+      "host": "No external access",
+      "name": "exporter-container",
+      "source_code_path": []
+    }
+  ],
+  "mermaid_diagram": "graph TD\n    Internet[Internet]\n    fastapi_dev_container[fastapi-dev-container]\n    Internet --> fastapi_dev_container\n    fastapi_prod_container[fastapi-prod-container]\n    Internet --> fastapi_prod_container\n    plexalyzer_container[plexalyzer-container]\n    fastapi_container --> plexalyzer_container\n    worker_container[worker-container]\n    fastapi_container --> worker_container\n    analysis_scheduler_container[analysis-scheduler-container]\n    exporter_container[exporter-container]\n\n    subgraph Exposure_Levels\n        subgraph High_Exposure\n            fastapi_dev_container\n            fastapi_prod_container\n        end\n        subgraph Medium_Exposure\n            plexalyzer_container\n            worker_container\n        end\n        subgraph Low_Exposure\n            analysis_scheduler_container\n            exporter_container\n        end\n    end",
+  "network_topology": {
+    "exposed_containers": [
+      "fastapi-dev-container",
+      "fastapi-prod-container"
+    ],
+    "internal_containers": [
+      "analysis-scheduler-container",
+      "exporter-container"
+    ],
+    "internet_gateways": [],
+    "linked_containers": [
+      "plexalyzer-container",
+      "worker-container"
+    ]
+  },
+  "repo_path": "/private/tmp/platform",
+  "scan_summary": {
+    "charts_analyzed": 5,
+    "high_exposure": 2,
+    "low_exposure": 2,
+    "medium_exposure": 2,
+    "total_containers": 6
+  }
+}

@@ -201,6 +201,7 @@ class ExposureAnalyzer:
                         3,
                         "HIGH",
                         env_name,
+                        values,
                     )
                     containers.append(container_info)
 
@@ -228,6 +229,7 @@ class ExposureAnalyzer:
                                     3,
                                     "HIGH",
                                     env_name,
+                                    values,
                                 )
                                 containers.append(container_info)
 
@@ -244,6 +246,7 @@ class ExposureAnalyzer:
                     3,
                     "HIGH",
                     env_name,
+                    values,
                 )
                 containers.append(container_info)
 
@@ -264,6 +267,7 @@ class ExposureAnalyzer:
                             3,
                             "HIGH",
                             env_name,
+                            values,
                         )
                         containers.append(container_info)
 
@@ -282,6 +286,7 @@ class ExposureAnalyzer:
                     3,
                     "HIGH",
                     env_name,
+                    values,
                 )
                 containers.append(container_info)
 
@@ -297,6 +302,7 @@ class ExposureAnalyzer:
         score: int,
         level: str,
         env_name: str = "base",
+        values: Dict[str, Any] = None,
     ) -> Dict[str, Any]:
         """Create container information structure."""
         # Create appropriate access chain based on gateway type
@@ -318,6 +324,14 @@ class ExposureAnalyzer:
         if env_name != "base":
             container_name = f"{chart_name}-{env_name}-container"
 
+        # Analyze what this service exposes
+        exposes = self._analyze_service_exposure(
+            chart_name, gateway_type, values, chart_dir
+        )
+
+        # Analyze what this service depends on
+        depends_on = self._analyze_service_dependencies(chart_name, values, chart_dir)
+
         return {
             "name": container_name,
             "chart": chart_name,
@@ -329,10 +343,259 @@ class ExposureAnalyzer:
             "access_chain": access_chain,
             "dockerfile_path": "",
             "source_code_path": [],
-            "exposes": [],
+            "exposes": exposes,
             "exposed_by": [],
-            "depends_on": [],
+            "depends_on": depends_on,
         }
+
+    def _analyze_service_exposure(
+        self,
+        chart_name: str,
+        gateway_type: str,
+        values: Dict[str, Any],
+        chart_dir: Path,
+    ) -> List[Dict[str, Any]]:
+        """Analyze what this service exposes to the outside world."""
+        exposes = []
+
+        if not values:
+            return exposes
+
+        # Analyze ports exposed
+        if "service" in values:
+            service = values["service"]
+            if isinstance(service, dict):
+                port = service.get("port")
+                target_port = service.get("targetPort")
+                if port:
+                    exposes.append(
+                        {
+                            "type": "port",
+                            "value": port,
+                            "protocol": "TCP",
+                            "description": f"Service port {port}",
+                        }
+                    )
+                if target_port:
+                    exposes.append(
+                        {
+                            "type": "target_port",
+                            "value": target_port,
+                            "protocol": "TCP",
+                            "description": f"Container port {target_port}",
+                        }
+                    )
+
+        # Analyze ingress endpoints
+        if "ingress" in values:
+            ingress = values["ingress"]
+            if isinstance(ingress, dict) and ingress.get("enabled", False):
+                hosts = ingress.get("hosts", [])
+                for host_config in hosts:
+                    if isinstance(host_config, dict):
+                        host_name = host_config.get("host", "")
+                        paths = host_config.get("paths", [])
+                        for path_config in paths:
+                            if isinstance(path_config, dict):
+                                path = path_config.get("path", "/")
+                                path_type = path_config.get("pathType", "Prefix")
+                                exposes.append(
+                                    {
+                                        "type": "endpoint",
+                                        "value": f"{host_name}{path}",
+                                        "protocol": "HTTP/HTTPS",
+                                        "description": f"Ingress endpoint ({path_type})",
+                                    }
+                                )
+
+        # Analyze LoadBalancer specific exposures
+        if "LoadBalancer" in gateway_type:
+            if "service" in values:
+                service = values["service"]
+                if isinstance(service, dict) and service.get("type") == "LoadBalancer":
+                    exposes.append(
+                        {
+                            "type": "load_balancer",
+                            "value": "external",
+                            "protocol": "TCP",
+                            "description": "External LoadBalancer access",
+                        }
+                    )
+
+        # Analyze NodePort specific exposures
+        if "NodePort" in gateway_type:
+            if "service" in values:
+                service = values["service"]
+                if isinstance(service, dict) and service.get("type") == "NodePort":
+                    exposes.append(
+                        {
+                            "type": "node_port",
+                            "value": "external",
+                            "protocol": "TCP",
+                            "description": "External NodePort access",
+                        }
+                    )
+
+        # Analyze cloud-specific exposures
+        for cloud in ["azure", "aws", "gcp"]:
+            if cloud in values:
+                cloud_config = values[cloud]
+                if isinstance(cloud_config, dict) and cloud_config.get(
+                    "enabled", False
+                ):
+                    exposes.append(
+                        {
+                            "type": "cloud_service",
+                            "value": cloud.upper(),
+                            "protocol": "Cloud",
+                            "description": f"{cloud.upper()} cloud service integration",
+                        }
+                    )
+
+        return exposes
+
+    def _analyze_service_dependencies(
+        self, chart_name: str, values: Dict[str, Any], chart_dir: Path
+    ) -> List[Dict[str, Any]]:
+        """Analyze what other services this service depends on."""
+        depends_on = []
+
+        if not values:
+            return depends_on
+
+        # Check for explicit dependencies section
+        if "dependencies" in values:
+            deps = values["dependencies"]
+            if isinstance(deps, dict):
+                for dep_name, dep_config in deps.items():
+                    if isinstance(dep_config, str):
+                        # Simple string dependency
+                        depends_on.append(
+                            {
+                                "service": dep_config,
+                                "type": "service",
+                                "required": True,
+                                "description": f"Dependency on {dep_config}",
+                            }
+                        )
+                    elif isinstance(dep_config, dict):
+                        # Complex dependency configuration
+                        required = dep_config.get("required", True)
+                        description = dep_config.get(
+                            "description", f"Dependency on {dep_name}"
+                        )
+                        depends_on.append(
+                            {
+                                "service": dep_name,
+                                "type": "custom",
+                                "required": required,
+                                "description": description,
+                            }
+                        )
+
+        # Check for database dependencies
+        for db_type in ["postgresql", "mysql", "mongodb", "redis", "database"]:
+            if db_type in values:
+                db_config = values[db_type]
+                if isinstance(db_config, dict):
+                    # Check if database is enabled or has configuration
+                    enabled = db_config.get(
+                        "enabled", True
+                    )  # Default to True if not specified
+                    if enabled or any(
+                        key in db_config for key in ["type", "host", "port", "url"]
+                    ):
+                        depends_on.append(
+                            {
+                                "service": f"{chart_name}-{db_type}",
+                                "type": "database",
+                                "required": True,
+                                "description": f"{db_type.title()} database dependency",
+                            }
+                        )
+
+        # Check for cache dependencies
+        if "cache" in values:
+            cache_config = values["cache"]
+            if isinstance(cache_config, dict):
+                # Check if cache is enabled or has configuration
+                enabled = cache_config.get(
+                    "enabled", True
+                )  # Default to True if not specified
+                if enabled or any(
+                    key in cache_config for key in ["type", "host", "port", "url"]
+                ):
+                    depends_on.append(
+                        {
+                            "service": f"{chart_name}-cache",
+                            "type": "cache",
+                            "required": False,
+                            "description": "Cache service dependency",
+                        }
+                    )
+
+        # Check for message queue dependencies
+        for queue_type in ["rabbitmq", "kafka", "redis", "queue"]:
+            if queue_type in values:
+                queue_config = values[queue_type]
+                if isinstance(queue_config, dict):
+                    # Check if queue is enabled or has configuration
+                    enabled = queue_config.get(
+                        "enabled", True
+                    )  # Default to True if not specified
+                    if enabled or any(
+                        key in queue_config for key in ["type", "host", "port", "url"]
+                    ):
+                        depends_on.append(
+                            {
+                                "service": f"{chart_name}-{queue_type}",
+                                "type": "message_queue",
+                                "required": False,
+                                "description": f"{queue_type.title()} message queue dependency",
+                            }
+                        )
+
+        # Check for monitoring dependencies
+        if "monitoring" in values:
+            monitoring_config = values["monitoring"]
+            if isinstance(monitoring_config, dict):
+                # Check if monitoring is enabled or has configuration
+                enabled = monitoring_config.get(
+                    "enabled", True
+                )  # Default to True if not specified
+                if enabled or any(
+                    key in monitoring_config for key in ["type", "host", "port", "url"]
+                ):
+                    depends_on.append(
+                        {
+                            "service": f"{chart_name}-monitoring",
+                            "type": "monitoring",
+                            "required": False,
+                            "description": "Monitoring service dependency",
+                        }
+                    )
+
+        # Check for storage dependencies
+        if "storage" in values:
+            storage_config = values["storage"]
+            if isinstance(storage_config, dict):
+                # Check if storage is enabled or has configuration
+                enabled = storage_config.get(
+                    "enabled", True
+                )  # Default to True if not specified
+                if enabled or any(
+                    key in storage_config for key in ["type", "size", "storageClass"]
+                ):
+                    depends_on.append(
+                        {
+                            "service": f"{chart_name}-storage",
+                            "type": "storage",
+                            "required": False,
+                            "description": "Persistent storage dependency",
+                        }
+                    )
+
+        return depends_on
 
     def _analyze_template_exposure(
         self,
@@ -357,6 +620,7 @@ class ExposureAnalyzer:
                     3,
                     "HIGH",
                     "base",
+                    None,  # No values context for templates
                 )
                 containers.append(container_info)
 
@@ -373,6 +637,7 @@ class ExposureAnalyzer:
                     3,
                     "HIGH",
                     "base",
+                    None,  # No values context for templates
                 )
                 containers.append(container_info)
 

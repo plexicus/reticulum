@@ -109,6 +109,21 @@ class DependencyAnalyzer:
         repo_path: Path,
     ) -> Dict[str, Any]:
         """Create MEDIUM exposure container info for dependency-connected services."""
+        # Load values.yaml to analyze dependencies
+        values_file = chart_dir / "values.yaml"
+        values = {}
+        if values_file.exists():
+            try:
+                import yaml
+
+                with open(values_file, "r", encoding="utf-8") as f:
+                    values = yaml.safe_load(f) or {}
+            except Exception:
+                values = {}
+
+        # Analyze dependencies from values.yaml
+        depends_on = self._analyze_service_dependencies(chart_name, values, chart_dir)
+
         container_info = {
             "name": f"{chart_name}-container",
             "chart": chart_name,
@@ -122,10 +137,153 @@ class DependencyAnalyzer:
             "source_code_path": [],
             "exposes": [],
             "exposed_by": [f"{srv}-container" for srv in connected_services],
-            "depends_on": [],
+            "depends_on": depends_on,
         }
 
         return container_info
+
+    def _analyze_service_dependencies(
+        self, chart_name: str, values: Dict[str, Any], chart_dir: Path
+    ) -> List[Dict[str, Any]]:
+        """Analyze what other services this service depends on."""
+        depends_on = []
+
+        if not values:
+            return depends_on
+
+        # Check for explicit dependencies section
+        if "dependencies" in values:
+            deps = values["dependencies"]
+            if isinstance(deps, dict):
+                for dep_name, dep_config in deps.items():
+                    if isinstance(dep_config, str):
+                        # Simple string dependency
+                        depends_on.append(
+                            {
+                                "service": dep_config,
+                                "type": "service",
+                                "required": True,
+                                "description": f"Dependency on {dep_config}",
+                            }
+                        )
+                    elif isinstance(dep_config, dict):
+                        # Complex dependency configuration
+                        required = dep_config.get("required", True)
+                        description = dep_config.get(
+                            "description", f"Dependency on {dep_name}"
+                        )
+                        depends_on.append(
+                            {
+                                "service": dep_name,
+                                "type": "custom",
+                                "required": required,
+                                "description": description,
+                            }
+                        )
+
+        # Check for database dependencies
+        for db_type in ["postgresql", "mysql", "mongodb", "redis", "database"]:
+            if db_type in values:
+                db_config = values[db_type]
+                if isinstance(db_config, dict):
+                    # Check if database is enabled or has configuration
+                    enabled = db_config.get(
+                        "enabled", True
+                    )  # Default to True if not specified
+                    if enabled or any(
+                        key in db_config for key in ["type", "host", "port", "url"]
+                    ):
+                        depends_on.append(
+                            {
+                                "service": f"{chart_name}-{db_type}",
+                                "type": "database",
+                                "required": True,
+                                "description": f"{db_type.title()} database dependency",
+                            }
+                        )
+
+        # Check for cache dependencies
+        if "cache" in values:
+            cache_config = values["cache"]
+            if isinstance(cache_config, dict):
+                # Check if cache is enabled or has configuration
+                enabled = cache_config.get(
+                    "enabled", True
+                )  # Default to True if not specified
+                if enabled or any(
+                    key in cache_config for key in ["type", "host", "port", "url"]
+                ):
+                    depends_on.append(
+                        {
+                            "service": f"{chart_name}-cache",
+                            "type": "cache",
+                            "required": False,
+                            "description": "Cache service dependency",
+                        }
+                    )
+
+        # Check for message queue dependencies
+        for queue_type in ["rabbitmq", "kafka", "redis", "queue"]:
+            if queue_type in values:
+                queue_config = values[queue_type]
+                if isinstance(queue_config, dict):
+                    # Check if queue is enabled or has configuration
+                    enabled = queue_config.get(
+                        "enabled", True
+                    )  # Default to True if not specified
+                    if enabled or any(
+                        key in queue_config for key in ["type", "host", "port", "url"]
+                    ):
+                        depends_on.append(
+                            {
+                                "service": f"{chart_name}-{queue_type}",
+                                "type": "message_queue",
+                                "required": False,
+                                "description": f"{queue_type.title()} message queue dependency",
+                            }
+                        )
+
+        # Check for monitoring dependencies
+        if "monitoring" in values:
+            monitoring_config = values["monitoring"]
+            if isinstance(monitoring_config, dict):
+                # Check if monitoring is enabled or has configuration
+                enabled = monitoring_config.get(
+                    "enabled", True
+                )  # Default to True if not specified
+                if enabled or any(
+                    key in monitoring_config for key in ["type", "host", "port", "url"]
+                ):
+                    depends_on.append(
+                        {
+                            "service": f"{chart_name}-monitoring",
+                            "type": "monitoring",
+                            "required": False,
+                            "description": "Monitoring service dependency",
+                        }
+                    )
+
+        # Check for storage dependencies
+        if "storage" in values:
+            storage_config = values["storage"]
+            if isinstance(storage_config, dict):
+                # Check if storage is enabled or has configuration
+                enabled = storage_config.get(
+                    "enabled", True
+                )  # Default to True if not specified
+                if enabled or any(
+                    key in storage_config for key in ["type", "size", "storageClass"]
+                ):
+                    depends_on.append(
+                        {
+                            "service": f"{chart_name}-storage",
+                            "type": "storage",
+                            "required": False,
+                            "description": "Persistent storage dependency",
+                        }
+                    )
+
+        return depends_on
 
     def detect_internal_containers(
         self,
@@ -137,6 +295,24 @@ class DependencyAnalyzer:
         # Find charts that didn't yield any HIGH or MEDIUM containers
         for chart_name, chart_info in chart_containers.items():
             if not chart_info["exposure_found"]:
+                # Load values.yaml to analyze dependencies
+                chart_dir = repo_path / "charts" / chart_name
+                values_file = chart_dir / "values.yaml"
+                values = {}
+                if values_file.exists():
+                    try:
+                        import yaml
+
+                        with open(values_file, "r", encoding="utf-8") as f:
+                            values = yaml.safe_load(f) or {}
+                    except Exception:
+                        values = {}
+
+                # Analyze dependencies from values.yaml
+                depends_on = self._analyze_service_dependencies(
+                    chart_name, values, chart_dir
+                )
+
                 # Create LOW exposure container
                 container_info = {
                     "name": f"{chart_name}-container",
@@ -151,7 +327,7 @@ class DependencyAnalyzer:
                     "source_code_path": [],
                     "exposes": [],
                     "exposed_by": [],
-                    "depends_on": [],
+                    "depends_on": depends_on,
                 }
 
                 # Add to results
