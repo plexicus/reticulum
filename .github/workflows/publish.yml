@@ -57,6 +57,9 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    permissions:
+      contents: write  # For creating releases
+      pull-requests: read  # For generating release notes
     
     steps:
     - uses: actions/checkout@v4
@@ -90,7 +93,6 @@ jobs:
         name: Release ${{ github.ref_name }}
         draft: false
         prerelease: false
-        make_latest: true
         generate_release_notes: true
         body: |
           ## What's Changed
@@ -115,6 +117,9 @@ jobs:
     needs: [test, create-release]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
+    permissions:
+      id-token: write  # For PyPI Trusted Publishing
+      contents: read   # For repository access
     
     steps:
     - uses: actions/checkout@v4
@@ -143,7 +148,6 @@ jobs:
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        password: ${{ secrets.PYPI_API_TOKEN }}
-        user: __token__
         skip-existing: true
+        attestations: true
       timeout-minutes: 15
