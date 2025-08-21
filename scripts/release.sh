@@ -88,13 +88,14 @@ if [ "$COMMAND" = "sync" ]; then
         exit 0
     fi
     
-    files_updated=($(sync_all_versions))
+    files_updated_str=$(sync_all_versions)
+    files_updated=($files_updated_str)
     
     if [ ${#files_updated[@]} -gt 0 ]; then
         print_status "AUTO" "Updated files: ${files_updated[*]}"
         
         # Commit changes
-        git add "${files_updated[@]}"
+        git add ${files_updated[@]}
         git commit -m "fix: sync all version files to v$current_version"
         print_status "PASS" "Version synchronization completed and committed"
     else
@@ -131,7 +132,8 @@ print_status "PASS" "pyproject.toml updated successfully"
 
 # Sync all version files
 print_status "SYNC" "Synchronizing all version files..."
-files_updated=($(sync_all_versions))
+files_updated_str=$(sync_all_versions)
+files_updated=($files_updated_str)
 
 # Check for TODO/FIXME comments
 print_status "INFO" "Checking for critical TODO/FIXME comments..."
@@ -147,7 +149,11 @@ fi
 
 # Commit all changes
 print_status "INFO" "Committing version bump..."
-git add pyproject.toml "${files_updated[@]}"
+if [ ${#files_updated[@]} -gt 0 ]; then
+    git add pyproject.toml ${files_updated[@]}
+else
+    git add pyproject.toml
+fi
 
 # Create intelligent commit message
 commit_msg="chore: bump version to v$new_version ($COMMAND release)"
