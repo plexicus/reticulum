@@ -1,6 +1,6 @@
-# Quality Check Scripts
+# Enhanced Quality Check & Version Management Scripts
 
-This directory contains scripts to help maintain code quality and prepare for releases.
+This directory contains advanced scripts to help maintain code quality, manage versions, and prepare for releases with full automation across all platforms.
 
 ## Scripts Overview
 
@@ -12,6 +12,7 @@ This directory contains scripts to help maintain code quality and prepare for re
 - 🔍 Runs ruff linting with auto-fix
 - 🎨 Checks and applies black formatting
 - 🧪 Runs all tests
+- 🔄 Quick version synchronization check
 - 📊 Shows current git status
 
 **Usage**:
@@ -32,11 +33,11 @@ make quick-check
 
 **What it does**:
 - ✅ All quick-check features
-- 🔄 Interactive prompts for fixes
+- 🔄 Enhanced version synchronization across all files
 - 📝 Auto-commit of formatting/linting fixes
 - 🚫 Checks for TODO/FIXME comments
 - 🌐 Verifies remote sync status
-- 📋 Provides release guidance
+- 📋 Comprehensive release readiness assessment
 
 **Usage**:
 ```bash
@@ -48,6 +49,67 @@ make pre-release
 ```
 
 **When to use**: Before creating a git tag, before releases.
+
+---
+
+### 3. `version-sync.sh` - Enhanced Version Synchronization
+**Purpose**: Ensures version consistency across ALL files and platforms.
+
+**What it does**:
+- 🔍 Validates versions in pyproject.toml, __init__.py, cli.py, README.md
+- 🔄 Auto-synchronizes mismatched versions
+- 📝 Intelligent commit of version fixes
+- 🏷️ Git tag validation
+- 🧪 Quality check integration
+- 📊 Release readiness assessment
+
+**Supported Files**:
+- `pyproject.toml` (source of truth)
+- `src/reticulum/__init__.py` (Python package)
+- `src/reticulum/cli.py` (CLI version display)
+- `README.md` (documentation)
+
+**Usage**:
+```bash
+# Run directly
+./scripts/version-sync.sh
+
+# Or via Makefile
+make version-sync
+```
+
+**When to use**: Before releases, after version changes, daily integration.
+
+---
+
+### 4. `version-bump.sh` - Automated Version Bumping
+**Purpose**: Semantic version bumping with full cross-platform synchronization.
+
+**What it does**:
+- 📈 Increments version (patch/minor/major)
+- 🔄 Auto-syncs ALL version files
+- 📝 Creates intelligent commit message
+- 🏷️ Creates git tag automatically
+- 📋 Provides push instructions
+
+**Usage**:
+```bash
+# Bump patch version (4.1.2 → 4.1.3)
+./scripts/version-bump.sh patch
+
+# Bump minor version (4.1.2 → 4.2.0)
+./scripts/version-bump.sh minor
+
+# Bump major version (4.1.2 → 5.0.0)  
+./scripts/version-bump.sh major
+
+# Or via Makefile
+make version-bump-patch
+make version-bump-minor
+make version-bump-major
+```
+
+**When to use**: For creating new releases with automatic version management.
 
 ---
 
@@ -67,9 +129,18 @@ make dev          # Install + check (development setup)
 
 ### Release Targets
 ```bash
-make quick-check  # Quick quality check
-make pre-release  # Full pre-release verification
-make release      # Quick-check + pre-release
+make quick-check     # Quick quality check
+make pre-release     # Full pre-release verification  
+make version-sync    # Enhanced version synchronization
+make release-strict  # Comprehensive release preparation
+```
+
+### Version Management Targets
+```bash
+make version-sync        # Sync all version files
+make version-bump-patch  # Bump patch version (x.y.Z)
+make version-bump-minor  # Bump minor version (x.Y.z)
+make version-bump-major  # Bump major version (X.y.z)
 ```
 
 ### Utility Targets
@@ -92,14 +163,20 @@ git add .
 git commit -m "feat: add new feature"
 ```
 
-### Before Release
+### Before Release (Enhanced Workflow)
 ```bash
-# Full pre-release verification
-make pre-release
+# Method 1: Manual version management
+make pre-release              # Full verification + version sync
+git tag v0.x.x               # Create tag manually
+git push origin main v0.x.x  # Push changes and tag
 
-# If all passes, create tag
-git tag v0.x.x
-git push origin v0.x.x
+# Method 2: Automated version bumping (RECOMMENDED)
+make version-bump-patch       # Automatic patch bump + sync + tag
+git push origin main v0.x.x  # Push everything
+
+# Method 3: Full control
+make version-sync            # Sync versions first
+make pre-release             # Then full verification
 ```
 
 ### Fix Issues Found
@@ -153,22 +230,37 @@ pip install poetry
 
 ---
 
-## Best Practices
+## Enhanced Best Practices
 
-1. **Run quick-check daily** before committing
-2. **Use pre-release before tags** to catch issues early
-3. **Fix issues immediately** when found
-4. **Keep dependencies updated** with `poetry update`
-5. **Review auto-fixes** before committing
+1. **Run quick-check daily** before committing (includes version sync check)
+2. **Use automated version bumping** for releases (`make version-bump-patch`)
+3. **Let version-sync handle consistency** across all files automatically
+4. **Use pre-release for final verification** before important releases  
+5. **Fix issues immediately** when found
+6. **Keep dependencies updated** with `poetry update`
+7. **Review auto-fixes** before committing
+8. **Trust the automation** - the enhanced scripts handle cross-platform consistency
+
+### Version Management Best Practices
+- **Use semantic versioning**: patch for bug fixes, minor for features, major for breaking changes
+- **Let pyproject.toml be source of truth** - other files sync automatically
+- **Run version-sync** if you manually edit any version
+- **Use version-bump scripts** for releases to ensure consistency
 
 ---
 
-## Integration with CI/CD
+## Enhanced Integration with CI/CD
 
-These scripts mirror the checks run in GitHub Actions:
-- Linting with ruff
-- Formatting with black
-- Testing with pytest
-- Quality gates
+These enhanced scripts provide comprehensive local testing that mirrors and exceeds GitHub Actions:
+- **Quality Checks**: Linting with ruff, formatting with black, testing with pytest
+- **Version Management**: Cross-platform version consistency validation  
+- **Release Automation**: Automated tagging and release preparation
+- **Platform Consistency**: Ensures Python, CLI, and documentation versions align
 
-Running locally ensures CI passes when you push.
+**Benefits**:
+- ✅ **Zero CI failures** - catch issues before pushing
+- 🚀 **Faster releases** - automated version management  
+- 🔄 **Perfect consistency** - all platforms stay synchronized
+- 📦 **Release confidence** - comprehensive pre-flight checks
+
+Running locally with these enhanced scripts ensures perfect CI passes and consistent releases across all platforms.
