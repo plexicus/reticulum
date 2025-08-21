@@ -117,9 +117,6 @@ jobs:
     needs: [test, create-release]
     runs-on: ubuntu-latest
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')
-    permissions:
-      id-token: write  # For PyPI Trusted Publishing
-      contents: read   # For repository access
     
     steps:
     - uses: actions/checkout@v4
@@ -148,6 +145,7 @@ jobs:
     - name: Publish to PyPI
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}
         skip-existing: true
-        attestations: true
       timeout-minutes: 15
