@@ -111,4 +111,13 @@ if [ -n "$(git status --porcelain)" ]; then
     print_status "INFO" "Consider running: git add . && git commit -m 'style: auto-fix quality issues'"
 fi
 
+# Quick version sync check
+echo
+print_status "INFO" "Quick version synchronization check..."
+if scripts/version-sync.sh >/dev/null 2>&1; then
+    print_status "PASS" "All versions are synchronized ✅"
+else
+    print_status "WARN" "Version files may need synchronization - run: make version-sync"
+fi
+
 exit 0

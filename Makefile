@@ -44,9 +44,21 @@ pre-release: ## Comprehensive pre-release quality check
 	@echo "🚀 Running pre-release quality check..."
 	@scripts/pre-release-check.sh
 
-version-sync: ## Verify and sync version numbers
-	@echo "🔄 Running version synchronization..."
+version-sync: ## Verify and sync version numbers across all files
+	@echo "🔄 Running enhanced version synchronization..."
 	@scripts/version-sync.sh
+
+version-bump-patch: ## Bump patch version (x.y.Z) and sync all files
+	@echo "📈 Bumping patch version..."
+	@scripts/version-bump.sh patch
+
+version-bump-minor: ## Bump minor version (x.Y.z) and sync all files
+	@echo "📈 Bumping minor version..."
+	@scripts/version-bump.sh minor
+
+version-bump-major: ## Bump major version (X.y.z) and sync all files
+	@echo "📈 Bumping major version..."
+	@scripts/version-bump.sh major
 
 release-strict: ## Strict release preparation (check + version-sync)
 	@echo "🎯 Running strict release preparation..."
