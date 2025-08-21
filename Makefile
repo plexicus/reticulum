@@ -36,34 +36,42 @@ clean: ## Clean up generated files
 	rm -rf test-results/
 	@echo "✅ Cleanup completed"
 
-quick-check: ## Quick quality check for daily development
-	@echo "⚡ Running quick quality check..."
-	@scripts/quick-check.sh
+dev-check: ## Development quality check (daily use)
+	@echo "🔍 Running development quality check..."
+	@scripts/dev-check.sh
 
-pre-release: ## Comprehensive pre-release quality check
-	@echo "🚀 Running pre-release quality check..."
-	@scripts/pre-release-check.sh
+dev-check-fix: ## Development quality check with auto-fix
+	@echo "🔍 Running development quality check with auto-fix..."
+	@scripts/dev-check.sh --fix
 
-version-sync: ## Verify and sync version numbers across all files
-	@echo "🔄 Running version synchronization..."
-	@scripts/version-sync.sh
+release-patch: ## Create patch release (x.y.Z)
+	@echo "📈 Creating patch release..."
+	@scripts/release.sh patch
 
-version-bump-patch: ## Bump patch version (x.y.Z) and sync all files
-	@echo "📈 Bumping patch version..."
-	@scripts/version-bump.sh patch
+release-minor: ## Create minor release (x.Y.z)
+	@echo "📈 Creating minor release..."
+	@scripts/release.sh minor
 
-version-bump-minor: ## Bump minor version (x.Y.z) and sync all files
-	@echo "📈 Bumping minor version..."
-	@scripts/version-bump.sh minor
+release-major: ## Create major release (X.y.z)
+	@echo "📈 Creating major release..."
+	@scripts/release.sh major
 
-version-bump-major: ## Bump major version (X.y.z) and sync all files
-	@echo "📈 Bumping major version..."
-	@scripts/version-bump.sh major
+release-sync: ## Synchronize version files only
+	@echo "🔄 Synchronizing version files..."
+	@scripts/release.sh sync
 
-release-strict: ## Strict release preparation (check + version-sync)
-	@echo "🎯 Running strict release preparation..."
-	@make check
-	@make version-sync
+# Legacy aliases for compatibility
+quick-check: dev-check ## Alias for dev-check (legacy compatibility)
+
+pre-release: dev-check release-sync ## Legacy pre-release workflow
+
+version-sync: release-sync ## Alias for release-sync (legacy compatibility)
+
+version-bump-patch: release-patch ## Alias for release-patch (legacy compatibility)
+
+version-bump-minor: release-minor ## Alias for release-minor (legacy compatibility)
+
+version-bump-major: release-major ## Alias for release-major (legacy compatibility)
 
 advanced-tests: ## Run advanced test scenarios against complex repository
 	@echo "🔬 Running advanced test scenarios..."
