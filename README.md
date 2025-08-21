@@ -6,11 +6,11 @@
 
 **Reticulum** is a powerful security scanner designed to analyze cloud infrastructure, particularly Kubernetes Helm charts, for exposure and security vulnerabilities. It provides comprehensive analysis of container exposure levels, network topology, and security risks.
 
-## 🚀 **Latest Release: v0.4.2 - Production Ready!**
+## 🚀 **Latest Release: v0.4.3 - Production Ready!**
 
 **Version 4.1.0** represents a **major milestone** where the scanner has been **completely validated** and is now **production-ready** with **100% accuracy** and **zero critical bugs**.
 
-### ✅ **What's New in v0.4.2**
+### ✅ **What's New in v0.4.3**
 - **Complete bug elimination** - All critical issues resolved
 - **Exhaustive validation** - Tested with 17+ real-world repositories
 - **Production ready** - 100% reliable and accurate
