@@ -45,7 +45,7 @@ pre-release: ## Comprehensive pre-release quality check
 	@scripts/pre-release-check.sh
 
 version-sync: ## Verify and sync version numbers across all files
-	@echo "🔄 Running enhanced version synchronization..."
+	@echo "🔄 Running version synchronization..."
 	@scripts/version-sync.sh
 
 version-bump-patch: ## Bump patch version (x.y.Z) and sync all files

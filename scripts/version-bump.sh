@@ -1,8 +1,7 @@
 #!/bin/bash
 
-# Enhanced Version Bump Script for Reticulum
-# Automatically increments version numbers and synchronizes across all files
-# Supports semantic versioning: major.minor.patch
+# Version Bump Script for Reticulum
+# Increments version numbers and synchronizes across files
 
 set -e  # Exit on any error
 
@@ -43,8 +42,8 @@ print_status() {
 
 # Function to display usage
 show_usage() {
-    echo "Enhanced Version Bump Script for Reticulum"
-    echo "=========================================="
+    echo "Version Bump Script for Reticulum"
+    echo "================================="
     echo ""
     echo "Usage: $0 [patch|minor|major]"
     echo ""
@@ -85,8 +84,8 @@ case $VERSION_TYPE in
         ;;
 esac
 
-echo "🚀 Enhanced Version Bump Script"
-echo "==============================="
+echo "🚀 Version Bump Script"
+echo "======================"
 echo ""
 
 # Check if we're in the right directory
@@ -144,10 +143,10 @@ fi
 
 print_status "PASS" "pyproject.toml updated successfully"
 
-# Run enhanced version synchronization
-print_status "SYNC" "Synchronizing all version files..."
+# Run version synchronization
+print_status "SYNC" "Synchronizing version files..."
 if bash scripts/version-sync.sh; then
-    print_status "PASS" "All version files synchronized"
+    print_status "PASS" "Version files synchronized"
 else
     print_status "FAIL" "Version synchronization failed"
     exit 1

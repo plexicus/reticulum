@@ -113,11 +113,11 @@ fi
 
 # Quick version sync check
 echo
-print_status "INFO" "Quick version synchronization check..."
+print_status "INFO" "Version sync check..."
 if scripts/version-sync.sh >/dev/null 2>&1; then
-    print_status "PASS" "All versions are synchronized ✅"
+    print_status "PASS" "Versions synchronized ✅"
 else
-    print_status "WARN" "Version files may need synchronization - run: make version-sync"
+    print_status "WARN" "Version files may need sync - run: make version-sync"
 fi
 
 exit 0

@@ -1,6 +1,6 @@
-# Enhanced Quality Check & Version Management Scripts
+# Quality Check & Version Management Scripts
 
-This directory contains advanced scripts to help maintain code quality, manage versions, and prepare for releases with full automation across all platforms.
+This directory contains scripts to help maintain code quality, manage versions, and prepare for releases.
 
 ## Scripts Overview
 
@@ -52,8 +52,8 @@ make pre-release
 
 ---
 
-### 3. `version-sync.sh` - Enhanced Version Synchronization
-**Purpose**: Ensures version consistency across ALL files and platforms.
+### 3. `version-sync.sh` - Version Synchronization
+**Purpose**: Ensures version consistency across project files.
 
 **What it does**:
 - 🔍 Validates versions in pyproject.toml, __init__.py, cli.py, README.md
@@ -82,8 +82,8 @@ make version-sync
 
 ---
 
-### 4. `version-bump.sh` - Automated Version Bumping
-**Purpose**: Semantic version bumping with full cross-platform synchronization.
+### 4. `version-bump.sh` - Version Bumping
+**Purpose**: Semantic version bumping with synchronization.
 
 **What it does**:
 - 📈 Increments version (patch/minor/major)
@@ -131,7 +131,7 @@ make dev          # Install + check (development setup)
 ```bash
 make quick-check     # Quick quality check
 make pre-release     # Full pre-release verification  
-make version-sync    # Enhanced version synchronization
+make version-sync    # Version synchronization
 make release-strict  # Comprehensive release preparation
 ```
 
@@ -163,7 +163,7 @@ git add .
 git commit -m "feat: add new feature"
 ```
 
-### Before Release (Enhanced Workflow)
+### Before Release
 ```bash
 # Method 1: Manual version management
 make pre-release              # Full verification + version sync
@@ -230,7 +230,7 @@ pip install poetry
 
 ---
 
-## Enhanced Best Practices
+## Best Practices
 
 1. **Run quick-check daily** before committing (includes version sync check)
 2. **Use automated version bumping** for releases (`make version-bump-patch`)
@@ -241,17 +241,17 @@ pip install poetry
 7. **Review auto-fixes** before committing
 8. **Trust the automation** - the enhanced scripts handle cross-platform consistency
 
-### Version Management Best Practices
-- **Use semantic versioning**: patch for bug fixes, minor for features, major for breaking changes
-- **Let pyproject.toml be source of truth** - other files sync automatically
-- **Run version-sync** if you manually edit any version
-- **Use version-bump scripts** for releases to ensure consistency
+### Version Management
+- Use semantic versioning: patch for bug fixes, minor for features, major for breaking changes
+- pyproject.toml is the source of truth - other files sync automatically
+- Run version-sync if you manually edit any version
+- Use version-bump scripts for releases
 
 ---
 
-## Enhanced Integration with CI/CD
+## Integration with CI/CD
 
-These enhanced scripts provide comprehensive local testing that mirrors and exceeds GitHub Actions:
+These scripts provide local testing that mirrors GitHub Actions:
 - **Quality Checks**: Linting with ruff, formatting with black, testing with pytest
 - **Version Management**: Cross-platform version consistency validation  
 - **Release Automation**: Automated tagging and release preparation
@@ -263,4 +263,4 @@ These enhanced scripts provide comprehensive local testing that mirrors and exce
 - 🔄 **Perfect consistency** - all platforms stay synchronized
 - 📦 **Release confidence** - comprehensive pre-flight checks
 
-Running locally with these enhanced scripts ensures perfect CI passes and consistent releases across all platforms.
+Running locally ensures CI passes and consistent releases.

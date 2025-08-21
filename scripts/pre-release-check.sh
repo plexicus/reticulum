@@ -318,14 +318,14 @@ echo "Status: $(git status --porcelain | wc -l | tr -d ' ') files modified"
 
 # Suggest next steps
 echo
-# Run enhanced version synchronization
-echo "🔄 Running enhanced version synchronization..."
+# Run version synchronization
+echo "🔄 Running version synchronization..."
 bash scripts/version-sync.sh
 
 echo
 echo "🚀 Next steps:"
 echo "=============="
-echo "1. All versions are now synchronized automatically ✅"
+echo "1. Versions synchronized ✅"
 echo "2. Create tag: git tag v$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')"
 echo "3. Push tag: git push origin v$(grep '^version = ' pyproject.toml | sed 's/version = "\(.*\)"/\1/')"
 echo "4. GitHub Actions will automatically build and publish 🤖"
