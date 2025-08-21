@@ -128,26 +128,31 @@ sync_all_versions() {
     local source_version=$(get_pyproject_version)
     local files_updated=""
     
-    print_status "SYNC" "Synchronizing all version files to $source_version..."
-    
     # Get current versions
     local init_version=$(get_init_version)
     local cli_version=$(get_cli_version)
     local readme_version=$(get_readme_version)
     
-    # Update files if needed
+    # Update files if needed (redirect messages to stderr)
     if [ "$init_version" != "$source_version" ]; then
-        update_init_version "$source_version"
+        print_status "AUTO" "Updating __init__.py to version $source_version" >&2
+        sed -i.bak "s/^__version__ = \".*\"/__version__ = \"$source_version\"/" src/reticulum/__init__.py
+        rm -f src/reticulum/__init__.py.bak
         files_updated="$files_updated src/reticulum/__init__.py"
     fi
     
     if [ "$cli_version" != "$source_version" ]; then
-        update_cli_version "$source_version"
+        print_status "AUTO" "Updating CLI version to $source_version" >&2
+        sed -i.bak "s/version=\"%(prog)s [^\"]*\"/version=\"%(prog)s $source_version\"/" src/reticulum/cli.py
+        rm -f src/reticulum/cli.py.bak
         files_updated="$files_updated src/reticulum/cli.py"
     fi
     
     if [ "$readme_version" != "$source_version" ] && [ "$readme_version" != "none" ]; then
-        update_readme_version "$source_version"
+        print_status "AUTO" "Updating README.md to version $source_version" >&2
+        sed -i.bak "s/🚀 \*\*Latest Release: v[0-9.][0-9.]*[0-9]/🚀 **Latest Release: v$source_version/" README.md
+        sed -i.bak "s/### ✅ \*\*What's New in v[0-9.][0-9.]*[0-9]/### ✅ **What's New in v$source_version/" README.md
+        rm -f README.md.bak
         files_updated="$files_updated README.md"
     fi
     
