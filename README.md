@@ -4,9 +4,9 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
-🚀 **Latest Release: v0.5.2**
+🚀 **Latest Release: v0.5.3**
 
-### ✅ **What's New in v0.5.2**
+### ✅ **What's New in v0.5.3**
 - Enhanced Dockerfile detection with deep search strategy and pattern matching
 - Improved dependency analysis with better false positive filtering
 - Better path consolidation with validation against repository structure
