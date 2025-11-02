@@ -82,7 +82,7 @@ get_init_version() {
 }
 
 get_cli_version() {
-    grep 'version="%(prog)s' src/reticulum/cli.py | sed 's/.*version="%(prog)s \([0-9.]\+\)"/\1/'
+    grep 'version="%(prog)s' src/reticulum/cli.py | awk -F'"' '{print $(NF-1)}' | awk '{print $NF}'
 }
 
 get_readme_version() {
