@@ -81,7 +81,9 @@ class DependencyAnalyzer:
                 if self._is_service_reference(key, chart_name):
                     return True
                 # Check if value contains service name
-                if isinstance(value, str) and self._is_service_reference(value, chart_name):
+                if isinstance(value, str) and self._is_service_reference(
+                    value, chart_name
+                ):
                     return True
                 # Recursively check nested structures
                 if self._check_recursive_dependency(value, chart_name):
@@ -108,45 +110,45 @@ class DependencyAnalyzer:
         # Skip common false positives
         false_positives = [
             "fastapi",  # Could match "fastapi" in unrelated contexts
-            "worker",   # Common word
-            "code",     # Common word
-            "prov",     # Common abbreviation
+            "worker",  # Common word
+            "code",  # Common word
+            "prov",  # Common abbreviation
         ]
 
         if chart_lower in false_positives:
             # Use more precise matching for common words
             patterns = [
-                f"{chart_lower}://",           # URL scheme
-                f"{chart_lower}:",             # Port specification
-                f"{chart_lower}.svc",          # Kubernetes service
-                f"{chart_lower}-service",      # Service name
-                f"{chart_lower}_service",      # Service name
-                f"{chart_lower}.cluster",      # Cluster reference
-                f"{chart_lower}.namespace",    # Namespace reference
-                f"{chart_lower}-container",    # Container name
-                f"{chart_lower}_container",    # Container name
+                f"{chart_lower}://",  # URL scheme
+                f"{chart_lower}:",  # Port specification
+                f"{chart_lower}.svc",  # Kubernetes service
+                f"{chart_lower}-service",  # Service name
+                f"{chart_lower}_service",  # Service name
+                f"{chart_lower}.cluster",  # Cluster reference
+                f"{chart_lower}.namespace",  # Namespace reference
+                f"{chart_lower}-container",  # Container name
+                f"{chart_lower}_container",  # Container name
             ]
             return any(pattern in text_lower for pattern in patterns)
 
         # For other services, use more precise matching
         patterns = [
-            f"{chart_lower}://",           # URL scheme
-            f"{chart_lower}:",             # Port specification
-            f"{chart_lower}.svc",          # Kubernetes service
-            f"{chart_lower}-service",      # Service name
-            f"{chart_lower}_service",      # Service name
-            f"{chart_lower}.cluster",      # Cluster reference
-            f"{chart_lower}.namespace",    # Namespace reference
-            f"{chart_lower}-container",    # Container name
-            f"{chart_lower}_container",    # Container name
+            f"{chart_lower}://",  # URL scheme
+            f"{chart_lower}:",  # Port specification
+            f"{chart_lower}.svc",  # Kubernetes service
+            f"{chart_lower}-service",  # Service name
+            f"{chart_lower}_service",  # Service name
+            f"{chart_lower}.cluster",  # Cluster reference
+            f"{chart_lower}.namespace",  # Namespace reference
+            f"{chart_lower}-container",  # Container name
+            f"{chart_lower}_container",  # Container name
             # Whole word match (with word boundaries)
-            f" {chart_lower} ",            # Space delimited
-            f" {chart_lower},",            # Comma delimited
-            f" {chart_lower}.",            # Period delimited
-            f" {chart_lower}:",            # Colon delimited
-            f" {chart_lower}\n",           # Newline delimited
-            f"\"{chart_lower}\"",         # Quoted
-            f"'{chart_lower}'",            # Single quoted
+            f" {chart_lower} ",  # Space delimited
+            f" {chart_lower},",  # Comma delimited
+            f" {chart_lower}.",  # Period delimited
+            f" {chart_lower}:",  # Colon delimited
+            f" {chart_lower}\n",  # Newline delimited
+            f'"{chart_lower}"',  # Quoted
+            f"'{chart_lower}'",  # Single quoted
         ]
 
         return any(pattern in text_lower for pattern in patterns)

@@ -139,12 +139,12 @@ class PathConsolidator:
 
             # Also check for obviously invalid patterns
             invalid_patterns = [
-                r"^app/$",      # System directory
-                r"^usr/$",      # System directory
-                r"^opt/$",      # System directory
-                r"^var/$",      # System directory
-                r"^tmp/$",      # System directory
-                r"^etc/$",      # System directory
+                r"^app/$",  # System directory
+                r"^usr/$",  # System directory
+                r"^opt/$",  # System directory
+                r"^var/$",  # System directory
+                r"^tmp/$",  # System directory
+                r"^etc/$",  # System directory
             ]
 
             is_invalid = any(re.match(pattern, path) for pattern in invalid_patterns)

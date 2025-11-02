@@ -183,7 +183,9 @@ class DockerfileAnalyzer:
         # Add trailing slash to indicate directories and sort
         return sorted([f"{path}/" for path in consolidated])
 
-    def _deep_search_dockerfile(self, repo_path: Path, chart_name: str) -> Optional[Path]:
+    def _deep_search_dockerfile(
+        self, repo_path: Path, chart_name: str
+    ) -> Optional[Path]:
         """Deep search for Dockerfiles matching chart name patterns."""
         # Common naming patterns for Dockerfiles
         naming_patterns = [
@@ -205,8 +207,10 @@ class DockerfileAnalyzer:
         # Search for Dockerfiles in the entire repository
         for dockerfile_path in repo_path.rglob("Dockerfile"):
             # Skip Dockerfiles in node_modules, .git, etc.
-            if any(segment.startswith(".") or segment in ["node_modules", "vendor"]
-                   for segment in dockerfile_path.parts):
+            if any(
+                segment.startswith(".") or segment in ["node_modules", "vendor"]
+                for segment in dockerfile_path.parts
+            ):
                 continue
 
             # Check if Dockerfile path matches any of our naming patterns
@@ -248,7 +252,9 @@ class DockerfileAnalyzer:
 
         return False
 
-    def _validate_source_paths(self, source_paths: List[str], repo_root: Path) -> List[str]:
+    def _validate_source_paths(
+        self, source_paths: List[str], repo_root: Path
+    ) -> List[str]:
         """Validate extracted source paths against actual repository structure."""
         if not source_paths:
             return []
