@@ -49,7 +49,7 @@ Examples:
         help="Export network topology as Graphviz DOT file",
     )
 
-    parser.add_argument("--version", action="version", version="%(prog)s 0.4.5")
+    parser.add_argument("--version", action="version", version="%(prog)s 0.4.6")
 
     return parser
 
