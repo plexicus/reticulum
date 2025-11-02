@@ -100,21 +100,21 @@ jobs:
         generate_release_notes: true
         body: |
           ## What's Changed
-          
+
           ${{ steps.changelog.outputs.CHANGELOG }}
-          
+
           ## Installation
-          
+
           ```bash
           pip install reticulum
           ```
-          
+
           ## Usage
-          
+
           ```bash
-          reticulum /path/to/repo
-          reticulum /path/to/repo --paths
-          reticulum /path/to/repo --json
+          reticulum /path/to/repo                 # Generate prioritization report
+          reticulum /path/to/repo --json          # Pretty JSON output (formatted like jq)
+          reticulum /path/to/repo --dot diagram.dot  # Export network topology as DOT file
           ```
 
   build-and-publish:
