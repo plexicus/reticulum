@@ -1,0 +1,5 @@
+apiVersion: v2
+name: load-balancer
+description: Load balancer service (HIGH exposure)
+version: 0.1.0
+appVersion: "1.0.0"

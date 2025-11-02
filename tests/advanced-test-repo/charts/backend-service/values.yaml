@@ -1,0 +1,41 @@
+# Backend Service - MEDIUM Exposure (Connected to HIGH exposure services)
+service:
+  type: "ClusterIP"
+  port: 8080
+  targetPort: 8080
+
+# No ingress - internal service only
+ingress:
+  enabled: false
+
+# Service dependencies and connections
+dependencies:
+  apiGateway: "api-gateway"
+  database: "database-primary"
+  cache: "cache-service"
+
+# Backend specific configurations
+backend:
+  framework: "Spring Boot"
+  javaVersion: "17"
+  enableJPA: true
+  enableSecurity: true
+  enableActuator: true
+
+# Database configuration
+database:
+  type: "postgresql"
+  enableConnectionPool: true
+  enableMigrations: true
+
+# Cache configuration
+cache:
+  type: "redis"
+  enableClustering: true
+  enablePersistence: true
+
+# Security configuration
+security:
+  enableCORS: true
+  enableCSRF: false
+  enableOAuth2: true

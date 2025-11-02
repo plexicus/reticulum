@@ -1,0 +1,48 @@
+# Frontend Web Service - HIGH Exposure (Ingress enabled)
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  hosts:
+    - host: "www.example.com"
+      paths:
+        - path: "/"
+          pathType: "Prefix"
+        - path: "/home"
+          pathType: "Prefix"
+        - path: "/about"
+          pathType: "Prefix"
+    - host: "app.example.com"
+      paths:
+        - path: "/app"
+          pathType: "Prefix"
+        - path: "/dashboard"
+          pathType: "Prefix"
+    - host: "api.example.com"
+      paths:
+        - path: "/api/v1"
+          pathType: "Prefix"
+        - path: "/api/v2"
+          pathType: "Prefix"
+
+service:
+  type: "ClusterIP"
+  port: 80
+  targetPort: 3000
+
+# Frontend specific configurations
+frontend:
+  framework: "React"
+  buildMode: "production"
+  enableSSR: true
+  enablePWA: true
+
+# Security configurations
+security:
+  enableCSP: true
+  enableHSTS: true
+  enableXSSProtection: true
