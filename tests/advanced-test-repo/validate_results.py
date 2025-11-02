@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Validation script for Reticulum scanner results.
-Compares actual scan output with expected results.
+Compares actual scan output with expected results for prioritization format.
 """
 
 import json
@@ -13,236 +13,279 @@ class ResultValidator:
         self.expected = expected_results
         self.errors = []
         self.warnings = []
-        
-    def validate_scan_summary(self, actual: Dict[str, Any]) -> bool:
-        """Validate scan summary fields."""
-        print("🔍 Validating Scan Summary...")
-        
-        expected_summary = self.expected["scan_summary"]
-        actual_summary = actual.get("scan_summary", {})
-        
-        # For charts_analyzed, we expect exact match
-        if "charts_analyzed" in actual_summary:
-            expected_charts = expected_summary.get("charts_analyzed")
-            actual_charts = actual_summary.get("charts_analyzed")
-            if expected_charts != actual_charts:
-                self.errors.append(f"Scan Summary charts_analyzed: Expected {expected_charts}, got {actual_charts}")
+
+    def validate_prioritization_report(self, actual: Dict[str, Any]) -> bool:
+        """Validate prioritization report structure."""
+        print("🔍 Validating Prioritization Report...")
+
+        # CLI output is the prioritization report itself, not wrapped
+        prioritization_report = actual
+
+        # Validate required fields
+        required_fields = ["repo_path", "scan_timestamp", "summary", "prioritized_services"]
+        for field in required_fields:
+            if field not in prioritization_report:
+                self.errors.append(f"Missing required field in prioritization report: {field}")
                 return False
-            else:
-                print(f"  ✅ charts_analyzed: {actual_charts}")
-        
-        # For container counts, we expect at least the expected number
-        if "total_containers" in actual_summary:
-            expected_total = expected_summary.get("total_containers")
-            actual_total = actual_summary.get("total_containers")
+
+        print("  ✅ Prioritization report structure is valid")
+        return True
+
+    def validate_prioritization_summary(self, actual: Dict[str, Any]) -> bool:
+        """Validate prioritization summary fields."""
+        print("\n📊 Validating Prioritization Summary...")
+
+        expected_summary = self.expected["summary"]
+        actual_summary = actual["summary"]
+
+        # For total_services, we expect at least the expected number
+        if "total_services" in actual_summary:
+            expected_total = expected_summary.get("total_services")
+            actual_total = actual_summary.get("total_services")
             if actual_total < expected_total:
-                self.errors.append(f"Scan Summary total_containers: Expected at least {expected_total}, got {actual_total}")
+                self.errors.append(f"Summary total_services: Expected at least {expected_total}, got {actual_total}")
                 return False
             else:
-                print(f"  ✅ total_containers: {actual_total} (expected at least {expected_total})")
-        
-        # For exposure levels, we expect at least the expected numbers
-        exposure_fields = ["high_exposure", "medium_exposure", "low_exposure"]
-        for field in exposure_fields:
+                print(f"  ✅ total_services: {actual_total} (expected at least {expected_total})")
+
+        # For risk levels, we expect at least the expected numbers
+        risk_fields = ["high_risk", "medium_risk", "low_risk"]
+        for field in risk_fields:
             if field in actual_summary:
                 expected_val = expected_summary.get(field, 0)
                 actual_val = actual_summary.get(field, 0)
                 if actual_val < expected_val:
-                    self.errors.append(f"Scan Summary {field}: Expected at least {expected_val}, got {actual_val}")
+                    self.errors.append(f"Summary {field}: Expected at least {expected_val}, got {actual_val}")
                     return False
                 else:
                     print(f"  ✅ {field}: {actual_val} (expected at least {expected_val})")
-        
+
         return True
-    
-    def validate_containers(self, actual: List[Dict[str, Any]]) -> bool:
-        """Validate container configurations."""
-        print("\n🐳 Validating Containers...")
-        
-        expected_containers = self.expected["containers"]
-        
-        # For edge cases, we expect more containers due to multiple detections
+
+    def validate_prioritized_services(self, actual: List[Dict[str, Any]]) -> bool:
+        """Validate prioritized services structure and content."""
+        print("\n🐳 Validating Prioritized Services...")
+
+        expected_services = self.expected["prioritized_services"]
+        actual_services = actual["prioritized_services"]
+
+        # For edge cases, we expect more services due to multiple detections
         # So we'll be more flexible with the count
-        if len(actual) >= len(expected_containers):
-            print(f"  ✅ Container count: {len(actual)} (expected at least {len(expected_containers)})")
+        if len(actual_services) >= len(expected_services):
+            print(f"  ✅ Service count: {len(actual_services)} (expected at least {len(expected_services)})")
         else:
-            self.errors.append(f"Container count: Expected at least {len(expected_containers)}, got {len(actual)}")
+            self.errors.append(f"Service count: Expected at least {len(expected_services)}, got {len(actual_services)}")
             return False
-        
-        # Group containers by chart name to handle multiple detections
-        containers_by_chart = {}
-        for container in actual:
-            chart_name = container.get("chart", "unknown")
-            if chart_name not in containers_by_chart:
-                containers_by_chart[chart_name] = []
-            containers_by_chart[chart_name].append(container)
-        
-        print(f"  📊 Charts found: {len(containers_by_chart)}")
-        for chart_name, containers in containers_by_chart.items():
-            print(f"    - {chart_name}: {len(containers)} containers")
-        
-        # Validate that we have containers for all expected charts
-        expected_charts = set(cont.get("chart") for cont in expected_containers)
-        actual_charts = set(containers_by_chart.keys())
-        
+
+        # Group services by chart name to handle multiple detections
+        services_by_chart = {}
+        for service in actual_services:
+            chart_name = service.get("chart_name", "unknown")
+            if chart_name not in services_by_chart:
+                services_by_chart[chart_name] = []
+            services_by_chart[chart_name].append(service)
+
+        print(f"  📊 Charts found: {len(services_by_chart)}")
+        for chart_name, services in services_by_chart.items():
+            print(f"    - {chart_name}: {len(services)} services")
+
+        # Validate that we have services for all expected charts
+        expected_charts = set(service.get("chart_name") for service in expected_services)
+        actual_charts = set(services_by_chart.keys())
+
         if not expected_charts.issubset(actual_charts):
             missing_charts = expected_charts - actual_charts
             self.errors.append(f"Missing charts: {missing_charts}")
             return False
-        
-        # Validate exposure levels for each chart
+
+        # Validate risk levels and exposure types for each chart
         for chart_name in expected_charts:
-            chart_containers = containers_by_chart[chart_name]
-            
-            # Find expected container for this chart
-            expected_container = next((c for c in expected_containers if c.get("chart") == chart_name), None)
-            if not expected_container:
+            chart_services = services_by_chart[chart_name]
+
+            # Find expected service for this chart
+            expected_service = next((s for s in expected_services if s.get("chart_name") == chart_name), None)
+            if not expected_service:
                 continue
-                
-            # Check that at least one container has the expected exposure level
-            expected_level = expected_container.get("exposure_level")
-            expected_score = expected_container.get("exposure_score")
-            
-            chart_has_correct_exposure = False
-            for container in chart_containers:
-                if (container.get("exposure_level") == expected_level and 
-                    container.get("exposure_score") == expected_score):
-                    chart_has_correct_exposure = True
+
+            # Check that at least one service has the expected risk level and exposure type
+            expected_risk = expected_service.get("risk_level")
+            expected_exposure = expected_service.get("exposure_type")
+
+            chart_has_correct_risk = False
+            for service in chart_services:
+                if (service.get("risk_level") == expected_risk and
+                    expected_exposure in service.get("exposure_type", "")):
+                    chart_has_correct_risk = True
                     break
-            
-            if not chart_has_correct_exposure:
-                self.errors.append(f"Chart {chart_name} missing correct exposure level {expected_level} with score {expected_score}")
+
+            if not chart_has_correct_risk:
+                self.errors.append(f"Chart {chart_name} missing correct risk level {expected_risk} with exposure type {expected_exposure}")
                 return False
-        
-        print("  ✅ All charts have correct exposure levels")
-        return True
-    
-    def validate_network_topology(self, actual: Dict[str, Any]) -> bool:
-        """Validate network topology."""
-        print("\n🌐 Validating Network Topology...")
-        
-        expected_topology = self.expected["network_topology"]
-        actual_topology = actual.get("network_topology", {})
-        
-        topology_fields = ["exposed_containers", "linked_containers", "internal_containers"]
-        
-        for field in topology_fields:
-            expected_val = expected_topology.get(field, [])
-            actual_val = actual_topology.get(field, [])
-            
-            # For exposed containers, we expect at least the expected ones
-            if field == "exposed_containers":
-                if len(actual_val) >= len(expected_val):
-                    print(f"  ✅ {field}: {len(actual_val)} containers (expected at least {len(expected_val)})")
-                else:
-                    self.errors.append(f"Network Topology {field}: Expected at least {len(expected_val)}, got {len(actual_val)}")
+
+        # Validate service structure for all services
+        required_service_fields = [
+            "service_name", "chart_name", "risk_level", "exposure_type",
+            "host", "dockerfile_path", "source_code_paths", "environment",
+            "security_context", "service_account", "public_endpoints"
+        ]
+
+        for service in actual_services:
+            for field in required_service_fields:
+                if field not in service:
+                    self.errors.append(f"Service {service.get('service_name', 'unknown')} missing required field: {field}")
                     return False
-            else:
-                # For other fields, exact match
-                if isinstance(expected_val, list):
-                    expected_val = sorted(expected_val)
-                if isinstance(actual_val, list):
-                    actual_val = sorted(actual_val)
-                
-                if expected_val == actual_val:
-                    print(f"  ✅ {field}: {len(actual_val)} containers")
-                else:
-                    self.errors.append(f"Network Topology {field}: Expected {expected_val}, got {actual_val}")
+
+        print("  ✅ All charts have correct risk levels and exposure types")
+        print("  ✅ All services have required fields")
+        return True
+
+    def validate_security_features(self, actual: List[Dict[str, Any]]) -> bool:
+        """Validate security context and service account analysis."""
+        print("\n🔒 Validating Security Features...")
+
+        actual_services = actual["prioritized_services"]
+
+        # Validate security context structure
+        for service in actual_services:
+            security_context = service["security_context"]
+
+            # Check that security_context is a dict
+            if not isinstance(security_context, dict):
+                self.errors.append(f"Service {service['service_name']} has invalid security_context type")
+                return False
+
+            # Only validate fields if security_context is populated
+            if security_context:
+                required_sec_fields = [
+                    "is_privileged", "allows_privilege_escalation", "runs_as_root",
+                    "host_network", "read_only_root_filesystem", "capabilities"
+                ]
+                for field in required_sec_fields:
+                    if field not in security_context:
+                        self.errors.append(f"Service {service['service_name']} security_context missing field: {field}")
+                        return False
+
+        # Validate service account structure
+        for service in actual_services:
+            service_account = service["service_account"]
+
+            # Check that service_account is a dict
+            if not isinstance(service_account, dict):
+                self.errors.append(f"Service {service['service_name']} has invalid service_account type")
+                return False
+
+            # Only validate fields if service_account is populated
+            if service_account:
+                required_sa_fields = [
+                    "has_custom_sa", "cloud_role", "cloud_provider",
+                    "risk_indicators", "automount_token"
+                ]
+                for field in required_sa_fields:
+                    if field not in service_account:
+                        self.errors.append(f"Service {service['service_name']} service_account missing field: {field}")
+                        return False
+
+        print("  ✅ Security context and service account structures are valid")
+        return True
+
+    def validate_public_endpoints(self, actual: List[Dict[str, Any]]) -> bool:
+        """Validate public endpoints extraction."""
+        print("\n🌐 Validating Public Endpoints...")
+
+        actual_services = actual["prioritized_services"]
+
+        # Find services with public endpoints
+        services_with_endpoints = [
+            s for s in actual_services if s["public_endpoints"] and len(s["public_endpoints"]) > 0
+        ]
+
+        # Should have at least one service with public endpoints
+        if len(services_with_endpoints) == 0:
+            self.errors.append("No services found with public endpoints")
+            return False
+
+        # Verify endpoint structure
+        for service in services_with_endpoints:
+            endpoints = service["public_endpoints"]
+            if not isinstance(endpoints, list):
+                self.errors.append(f"Service {service['service_name']} has invalid public_endpoints type")
+                return False
+
+            for endpoint in endpoints:
+                if not isinstance(endpoint, str) or len(endpoint) == 0:
+                    self.errors.append(f"Service {service['service_name']} has invalid endpoint: {endpoint}")
                     return False
-        
+
+        print(f"  ✅ Found {len(services_with_endpoints)} services with public endpoints")
         return True
-    
-    def validate_mermaid_diagram(self, actual: str) -> bool:
-        """Validate Mermaid diagram."""
-        print("\n📊 Validating Mermaid Diagram...")
-        
-        if not actual:
-            self.errors.append("Mermaid diagram is empty")
-            return False
-        
-        # Check for basic diagram structure
-        if "graph TD" not in actual:
-            self.errors.append("Mermaid diagram missing 'graph TD' declaration")
-            return False
-        
-        if "subgraph High_Exposure" not in actual:
-            self.errors.append("Mermaid diagram missing High_Exposure group")
-            return False
-        
-        if "subgraph Medium_Exposure" not in actual:
-            self.errors.append("Mermaid diagram missing Medium_Exposure group")
-            return False
-        
-        if "subgraph Low_Exposure" not in actual:
-            self.errors.append("Mermaid diagram missing Low_Exposure group")
-            return False
-        
-        print("  ✅ Mermaid diagram structure is valid")
-        return True
-    
+
     def validate_performance(self, scan_time: float, output_size: int) -> bool:
         """Validate performance benchmarks."""
         print("\n🚀 Validating Performance...")
-        
+
         # Performance benchmarks
         if scan_time > 30:
             self.warnings.append(f"Scan time ({scan_time:.2f}s) exceeds 30s benchmark")
-        
+
         if output_size > 100 * 1024:  # 100KB
             self.warnings.append(f"Output size ({output_size} bytes) exceeds 100KB benchmark")
-        
+
         print(f"  ✅ Scan Time: {scan_time:.2f}s")
         print(f"  ✅ Output Size: {output_size} bytes")
-        
+
         return True
-    
+
     def run_validation(self, actual_results: Dict[str, Any], scan_time: float = 0.0) -> bool:
         """Run complete validation."""
         print("🧪 Starting Result Validation...")
         print("=" * 50)
-        
+
         success = True
-        
-        # Validate scan summary
-        if not self.validate_scan_summary(actual_results):
+
+        # Validate prioritization report structure
+        if not self.validate_prioritization_report(actual_results):
             success = False
-        
-        # Validate containers
-        if not self.validate_containers(actual_results.get("containers", [])):
+
+        # Validate prioritization summary
+        if not self.validate_prioritization_summary(actual_results):
             success = False
-        
-        # Validate network topology
-        if not self.validate_network_topology(actual_results):
+
+        # Validate prioritized services
+        if not self.validate_prioritized_services(actual_results):
             success = False
-        
-        # Validate Mermaid diagram
-        if not self.validate_mermaid_diagram(actual_results.get("mermaid_diagram", "")):
+
+        # Validate security features
+        if not self.validate_security_features(actual_results):
             success = False
-        
+
+        # Validate public endpoints
+        if not self.validate_public_endpoints(actual_results):
+            success = False
+
         # Validate performance
         output_size = len(json.dumps(actual_results, indent=2).encode('utf-8'))
         self.validate_performance(scan_time, output_size)
-        
+
         # Print results
         print("\n" + "=" * 50)
         print("📊 VALIDATION RESULTS")
         print("=" * 50)
-        
+
         if success:
             print("✅ ALL VALIDATIONS PASSED!")
         else:
             print("❌ SOME VALIDATIONS FAILED!")
-        
+
         if self.errors:
             print(f"\n❌ ERRORS ({len(self.errors)}):")
             for error in self.errors:
                 print(f"  - {error}")
-        
+
         if self.warnings:
             print(f"\n⚠️  WARNINGS ({len(self.warnings)}):")
             for warning in self.warnings:
                 print(f"  - {warning}")
-        
+
         return success
 
 def main():
@@ -260,105 +303,86 @@ def main():
         print(f"Error loading results file: {e}")
         sys.exit(1)
     
-    # Expected results based on test scenarios
+    # Expected results based on test scenarios (prioritization format)
     expected_results = {
-        "scan_summary": {
-            "total_containers": 10,
-            "high_exposure": 5,
-            "medium_exposure": 2,
-            "low_exposure": 3,
-            "charts_analyzed": 10
+        "summary": {
+            "total_services": 10,
+            "high_risk": 5,
+            "medium_risk": 2,
+            "low_risk": 3
         },
-        "containers": [
+        "prioritized_services": [
             {
-                "name": "frontend-web-container",
-                "chart": "frontend-web",
-                "exposure_level": "HIGH",
-                "exposure_score": 3,
-                "gateway_type": "nginx"
+                "service_name": "frontend-web-container",
+                "chart_name": "frontend-web",
+                "risk_level": "HIGH",
+                "exposure_type": "nginx",
+                "host": "frontend.example.com"
             },
             {
-                "name": "api-gateway-container",
-                "chart": "api-gateway",
-                "exposure_level": "HIGH",
-                "exposure_score": 3,
-                "gateway_type": "LoadBalancer/NodePort"
+                "service_name": "api-gateway-container",
+                "chart_name": "api-gateway",
+                "risk_level": "HIGH",
+                "exposure_type": "LoadBalancer/NodePort",
+                "host": "Direct Internet Access"
             },
             {
-                "name": "backend-service-container",
-                "chart": "backend-service",
-                "exposure_level": "MEDIUM",
-                "exposure_score": 2,
-                "gateway_type": "Service Dependency"
+                "service_name": "backend-service-container",
+                "chart_name": "backend-service",
+                "risk_level": "MEDIUM",
+                "exposure_type": "Service Dependency",
+                "host": "N/A"
             },
             {
-                "name": "worker-service-container",
-                "chart": "worker-service",
-                "exposure_level": "MEDIUM",
-                "exposure_score": 2,
-                "gateway_type": "Service Dependency"
+                "service_name": "worker-service-container",
+                "chart_name": "worker-service",
+                "risk_level": "MEDIUM",
+                "exposure_type": "Service Dependency",
+                "host": "N/A"
             },
             {
-                "name": "database-primary-container",
-                "chart": "database-primary",
-                "exposure_level": "LOW",
-                "exposure_score": 1,
-                "gateway_type": "Internal"
+                "service_name": "database-primary-container",
+                "chart_name": "database-primary",
+                "risk_level": "LOW",
+                "exposure_type": "Internal",
+                "host": "N/A"
             },
             {
-                "name": "cache-service-container",
-                "chart": "cache-service",
-                "exposure_level": "LOW",
-                "exposure_score": 1,
-                "gateway_type": "Internal"
+                "service_name": "cache-service-container",
+                "chart_name": "cache-service",
+                "risk_level": "LOW",
+                "exposure_type": "Internal",
+                "host": "N/A"
             },
             {
-                "name": "monitoring-stack-container",
-                "chart": "monitoring-stack",
-                "exposure_level": "LOW",
-                "exposure_score": 1,
-                "gateway_type": "Internal"
+                "service_name": "monitoring-stack-container",
+                "chart_name": "monitoring-stack",
+                "risk_level": "LOW",
+                "exposure_type": "Internal",
+                "host": "N/A"
             },
             {
-                "name": "security-gateway-container",
-                "chart": "security-gateway",
-                "exposure_level": "HIGH",
-                "exposure_score": 3,
-                "gateway_type": "LoadBalancer/NodePort"
+                "service_name": "security-gateway-container",
+                "chart_name": "security-gateway",
+                "risk_level": "HIGH",
+                "exposure_type": "LoadBalancer/NodePort",
+                "host": "Direct Internet Access"
             },
             {
-                "name": "load-balancer-container",
-                "chart": "load-balancer",
-                "exposure_level": "HIGH",
-                "exposure_score": 3,
-                "gateway_type": "LoadBalancer/NodePort"
+                "service_name": "load-balancer-container",
+                "chart_name": "load-balancer",
+                "risk_level": "HIGH",
+                "exposure_type": "LoadBalancer/NodePort",
+                "host": "Direct Internet Access"
             },
             {
-                "name": "edge-cases-container",
-                "chart": "edge-cases",
-                "exposure_level": "HIGH",
-                "exposure_score": 3,
-                "gateway_type": "Ingress"
+                "service_name": "edge-cases-container",
+                "chart_name": "edge-cases",
+                "risk_level": "HIGH",
+                "exposure_type": "Ingress",
+                "host": "edge.example.com"
             }
-        ],
-        "network_topology": {
-            "exposed_containers": [
-                "frontend-web-container",
-                "api-gateway-container",
-                "security-gateway-container",
-                "load-balancer-container",
-                "edge-cases-container"
-            ],
-            "linked_containers": [
-                "backend-service-container",
-                "worker-service-container"
-            ],
-            "internal_containers": [
-                "database-primary-container",
-                "cache-service-container",
-                "monitoring-stack-container"
-            ]
-        }
+        ]
     }
     
     # Run validation

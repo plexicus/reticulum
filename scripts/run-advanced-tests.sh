@@ -147,7 +147,7 @@ fi
 TOTAL_TESTS=$((TOTAL_TESTS + 1))
 if [[ -f "$TEST_RESULTS_DIR/scan_results_$TIMESTAMP.json" ]]; then
     if run_tests "Results Validation" \
-        "cd '$ADVANCED_TEST_DIR' && poetry run python validate_results.py '$TEST_RESULTS_DIR/scan_results_$TIMESTAMP.json'" \
+        "cd '$ADVANCED_TEST_DIR' && poetry run python validate_prioritization.py '$TEST_RESULTS_DIR/scan_results_$TIMESTAMP.json'" \
         "$TEST_LOG"; then
         PASSED_TESTS=$((PASSED_TESTS + 1))
         echo "✅ Results Validation: PASSED" >> "$SUMMARY_LOG"

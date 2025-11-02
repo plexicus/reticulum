@@ -6,6 +6,7 @@ Main module containing the ExposureScanner class and CLI entry point.
 Analyzes Helm charts to identify internet exposure and map source code paths.
 """
 
+from datetime import datetime
 from pathlib import Path
 from typing import Dict, Any
 
@@ -13,7 +14,7 @@ from .exposure_analyzer import ExposureAnalyzer
 from .dockerfile_analyzer import DockerfileAnalyzer
 from .dependency_analyzer import DependencyAnalyzer
 from .path_consolidator import PathConsolidator
-from .mermaid_builder import MermaidBuilder
+from .dot_builder import DOTBuilder
 
 
 class ExposureScanner:
@@ -26,7 +27,7 @@ class ExposureScanner:
             "containers": [],
             "master_paths": {},
             "network_topology": {},
-            "mermaid_diagram": "",
+            "dot_diagram": "",
         }
         self.chart_containers = {}
 
@@ -35,7 +36,7 @@ class ExposureScanner:
         self.dockerfile_analyzer = DockerfileAnalyzer()
         self.dependency_analyzer = DependencyAnalyzer()
         self.path_consolidator = PathConsolidator()
-        self.mermaid_builder = MermaidBuilder()
+        self.dot_builder = DOTBuilder()
 
     def scan_repo(self, repo_path: str) -> Dict[str, Any]:
         """Scan a repository and return exposure analysis as JSON."""
@@ -101,10 +102,13 @@ class ExposureScanner:
         # Build network topology
         self._build_network_topology()
 
-        # Build Mermaid diagram
-        self.results["mermaid_diagram"] = self.mermaid_builder.build_diagram(
+        # Build DOT diagram
+        self.results["dot_diagram"] = self.dot_builder.build_diagram(
             self.results["containers"]
         )
+
+        # Build prioritization report
+        self.results["prioritization_report"] = self._build_prioritization_report()
 
         return self.results
 
@@ -168,6 +172,56 @@ class ExposureScanner:
                 topology["internal_containers"].append(container["name"])
 
         self.results["network_topology"] = topology
+
+    def _build_prioritization_report(self) -> Dict[str, Any]:
+        """Build prioritization report for external tools."""
+        containers = self.results["containers"]
+
+        # Sort by exposure level: HIGH -> MEDIUM -> LOW
+        priority_order = {"HIGH": 0, "MEDIUM": 1, "LOW": 2}
+        sorted_containers = sorted(
+            containers, key=lambda c: priority_order.get(c["exposure_level"], 3)
+        )
+
+        # Create exposure analyzer instance for endpoint extraction
+        exposure_analyzer = ExposureAnalyzer()
+
+        prioritized_services = []
+        for container in sorted_containers:
+            service_info = {
+                "service_name": container["name"],
+                "chart_name": container["chart"],
+                "risk_level": container["exposure_level"],
+                "exposure_type": container["gateway_type"],
+                "host": container.get("host", "N/A"),
+                "dockerfile_path": container.get("dockerfile_path", ""),
+                "source_code_paths": container.get("source_code_path", []),
+                "environment": container.get("environment", "base"),
+                "security_context": container.get("security_context", {}),
+                "service_account": container.get("service_account", {}),
+                "public_endpoints": exposure_analyzer._extract_public_endpoints(
+                    container
+                ),
+            }
+            prioritized_services.append(service_info)
+
+        return {
+            "repo_path": self.results["repo_path"],
+            "scan_timestamp": datetime.now().isoformat(),
+            "summary": {
+                "total_services": len(containers),
+                "high_risk": len(
+                    [c for c in containers if c["exposure_level"] == "HIGH"]
+                ),
+                "medium_risk": len(
+                    [c for c in containers if c["exposure_level"] == "MEDIUM"]
+                ),
+                "low_risk": len(
+                    [c for c in containers if c["exposure_level"] == "LOW"]
+                ),
+            },
+            "prioritized_services": prioritized_services,
+        }
 
 
 def main():

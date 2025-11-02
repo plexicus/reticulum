@@ -332,6 +332,16 @@ class ExposureAnalyzer:
         # Analyze what this service depends on
         depends_on = self._analyze_service_dependencies(chart_name, values, chart_dir)
 
+        # Analyze security context
+        security_context = {}
+        if values:
+            security_context = self._analyze_security_context(values)
+
+        # Analyze service account
+        service_account = {}
+        if values:
+            service_account = self._analyze_service_account(values)
+
         return {
             "name": container_name,
             "chart": chart_name,
@@ -346,6 +356,8 @@ class ExposureAnalyzer:
             "exposes": exposes,
             "exposed_by": [],
             "depends_on": depends_on,
+            "security_context": security_context,
+            "service_account": service_account,
         }
 
     def _analyze_service_exposure(
@@ -596,6 +608,118 @@ class ExposureAnalyzer:
                     )
 
         return depends_on
+
+    def _analyze_capabilities(self, values: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze Linux capabilities for privilege escalation."""
+        dangerous_caps = {
+            "SYS_ADMIN": "critical",
+            "NET_ADMIN": "critical",
+            "SYS_PTRACE": "high",
+            "NET_RAW": "high",
+            "SYS_MODULE": "critical",
+        }
+
+        caps = {"added": [], "dropped": [], "risk_level": "low"}
+
+        if "securityContext" in values:
+            sec_ctx = values["securityContext"]
+            if "capabilities" in sec_ctx:
+                added = sec_ctx["capabilities"].get("add", [])
+                for cap in added:
+                    if cap in dangerous_caps:
+                        caps["added"].append(
+                            {"capability": cap, "risk": dangerous_caps[cap]}
+                        )
+
+        return caps
+
+    def _analyze_service_account(self, values: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze service account for cloud permissions."""
+        sa_info = {
+            "has_custom_sa": False,
+            "cloud_role": None,
+            "cloud_provider": None,
+            "risk_indicators": [],
+            "automount_token": False,
+        }
+
+        # Check for service account configuration
+        if "serviceAccount" in values:
+            sa = values["serviceAccount"]
+            if isinstance(sa, dict):
+                # Check if custom service account is created or specified
+                if sa.get("create") or sa.get("name"):
+                    sa_info["has_custom_sa"] = True
+
+                # Check for cloud IAM annotations across different providers
+                annotations = sa.get("annotations", {})
+                for key, value in annotations.items():
+                    # AWS IAM Role for Service Account (IRSA)
+                    if "eks.amazonaws.com/role-arn" in key:
+                        sa_info["cloud_role"] = value
+                        sa_info["cloud_provider"] = "aws"
+                        sa_info["risk_indicators"].append("aws_iam_binding")
+                    # GCP Workload Identity
+                    elif "iam.gke.io/gcp-service-account" in key:
+                        sa_info["cloud_role"] = value
+                        sa_info["cloud_provider"] = "gcp"
+                        sa_info["risk_indicators"].append("gcp_workload_identity")
+                    # Azure Workload Identity
+                    elif "azure.workload.identity/client-id" in key:
+                        sa_info["cloud_role"] = value
+                        sa_info["cloud_provider"] = "azure"
+                        sa_info["risk_indicators"].append("azure_workload_identity")
+                    # Generic cloud IAM bindings
+                    elif "role-arn" in key or "workload-identity" in key:
+                        sa_info["cloud_role"] = value
+                        sa_info["risk_indicators"].append("cloud_iam_binding")
+
+                # Check for automountServiceAccountToken
+                sa_info["automount_token"] = sa.get(
+                    "automountServiceAccountToken", True
+                )
+
+        return sa_info
+
+    def _extract_public_endpoints(self, container: Dict[str, Any]) -> List[str]:
+        """Extract list of public endpoints."""
+        endpoints = []
+
+        for exposure in container.get("exposes", []):
+            if exposure["type"] == "endpoint":
+                endpoints.append(exposure["value"])
+
+        return endpoints
+
+    def _analyze_security_context(self, values: Dict[str, Any]) -> Dict[str, Any]:
+        """Analyze security context for privilege escalation risks."""
+        security_risks = {
+            "is_privileged": False,
+            "allows_privilege_escalation": False,
+            "runs_as_root": False,
+            "host_network": False,
+            "read_only_root_filesystem": True,  # Default to True (secure)
+        }
+
+        # Check securityContext
+        if "securityContext" in values:
+            sec_ctx = values["securityContext"]
+            security_risks["is_privileged"] = sec_ctx.get("privileged", False)
+            security_risks["allows_privilege_escalation"] = sec_ctx.get(
+                "allowPrivilegeEscalation", True
+            )
+            security_risks["runs_as_root"] = sec_ctx.get("runAsUser") == 0
+            security_risks["read_only_root_filesystem"] = sec_ctx.get(
+                "readOnlyRootFilesystem", True
+            )
+
+        # Check hostNetwork
+        security_risks["host_network"] = values.get("hostNetwork", False)
+
+        # Analyze Linux capabilities
+        security_risks["capabilities"] = self._analyze_capabilities(values)
+
+        return security_risks
 
     def _analyze_template_exposure(
         self,

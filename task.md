@@ -1,0 +1,6 @@
+allowPrivilegeEscalation
+
+securityContext privileged
+
+
+
