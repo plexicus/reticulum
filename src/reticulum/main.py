@@ -201,7 +201,7 @@ class ExposureScanner:
                 "exposure_type": container["gateway_type"],
                 "host": container.get("host", "N/A"),
                 "dockerfile_path": container.get("dockerfile_path", ""),
-                "source_code_paths": container.get("source_code_path", []),
+                "source_code_paths": container.get("source_code_paths", container.get("source_code_path", [])),
                 "environment": container.get("environment", "base"),
                 "security_context": container.get("security_context", {}),
                 "service_account": container.get("service_account", {}),
