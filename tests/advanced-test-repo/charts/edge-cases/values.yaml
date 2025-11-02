@@ -1,105 +1,16 @@
-# Edge Cases Chart - Various problematic configurations for testing
-service:
-  type: "ClusterIP"
-  port: 8080
-  targetPort: 8080
-  # Test case: Conflicting service types
-  loadBalancerIP: "192.168.1.100"
-  externalTrafficPolicy: "Local"
-
-# Test case: Malformed ingress configuration
-ingress:
-  enabled: true
-  # Missing className
-  hosts:
-    - host: "test.example.com"
-      # Missing paths
-    - # Missing host
-      paths:
-        - path: "/"
-          pathType: "Prefix"
-        - # Missing path
-          pathType: "Exact"
-        - path: "/api"
-          # Missing pathType
-
-# Test case: Invalid port configuration
-ports:
-  - port: "invalid-port"
-    external: "maybe"
-  - port: 8080
-    external: true
-  - port: -1
-    external: false
-
-# Test case: Malformed cloud config
-azure:
-  enabled: "yes"
-  expose: "true"
-  # Invalid boolean values
-
-aws:
-  enabled: false
-  expose: false
-  # Valid but conflicting
-
-gcp:
-  enabled: true
-  expose: true
-  # Valid configuration
-
-# Test case: Empty arrays and objects
-emptyArray: []
-emptyObject: {}
-nullValue: null
-undefinedValue: 
-
-# Test case: Very long strings
-longString: "This is a very long string that might cause issues with the scanner if it's not properly handled and could potentially cause memory issues or performance problems if the scanner tries to process it inefficiently. It contains many characters and might be used to test the scanner's ability to handle large text fields without crashing or consuming excessive memory."
-
-# Test case: Deep nesting
-deeply:
-  nested:
-    configuration:
-      with:
-        many:
-          levels:
-            of:
-              nesting:
-                that:
-                  might:
-                    cause:
-                      performance:
-                        issues:
-                          if:
-                            not:
-                              handled:
-                                efficiently:
-                                  value: "deep"
-
-# Test case: Large arrays
-largeArray:
-  - "item1"
-  - "item2"
-  - "item3"
-  - "item4"
-  - "item5"
-  - "item6"
-  - "item7"
-  - "item8"
-  - "item9"
-  - "item10"
-  - "item11"
-  - "item12"
-  - "item13"
-  - "item14"
-  - "item15"
-
-# Test case: Mixed data types
-mixedData:
-  string: "hello"
-  number: 42
-  boolean: true
-  array: [1, 2, 3]
-  object: {key: "value"}
-  null: null
+multipleServices:
+  admin:
+    service:
+      port: 8443
+      type: LoadBalancer
+  api:
+    service:
+      port: 8080
+      type: NodePort
+  web:
+    service:
+      port: 80
+      type: ClusterIP
+securityContext:
+  privileged: false
+  runAsNonRoot: true

@@ -1,47 +1,18 @@
-# Database Primary Service - LOW Exposure (Internal only)
+image:
+  pullPolicy: IfNotPresent
+  repository: postgres
+  tag: '15'
+persistence:
+  enabled: true
+  size: 10Gi
+resources:
+  limits:
+    cpu: '1'
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
 service:
-  type: "ClusterIP"
   port: 5432
   targetPort: 5432
-
-# No ingress - internal service only
-ingress:
-  enabled: false
-
-# Database specific configurations
-database:
-  type: "postgresql"
-  version: "15"
-  enableReplication: true
-  enableBackup: true
-  enableMonitoring: true
-
-# Storage configuration
-storage:
-  type: "persistent"
-  size: "100Gi"
-  storageClass: "fast-ssd"
-  enableEncryption: true
-
-# Security configuration
-security:
-  enableTLS: true
-  enableNetworkPolicies: true
-  enableRBAC: true
-  runAsNonRoot: true
-  runAsUser: 999
-  fsGroup: 999
-
-# Performance configuration
-performance:
-  maxConnections: 200
-  sharedBuffers: "256MB"
-  effectiveCacheSize: "1GB"
-  workMem: "4MB"
-
-# Backup configuration
-backup:
-  enabled: true
-  schedule: "0 2 * * *"
-  retention: "30d"
-  enableCompression: true
+  type: ClusterIP

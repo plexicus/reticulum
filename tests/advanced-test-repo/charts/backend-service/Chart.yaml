@@ -1,5 +1,6 @@
 apiVersion: v2
+appVersion: 1.0.0
+description: Backend service with internal access only
 name: backend-service
-description: Backend service connected to API Gateway (MEDIUM exposure)
-version: 0.1.0
-appVersion: "1.0.0"
+type: application
+version: 1.0.0

@@ -40,7 +40,11 @@ jobs:
     - name: Install dependencies
       run: poetry install --no-interaction
       timeout-minutes: 15
-    
+
+    - name: Generate test repository
+      run: poetry run python scripts/create-test-repo.py
+      timeout-minutes: 5
+
     - name: Run tests
       run: poetry run pytest
       timeout-minutes: 10

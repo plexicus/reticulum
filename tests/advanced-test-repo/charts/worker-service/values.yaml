@@ -1,44 +1,15 @@
-# Worker Service - MEDIUM Exposure (Background processing)
+image:
+  pullPolicy: IfNotPresent
+  repository: redis
+  tag: '7.2'
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
 service:
-  type: "ClusterIP"
-  port: 8080
-  targetPort: 8080
-
-# No ingress - internal service only
-ingress:
-  enabled: false
-
-# Worker specific configurations
-worker:
-  type: "background"
-  enableQueue: true
-  enableRetry: true
-  enableDeadLetter: true
-  maxRetries: 3
-  timeoutSeconds: 300
-
-# Queue configuration
-queue:
-  type: "rabbitmq"
-  enableClustering: true
-  enablePersistence: true
-  enableTLS: true
-
-# Job processing configuration
-jobs:
-  batchSize: 100
-  maxConcurrency: 10
-  enablePriority: true
-  enableScheduling: true
-
-# Monitoring configuration
-monitoring:
-  enableMetrics: true
-  enableHealthChecks: true
-  enableDistributedTracing: true
-
-# Dependencies
-dependencies:
-  apiGateway: "api-gateway"
-  database: "database-primary"
-  cache: "cache-service"
+  port: 6379
+  targetPort: 6379
+  type: ClusterIP

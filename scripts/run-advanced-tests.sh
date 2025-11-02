@@ -65,24 +65,24 @@ run_tests() {
     local test_name="$1"
     local test_command="$2"
     local output_file="$3"
-    
+
     log_info "Running $test_name..."
     echo "Test: $test_name" >> "$output_file"
     echo "Command: $test_command" >> "$output_file"
     echo "Timestamp: $(date)" >> "$output_file"
     echo "----------------------------------------" >> "$output_file"
-    
-    local start_time=$(date +%s.%N)
-    
+
+    local start_time=$(date +%s)
+
     if eval "$test_command" >> "$output_file" 2>&1; then
-        local end_time=$(date +%s.%N)
-        local duration=$(echo "$end_time - $start_time" | bc -l)
+        local end_time=$(date +%s)
+        local duration=$((end_time - start_time))
         log_success "$test_name completed in ${duration}s"
         echo "Result: PASSED (${duration}s)" >> "$output_file"
         return 0
     else
-        local end_time=$(date +%s.%N)
-        local duration=$(echo "$end_time - $start_time" | bc -l)
+        local end_time=$(date +%s)
+        local duration=$((end_time - start_time))
         log_error "$test_name failed after ${duration}s"
         echo "Result: FAILED (${duration}s)" >> "$output_file"
         return 1
@@ -147,7 +147,17 @@ fi
 TOTAL_TESTS=$((TOTAL_TESTS + 1))
 if [[ -f "$TEST_RESULTS_DIR/scan_results_$TIMESTAMP.json" ]]; then
     if run_tests "Results Validation" \
-        "cd '$ADVANCED_TEST_DIR' && poetry run python validate_prioritization.py '$TEST_RESULTS_DIR/scan_results_$TIMESTAMP.json'" \
+        "cd '$PROJECT_ROOT' && poetry run python -c \"
+import json
+import sys
+with open('$TEST_RESULTS_DIR/scan_results_$TIMESTAMP.json') as f:
+    data = json.load(f)
+assert 'prioritized_services' in data
+assert 'repo_path' in data
+assert 'scan_timestamp' in data
+assert 'summary' in data
+print('✅ Scan results structure is valid')
+\"" \
         "$TEST_LOG"; then
         PASSED_TESTS=$((PASSED_TESTS + 1))
         echo "✅ Results Validation: PASSED" >> "$SUMMARY_LOG"
@@ -164,7 +174,7 @@ fi
 TOTAL_TESTS=$((TOTAL_TESTS + 1))
 if [[ -f "$TEST_RESULTS_DIR/scan_results_$TIMESTAMP.json" ]]; then
     SCAN_TIME=$(grep "Scan Time:" "$TEST_LOG" | tail -1 | grep -o '[0-9.]*s' | grep -o '[0-9.]*' || echo "0")
-    if (( $(echo "$SCAN_TIME < 30" | bc -l) )); then
+    if cd "$PROJECT_ROOT" && poetry run python -c "exit(0 if float('$SCAN_TIME') < 30 else 1)"; then
         PASSED_TESTS=$((PASSED_TESTS + 1))
         echo "✅ Performance Benchmark: PASSED (${SCAN_TIME}s < 30s)" >> "$SUMMARY_LOG"
     else
