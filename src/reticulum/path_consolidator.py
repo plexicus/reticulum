@@ -83,6 +83,10 @@ class PathConsolidator:
             # Normalize path for comparison (remove trailing slash)
             norm_path = path.rstrip("/")
 
+            # Skip empty paths
+            if not norm_path:
+                continue
+
             # Check if this path is already covered by a parent path
             is_subpath = False
             for existing_path in consolidated:
@@ -103,7 +107,52 @@ class PathConsolidator:
                 ]
                 consolidated.append(path)
 
-        return sorted(consolidated)
+        # Validate consolidated paths against common patterns
+        validated_paths = self._validate_consolidated_paths(consolidated)
+
+        return sorted(validated_paths)
+
+    def _validate_consolidated_paths(self, paths: List[str]) -> List[str]:
+        """Validate consolidated paths against common patterns and remove invalid ones."""
+        if not paths:
+            return []
+
+        validated = []
+
+        # Common patterns to validate against
+        valid_patterns = [
+            # Service directories
+            r"^[a-zA-Z0-9_-]+/$",
+            # Subdirectories like "plexalyzer/prov/"
+            r"^[a-zA-Z0-9_-]+/[a-zA-Z0-9_-]+/$",
+            # Shared directories like "logger/", "plugins/"
+            r"^[a-zA-Z0-9_-]+/$",
+            # Root directory
+            r"^\./$",
+        ]
+
+        import re
+
+        for path in paths:
+            # Check if path matches any valid pattern
+            is_valid = any(re.match(pattern, path) for pattern in valid_patterns)
+
+            # Also check for obviously invalid patterns
+            invalid_patterns = [
+                r"^app/$",      # System directory
+                r"^usr/$",      # System directory
+                r"^opt/$",      # System directory
+                r"^var/$",      # System directory
+                r"^tmp/$",      # System directory
+                r"^etc/$",      # System directory
+            ]
+
+            is_invalid = any(re.match(pattern, path) for pattern in invalid_patterns)
+
+            if is_valid and not is_invalid:
+                validated.append(path)
+
+        return validated
 
     def _get_highest_exposure_level(self, containers: List[Dict[str, Any]]) -> str:
         """Get the highest exposure level from a list of containers."""

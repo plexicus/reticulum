@@ -49,6 +49,17 @@ class DockerfileAnalyzer:
             if path.exists():
                 return path
 
+        # Strategy 6: Look for Dockerfile variants (Dockerfile.*)
+        for variant in ["Dockerfile.dev", "Dockerfile.prod", "Dockerfile.staging"]:
+            dockerfile = chart_dir / variant
+            if dockerfile.exists():
+                return dockerfile
+
+        # Strategy 7: Deep search in repository for any Dockerfile matching chart name patterns
+        dockerfile = self._deep_search_dockerfile(repo_path, chart_name)
+        if dockerfile:
+            return dockerfile
+
         return None
 
     def parse_dockerfile_for_source_paths(
@@ -58,7 +69,14 @@ class DockerfileAnalyzer:
         raw_paths = []
 
         try:
-            with open(dockerfile_path, "r") as f:
+            # Validate that the Dockerfile exists and is readable
+            if not dockerfile_path.exists():
+                return []
+
+            if not dockerfile_path.is_file():
+                return []
+
+            with open(dockerfile_path, "r", encoding="utf-8") as f:
                 lines = f.readlines()
 
             # Process line by line to avoid commented lines
@@ -101,9 +119,17 @@ class DockerfileAnalyzer:
 
             # Consolidate paths to show only parent directories
             source_paths = self._consolidate_source_paths(raw_paths, repo_root)
-            return source_paths
 
-        except Exception:
+            # Validate extracted paths against actual repository structure
+            validated_paths = self._validate_source_paths(source_paths, repo_root)
+
+            return validated_paths
+
+        except (IOError, UnicodeDecodeError, PermissionError) as e:
+            # Log the error but continue processing
+            return []
+        except Exception as e:
+            # Catch any other unexpected errors
             return []
 
     def _consolidate_source_paths(
@@ -156,3 +182,101 @@ class DockerfileAnalyzer:
 
         # Add trailing slash to indicate directories and sort
         return sorted([f"{path}/" for path in consolidated])
+
+    def _deep_search_dockerfile(self, repo_path: Path, chart_name: str) -> Optional[Path]:
+        """Deep search for Dockerfiles matching chart name patterns."""
+        # Common naming patterns for Dockerfiles
+        naming_patterns = [
+            # Direct match
+            chart_name,
+            # Remove common suffixes
+            chart_name.replace("-chart", "").replace("-helm", "").rstrip("-"),
+            # Handle subdirectory patterns (like plexalyzer-prov -> plexalyzer/prov)
+            chart_name.replace("-", "/"),
+            # Handle provider patterns (like plexalyzer-prov -> plexalyzer/prov)
+            chart_name.replace("-prov", "/prov").replace("-code", "/code"),
+            # Handle tool-parser -> exporter mapping
+            "tool-parser" if chart_name == "exporter" else None,
+        ]
+
+        # Filter out None patterns
+        naming_patterns = [p for p in naming_patterns if p is not None]
+
+        # Search for Dockerfiles in the entire repository
+        for dockerfile_path in repo_path.rglob("Dockerfile"):
+            # Skip Dockerfiles in node_modules, .git, etc.
+            if any(segment.startswith(".") or segment in ["node_modules", "vendor"]
+                   for segment in dockerfile_path.parts):
+                continue
+
+            # Check if Dockerfile path matches any of our naming patterns
+            dockerfile_dir = dockerfile_path.parent
+            relative_path = dockerfile_dir.relative_to(repo_path)
+
+            for pattern in naming_patterns:
+                # Check if the pattern matches the directory structure
+                if self._matches_pattern(str(relative_path), pattern):
+                    return dockerfile_path
+
+                # Also check if the pattern matches the parent directory
+                if dockerfile_dir.name == pattern:
+                    return dockerfile_path
+
+        return None
+
+    def _matches_pattern(self, path: str, pattern: str) -> bool:
+        """Check if a path matches a naming pattern."""
+        # Direct match
+        if path == pattern:
+            return True
+
+        # Pattern as subdirectory
+        if path.endswith(f"/{pattern}"):
+            return True
+
+        # Pattern with dashes replaced by slashes
+        if pattern.replace("-", "/") in path:
+            return True
+
+        # Handle complex patterns like "plexalyzer-prov" -> "plexalyzer/prov"
+        if "-" in pattern:
+            parts = pattern.split("-")
+            if len(parts) == 2:
+                expected_path = f"{parts[0]}/{parts[1]}"
+                if path == expected_path or path.endswith(f"/{expected_path}"):
+                    return True
+
+        return False
+
+    def _validate_source_paths(self, source_paths: List[str], repo_root: Path) -> List[str]:
+        """Validate extracted source paths against actual repository structure."""
+        if not source_paths:
+            return []
+
+        validated_paths = []
+
+        for path in source_paths:
+            # Skip empty paths
+            if not path or path == "./":
+                continue
+
+            # Remove trailing slash for validation
+            clean_path = path.rstrip("/")
+
+            # Check if the path exists in the repository
+            full_path = repo_root / clean_path
+            if full_path.exists():
+                validated_paths.append(path)
+            else:
+                # Check if any parent directory exists
+                parent_path = full_path
+                while parent_path != repo_root and parent_path.parent != repo_root:
+                    parent_path = parent_path.parent
+                    if parent_path.exists():
+                        # Use the existing parent directory
+                        relative_parent = parent_path.relative_to(repo_root)
+                        validated_paths.append(f"{relative_parent}/")
+                        break
+
+        # Remove duplicates and sort
+        return sorted(list(set(validated_paths)))

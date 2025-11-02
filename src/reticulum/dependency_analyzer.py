@@ -77,11 +77,11 @@ class DependencyAnalyzer:
         """Recursively check for service name references in any configuration."""
         if isinstance(obj, dict):
             for key, value in obj.items():
-                # Check if key contains service name
-                if chart_name.lower() in key.lower():
+                # Check if key contains service name (more precise matching)
+                if self._is_service_reference(key, chart_name):
                     return True
                 # Check if value contains service name
-                if isinstance(value, str) and chart_name.lower() in value.lower():
+                if isinstance(value, str) and self._is_service_reference(value, chart_name):
                     return True
                 # Recursively check nested structures
                 if self._check_recursive_dependency(value, chart_name):
@@ -91,15 +91,65 @@ class DependencyAnalyzer:
                 if self._check_recursive_dependency(item, chart_name):
                     return True
         elif isinstance(obj, str):
-            # Check for service references in various formats:
-            # - Direct name: "fastapi"
-            # - Service URL: "http://fastapi:8000"
-            # - Kubernetes service: "fastapi.namespace.svc.cluster.local"
-            # - Environment variable value: "fastapi-service"
-            if chart_name.lower() in obj.lower():
+            # Check for service references in various formats
+            if self._is_service_reference(obj, chart_name):
                 return True
 
         return False
+
+    def _is_service_reference(self, text: str, chart_name: str) -> bool:
+        """Check if text contains a meaningful service reference to chart_name."""
+        if not text or not chart_name:
+            return False
+
+        text_lower = text.lower()
+        chart_lower = chart_name.lower()
+
+        # Skip common false positives
+        false_positives = [
+            "fastapi",  # Could match "fastapi" in unrelated contexts
+            "worker",   # Common word
+            "code",     # Common word
+            "prov",     # Common abbreviation
+        ]
+
+        if chart_lower in false_positives:
+            # Use more precise matching for common words
+            patterns = [
+                f"{chart_lower}://",           # URL scheme
+                f"{chart_lower}:",             # Port specification
+                f"{chart_lower}.svc",          # Kubernetes service
+                f"{chart_lower}-service",      # Service name
+                f"{chart_lower}_service",      # Service name
+                f"{chart_lower}.cluster",      # Cluster reference
+                f"{chart_lower}.namespace",    # Namespace reference
+                f"{chart_lower}-container",    # Container name
+                f"{chart_lower}_container",    # Container name
+            ]
+            return any(pattern in text_lower for pattern in patterns)
+
+        # For other services, use more precise matching
+        patterns = [
+            f"{chart_lower}://",           # URL scheme
+            f"{chart_lower}:",             # Port specification
+            f"{chart_lower}.svc",          # Kubernetes service
+            f"{chart_lower}-service",      # Service name
+            f"{chart_lower}_service",      # Service name
+            f"{chart_lower}.cluster",      # Cluster reference
+            f"{chart_lower}.namespace",    # Namespace reference
+            f"{chart_lower}-container",    # Container name
+            f"{chart_lower}_container",    # Container name
+            # Whole word match (with word boundaries)
+            f" {chart_lower} ",            # Space delimited
+            f" {chart_lower},",            # Comma delimited
+            f" {chart_lower}.",            # Period delimited
+            f" {chart_lower}:",            # Colon delimited
+            f" {chart_lower}\n",           # Newline delimited
+            f"\"{chart_lower}\"",         # Quoted
+            f"'{chart_lower}'",            # Single quoted
+        ]
+
+        return any(pattern in text_lower for pattern in patterns)
 
     def _create_medium_container_info(
         self,

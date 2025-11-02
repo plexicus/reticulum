@@ -116,7 +116,13 @@ class ExposureScanner:
         """Enrich containers with Dockerfile and source path information."""
         for container in self.results["containers"]:
             chart_name = container["chart"]
-            chart_dir = Path(repo_path) / self.chart_containers[chart_name]["path"]
+
+            # Check if chart exists in chart_containers
+            if chart_name not in self.chart_containers:
+                continue
+
+            chart_info = self.chart_containers[chart_name]
+            chart_dir = Path(repo_path) / chart_info["path"]
 
             # Find Dockerfile
             dockerfile_path = self.dockerfile_analyzer.find_dockerfile(
