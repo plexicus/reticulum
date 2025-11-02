@@ -94,7 +94,7 @@ jobs:
         name: advanced-test-coverage
     
     - name: Archive test results
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       if: always()
       with:
         name: advanced-test-results-${{ matrix.python-version }}

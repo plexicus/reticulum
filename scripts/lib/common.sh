@@ -82,11 +82,11 @@ get_init_version() {
 }
 
 get_cli_version() {
-    grep 'version="%(prog)s' src/reticulum/cli.py | sed 's/.*version="%(prog)s \([^"]*\)".*/\1/'
+    grep 'version="%(prog)s' src/reticulum/cli.py | sed 's/.*version="%(prog)s \([0-9.]\+\)"/\1/'
 }
 
 get_readme_version() {
-    grep '🚀 \*\*Latest Release:' README.md | sed 's/.*v\([0-9.][0-9.]*[0-9]\).*/\1/' || echo "none"
+    grep '🚀 \*\*Latest Release:' README.md | sed 's/.*v\([0-9.][0-9.]*[0-9]\).*/\1/' 2>/dev/null || echo "none"
 }
 
 get_latest_tag() {
@@ -104,7 +104,7 @@ update_init_version() {
 update_cli_version() {
     local new_version=$1
     print_status "AUTO" "Updating CLI version to $new_version"
-    sed -i.bak "s/version=\"%(prog)s [^\"]*\"/version=\"%(prog)s $new_version\"/" src/reticulum/cli.py
+    sed -i.bak "s/version=\"%(prog)s [0-9.]*\"/version=\"%(prog)s $new_version\"/" src/reticulum/cli.py
     rm -f src/reticulum/cli.py.bak
 }
 
