@@ -1,6 +1,0 @@
-apiVersion: v2
-appVersion: 1.0.0
-description: Backend service with internal access only
-name: backend-service
-type: application
-version: 1.0.0

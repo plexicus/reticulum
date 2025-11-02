@@ -1,6 +1,0 @@
-apiVersion: v2
-appVersion: 1.0.0
-description: Primary database with internal access
-name: database-primary
-type: application
-version: 1.0.0

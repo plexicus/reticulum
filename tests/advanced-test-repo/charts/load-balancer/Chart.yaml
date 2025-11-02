@@ -1,6 +1,0 @@
-apiVersion: v2
-appVersion: 1.0.0
-description: Load balancer with external access
-name: load-balancer
-type: application
-version: 1.0.0
