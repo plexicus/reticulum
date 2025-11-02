@@ -2,6 +2,8 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+**IMPORTANT**: Always check `DEVELOPER.md` for comprehensive development workflows, version management, release processes, and troubleshooting guides.
+
 ## Project Overview
 
 Reticulum is a prioritization report generator that analyzes Kubernetes Helm charts and generates security prioritization reports for external tools. It provides structured prioritization data mapping services to their risk levels, code paths, and Dockerfiles.
@@ -54,6 +56,9 @@ make clean
 ```
 
 ### Release Management
+
+**See `DEVELOPER.md` for comprehensive release workflows, version bump guidelines, and troubleshooting.**
+
 ```bash
 # Create patch release (x.y.Z)
 make release-patch
@@ -129,6 +134,8 @@ reticulum /path/to/repo --dot network.dot
 - Performance benchmarks and edge case handling
 
 ## Development Workflow
+
+**For detailed development workflows, version management, and release processes, always consult `DEVELOPER.md`.**
 
 ### Quality Assurance
 - **Linting**: Ruff for code quality
