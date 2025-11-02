@@ -334,9 +334,17 @@ class DockerRunner:
                 return False
 
             # Check for path traversal attempts
-            if ".." in repo_path or repo_path.startswith("/"):
+            if ".." in repo_path:
                 print(f"⚠️  Suspicious repository path detected: {repo_path}")
-                # Allow absolute paths but log warning
+                # Allow but log warning
+
+            # Allow absolute paths (common in CI environments and tests)
+            if repo_path.startswith("/"):
+                # Check if it's a test path (common patterns)
+                if "/tmp/" in repo_path or "/var/tmp/" in repo_path or "/tmp/advanced-test-repo" in repo_path:
+                    print(f"📝 Test repository path detected: {repo_path}")
+                else:
+                    print(f"📁 Absolute repository path: {repo_path}")
 
             return True
 
