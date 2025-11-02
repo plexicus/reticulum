@@ -438,7 +438,7 @@ ingress:
         dot_file = tmp_path / "test.dot"
 
         # Mock the CLI execution
-        with patch('sys.argv', ['reticulum', str(repo_path), '--dot', str(dot_file)]):
+        with patch('sys.argv', ['reticulum', 'scan', str(repo_path), '--dot', str(dot_file)]):
             parser = create_parser()
             args = parser.parse_args()
 
