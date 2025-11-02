@@ -125,10 +125,10 @@ class DockerfileAnalyzer:
 
             return validated_paths
 
-        except (IOError, UnicodeDecodeError, PermissionError) as e:
+        except (IOError, UnicodeDecodeError, PermissionError):
             # Log the error but continue processing
             return []
-        except Exception as e:
+        except Exception:
             # Catch any other unexpected errors
             return []
 
