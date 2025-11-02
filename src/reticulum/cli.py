@@ -66,6 +66,7 @@ def main():
         # Handle DOT file export if requested
         if args.dot:
             from .dot_builder import DOTBuilder
+
             dot_builder = DOTBuilder()
             dot_builder.save_dot_file(results["containers"], args.dot)
 
