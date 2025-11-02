@@ -1,173 +1,64 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides Claude Code (claude.ai/code) with specific guidance for working with this repository.
 
-**IMPORTANT**: Always check `DEVELOPER.md` for comprehensive development workflows, version management, release processes, and troubleshooting guides.
+## Primary Documentation Sources
 
-## Project Overview
+**ALWAYS consult these files in order:**
+1. **DEVELOPER.md** - Complete development workflows, version management, release processes
+2. **README.md** - User-facing documentation and usage
+3. **This file (CLAUDE.md)** - Claude-specific guidance only
 
-Reticulum is a prioritization report generator that analyzes Kubernetes Helm charts and generates security prioritization reports for external tools. It provides structured prioritization data mapping services to their risk levels, code paths, and Dockerfiles.
+## Claude-Specific Guidelines
 
-## Development Commands
+### Documentation Priority
+- **Development workflows**: Use `DEVELOPER.md` exclusively
+- **Release management**: Use `DEVELOPER.md` for all version bump decisions and processes
+- **Troubleshooting**: Use `DEVELOPER.md` for common issues and solutions
 
-### Setup and Installation
-```bash
-# Install dependencies
-poetry install
+### Critical Reminders for Claude
 
-# Setup development environment
-make dev-setup
-```
+1. **Version Management**:
+   - Always check `DEVELOPER.md` before any version changes
+   - Follow semantic versioning guidelines strictly
+   - Use exact version numbers as requested by user
 
-### Testing
-```bash
-# Run basic tests
-make test
+2. **Release Process**:
+   - Never assume version bump type - ask user or check `DEVELOPER.md`
+   - Always run pre-release checks (`make check`)
+   - Verify version synchronization after releases
 
-# Run advanced test scenarios
-make advanced-tests
+3. **Development Workflow**:
+   - Use `make dev-check` before committing changes
+   - Run `make test-all` before releases
+   - Follow commit message conventions from `DEVELOPER.md`
 
-# Run all tests including advanced scenarios
-make test-all
+4. **Error Handling**:
+   - Check `DEVELOPER.md` troubleshooting section first
+   - Look for common GitHub Actions failures and solutions
+   - Verify dependencies are properly declared
 
-# Run tests with coverage
-poetry run pytest tests/ --cov=src/reticulum --cov-report=html
-```
+### Common Pitfalls to Avoid
 
-### Quality Assurance
-```bash
-# Run all quality checks (lint, format, test)
-make check
+- **Version confusion**: Always confirm exact version numbers with user
+- **Redundant documentation**: Don't duplicate information from `DEVELOPER.md`
+- **Missing dependencies**: Ensure all test/CI dependencies are in `pyproject.toml`
+- **Unsynced versions**: Use `make release-sync` when version files get out of sync
 
-# Development quality check (daily use)
-make dev-check
+## Quick Reference
 
-# Development quality check with auto-fix
-make dev-check-fix
+### Essential Commands (Detailed in DEVELOPER.md)
+- `make dev-check` - Development quality checks
+- `make test-all` - All tests including advanced scenarios
+- `make check` - Full quality checks (lint + format + test)
+- `make release-sync` - Fix version synchronization issues
 
-# Lint code
-make lint
+### When to Ask for Clarification
+- Version bump type (patch/minor/major)
+- Release timing and strategy
+- Complex architectural decisions
+- Any uncertainty about development workflow
 
-# Format code
-make format
+---
 
-# Clean up generated files
-make clean
-```
-
-### Release Management
-
-**See `DEVELOPER.md` for comprehensive release workflows, version bump guidelines, and troubleshooting.**
-
-```bash
-# Create patch release (x.y.Z)
-make release-patch
-
-# Create minor release (x.Y.z)
-make release-minor
-
-# Create major release (X.y.z)
-make release-major
-
-# Synchronize version files only
-make release-sync
-```
-
-## Architecture
-
-### Core Components
-
-**ExposureScanner** (`src/reticulum/main.py:19`) - Main orchestrator class that coordinates the analysis process:
-- Scans repositories for Helm charts
-- Orchestrates specialized analyzers
-- Builds comprehensive results structure
-
-**Specialized Analyzers:**
-- **ExposureAnalyzer** (`src/reticulum/exposure_analyzer.py:12`) - Analyzes Helm charts for exposure patterns
-- **DependencyAnalyzer** (`src/reticulum/dependency_analyzer.py:12`) - Analyzes dependencies between containers
-- **DockerfileAnalyzer** (`src/reticulum/dockerfile_analyzer.py`) - Finds and analyzes Dockerfiles
-- **PathConsolidator** (`src/reticulum/path_consolidator.py`) - Consolidates source code paths
-- **DOTBuilder** (`src/reticulum/dot_builder.py:10`) - Generates Graphviz DOT diagrams for network topology visualization
-
-### Analysis Workflow
-
-1. **Chart Discovery** - Find all `Chart.yaml` files in repository
-2. **Exposure Analysis** - Analyze values.yaml and templates for exposure patterns
-3. **Dependency Analysis** - Reconstruct containers from dependencies
-4. **Internal Detection** - Identify LOW exposure containers
-5. **Dockerfile Enrichment** - Find and analyze Dockerfiles
-6. **Path Consolidation** - Build master source code paths
-7. **Topology Building** - Generate network topology and DOT diagrams
-
-### Exposure Classification
-
-- **HIGH**: Direct internet access (LoadBalancer, Ingress, NodePort)
-- **MEDIUM**: Connected to HIGH exposure services
-- **LOW**: Internal-only, no external access
-
-## CLI Interface
-
-**Entry Point**: `src/reticulum/cli.py:195`
-
-### Usage
-```bash
-# Generate prioritization report (compact JSON)
-reticulum /path/to/repo
-
-# Generate pretty formatted prioritization report
-reticulum /path/to/repo --json
-
-# Export network topology as Graphviz DOT file
-reticulum /path/to/repo --dot network.dot
-```
-
-## Testing Strategy
-
-### Test Structure
-- **Unit Tests**: `tests/test_exposure_scanner.py` - Core functionality testing
-- **Advanced Scenarios**: `tests/test_advanced_scenarios.py` - Complex real-world scenarios
-- **Test Markers**: slow, integration, advanced, performance, edge_cases
-
-### Test Configuration
-- Coverage reporting enabled (HTML, XML, terminal)
-- Strict markers for test organization
-- Performance benchmarks and edge case handling
-
-## Development Workflow
-
-**For detailed development workflows, version management, and release processes, always consult `DEVELOPER.md`.**
-
-### Quality Assurance
-- **Linting**: Ruff for code quality
-- **Formatting**: Black for consistent code style
-- **Testing**: Comprehensive pytest suite
-- **Version Management**: Automated version synchronization
-
-### Scripts
-- `scripts/dev-check.sh` - Development quality checks
-- `scripts/release.sh` - Release management
-- `scripts/run-advanced-tests.sh` - Advanced test scenarios
-
-## Configuration Files
-
-- `pyproject.toml` - Poetry configuration and dependencies
-- `pytest.ini` - Testing configuration with coverage settings
-- `Makefile` - Development and release targets
-
-## Key Patterns
-
-### Exposure Detection
-- Service types (LoadBalancer, NodePort, ClusterIP)
-- Ingress configurations
-- Cloud-specific load balancers
-- Security contexts (privileged, hostNetwork)
-- External ports and cloud integrations
-
-### Dependency Analysis
-- Service-to-service dependencies
-- Database and cache dependencies
-- Message queue integrations
-- Monitoring and storage dependencies
-
-### Output Format
-- **Prioritization Report**: Structured JSON with services sorted by risk level, including Dockerfile paths and source code paths
+**Remember**: `DEVELOPER.md` contains all comprehensive development documentation. This file is for Claude-specific guidance only.
