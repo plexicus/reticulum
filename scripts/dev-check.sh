@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Development Quality Check Script for Reticulum
-# Replaces quick-check.sh with improved functionality
+# Provides comprehensive development quality checks with auto-fix capability
 # Usage: ./dev-check.sh [--fix]
 
 set -e

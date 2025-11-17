@@ -1,6 +1,6 @@
 # Version Bump Command
 
-Create a new version bump for the project following the guidelines in DEVELOPER.md. This command provides an interactive version bump process.
+Create a new version bump for the project following the guidelines in DEVELOPER.md. This command provides an interactive version bump process using the unified release system.
 
 ## Current Version Check
 
@@ -30,17 +30,17 @@ echo "✅ All version files are synchronized"
 Before proceeding with version bump, let's run the project's quality checks:
 
 ```bash
-# Run pre-release checks as specified in DEVELOPER.md
-echo "🔍 Running pre-release checks..."
+# Run quality checks as specified in DEVELOPER.md
+echo "🔍 Running quality checks..."
 if command -v make >/dev/null 2>&1; then
     make check
     if [ $? -ne 0 ]; then
-        echo "❌ Pre-release checks failed. Please fix issues before version bump."
+        echo "❌ Quality checks failed. Please fix issues before version bump."
         exit 1
     fi
-    echo "✅ Pre-release checks passed"
+    echo "✅ Quality checks passed"
 else
-    echo "⚠️  Make not available, skipping pre-release checks"
+    echo "⚠️  Make not available, skipping quality checks"
 fi
 ```
 
@@ -50,7 +50,7 @@ Now let's determine what type of version bump to perform:
 
 $ARGUMENTS
 
-If no arguments are provided, present an interactive selection:
+If no arguments are provided, default to minor release:
 
 ```bash
 BUMP_TYPE=""
@@ -60,29 +60,24 @@ if [ -n "$1" ] && [[ "$1" =~ ^(patch|minor|major)$ ]]; then
     BUMP_TYPE="$1"
     echo "🎯 Using provided bump type: $BUMP_TYPE"
 else
-    # Interactive selection
+    # Default to minor release unless specifically requested otherwise
     echo ""
-    echo "🎯 Please select version bump type:"
-    echo ""
-    echo "1) patch - Bug fixes and minor changes"
-    echo "   Example: $current_version → $(echo $current_version | awk -F. '{$NF = $NF + 1; print $0}' OFS=".")"
-    echo ""
-    echo "2) minor - New features, backward compatible"
+    echo "🎯 Defaulting to minor release (new features, backward compatible)"
     echo "   Example: $current_version → $(echo $current_version | awk -F. '{$2 = $2 + 1; $3 = 0; print $0}' OFS=".")"
     echo ""
-    echo "3) major - Breaking changes"
-    echo "   Example: $current_version → $(echo $current_version | awk -F. '{$1 = $1 + 1; $2 = 0; $3 = 0; print $0}' OFS=".")"
+    echo "📝 Note: In most cases, use minor releases unless specifically requested"
+    echo "   - patch: Bug fixes and minor changes"
+    echo "   - minor: New features, backward compatible (DEFAULT)"
+    echo "   - major: Breaking changes"
     echo ""
 
-    while true; do
-        read -p "Enter choice (1-3): " choice
-        case $choice in
-            1) BUMP_TYPE="patch"; break ;;
-            2) BUMP_TYPE="minor"; break ;;
-            3) BUMP_TYPE="major"; break ;;
-            *) echo "❌ Invalid choice. Please enter 1, 2, or 3." ;;
-        esac
-    done
+    # Optional: Allow override via prompt
+    read -p "Press Enter to continue with minor release, or type 'patch' or 'major': " override
+    case $override in
+        "patch") BUMP_TYPE="patch" ;;
+        "major") BUMP_TYPE="major" ;;
+        *) BUMP_TYPE="minor" ;;
+    esac
 fi
 
 echo ""

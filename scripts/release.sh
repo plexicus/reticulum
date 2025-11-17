@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Unified Release Script for Reticulum
-# Replaces version-bump.sh, version-sync.sh, and pre-release-check.sh
+# Provides complete release workflow with version management
 # Usage: ./release.sh [patch|minor|major|sync]
 
 set -e
@@ -107,7 +107,7 @@ fi
 
 # For version bumps, run quality checks first
 echo ""
-print_status "INFO" "Running pre-release quality checks..."
+print_status "INFO" "Running quality checks..."
 if ! run_quality_checks false; then
     print_status "FAIL" "Quality checks failed - cannot proceed with release"
     exit 1
