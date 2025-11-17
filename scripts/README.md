@@ -106,16 +106,6 @@ make release-sync        # Sync version files
 make advanced-tests      # Run advanced test scenarios
 ```
 
-### **Legacy Compatibility**
-```bash
-# These still work (aliases to new commands)
-make quick-check         # → dev-check
-make pre-release         # → dev-check + release-sync
-make version-sync        # → release-sync
-make version-bump-patch  # → release-patch
-make version-bump-minor  # → release-minor
-make version-bump-major  # → release-major
-```
 
 ---
 
@@ -199,22 +189,6 @@ git push origin main v0.x.x
 
 ---
 
-## 📚 **Migration Guide**
-
-### **Old → New Command Mapping**
-```bash
-# Old commands → New commands (all still work!)
-scripts/quick-check.sh           → scripts/dev-check.sh
-scripts/quick-check.sh (fix)     → scripts/dev-check.sh --fix
-scripts/pre-release-check.sh     → scripts/dev-check.sh + scripts/release.sh sync
-scripts/version-sync.sh          → scripts/release.sh sync
-scripts/version-bump.sh patch    → scripts/release.sh patch
-scripts/version-bump.sh minor    → scripts/release.sh minor
-scripts/version-bump.sh major    → scripts/release.sh major
-```
-
-### **Makefile Commands**
-All existing `make` commands continue to work through aliases!
 
 ---
 
@@ -223,8 +197,7 @@ All existing `make` commands continue to work through aliases!
 1. **Use `dev-check-fix` daily** - catches issues early with auto-fix
 2. **Use `release-patch/minor/major`** - complete automated releases
 3. **Trust the automation** - scripts handle cross-platform consistency
-4. **Use legacy commands if preferred** - full backward compatibility
-5. **Run `release-sync`** if versions ever get misaligned
+4. **Run `release-sync`** if versions ever get misaligned
 
 ### **Version Management**
 - `pyproject.toml` remains the source of truth
@@ -239,8 +212,5 @@ All existing `make` commands continue to work through aliases!
 The new system provides:
 - **50% fewer scripts** with **100% of the functionality**
 - **Zero redundancy** and **perfect clarity**
-- **Backward compatibility** with all existing workflows
 - **Enhanced features** like auto-fix and better validation
 - **Easier maintenance** through shared library architecture
-
-**Migration is seamless** - all existing commands work exactly as before!

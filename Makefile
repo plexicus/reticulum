@@ -1,7 +1,7 @@
 # Makefile for Reticulum project
 # Provides convenient targets for development and release
 
-.PHONY: help check test lint format clean quick-check pre-release version-sync release-strict advanced-tests test-all dev-setup ci-test ci-lint ci-format-check
+.PHONY: help check test lint format clean release-strict advanced-tests test-all dev-setup ci-test ci-lint ci-format-check
 
 help: ## Show this help message
 	@echo "Reticulum - Development and Release Management"
@@ -60,18 +60,6 @@ release-sync: ## Synchronize version files only
 	@echo "🔄 Synchronizing version files..."
 	@scripts/release.sh sync
 
-# Legacy aliases for compatibility
-quick-check: dev-check ## Alias for dev-check (legacy compatibility)
-
-pre-release: dev-check release-sync ## Legacy pre-release workflow
-
-version-sync: release-sync ## Alias for release-sync (legacy compatibility)
-
-version-bump-patch: release-patch ## Alias for release-patch (legacy compatibility)
-
-version-bump-minor: release-minor ## Alias for release-minor (legacy compatibility)
-
-version-bump-major: release-major ## Alias for release-major (legacy compatibility)
 
 advanced-tests: ## Run advanced test scenarios against complex repository
 	@echo "🔬 Running advanced test scenarios..."

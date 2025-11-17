@@ -184,11 +184,11 @@ make dev-setup
 # Run all quality checks
 make check
 
-# Quick quality check
-make quick-check
+# Development quality check
+make dev-check
 
-# Pre-release verification
-make pre-release
+# Development quality check with auto-fix
+make dev-check-fix
 
 # Strict release preparation
 make release-strict
@@ -238,9 +238,8 @@ Reticulum includes comprehensive CI/CD workflows:
 - **Coverage Analysis**: Generates comprehensive coverage reports
 
 ### **Quality Assurance Scripts**
-- **`quick-check.sh`**: Daily development quality checks
-- **`pre-release-check.sh`**: Comprehensive pre-release verification
-- **`version-sync.sh`**: Version consistency validation
+- **`dev-check.sh`**: Daily development quality checks with auto-fix
+- **`release.sh`**: Unified release management with version synchronization
 - **`run-advanced-tests.sh`**: Advanced test scenario execution
 
 ## 📊 **Performance Benchmarks**

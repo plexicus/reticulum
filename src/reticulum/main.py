@@ -230,13 +230,3 @@ class ExposureScanner:
         }
 
 
-def main():
-    """Legacy main function for backward compatibility."""
-    # Import here to avoid circular imports
-    from .cli import main as cli_main
-
-    cli_main()
-
-
-if __name__ == "__main__":
-    main()
