@@ -4,8 +4,7 @@ Enhanced Prioritizer
 Modifies service priorities based on security findings and exposure levels.
 """
 
-from typing import Dict, Any, List
-import json
+from typing import Dict, Any
 
 
 class EnhancedPrioritizer:
@@ -13,9 +12,9 @@ class EnhancedPrioritizer:
 
     def __init__(self):
         self.exposure_weights = {
-            "HIGH": 3.0,    # High exposure - increase priority significantly
+            "HIGH": 3.0,  # High exposure - increase priority significantly
             "MEDIUM": 1.0,  # Medium exposure - keep priority
-            "LOW": 0.3      # Low exposure - decrease priority
+            "LOW": 0.3,  # Low exposure - decrease priority
         }
 
         self.severity_weights = {
@@ -25,14 +24,14 @@ class EnhancedPrioritizer:
             "warning": 1.5,
             "medium": 1.0,
             "low": 0.5,
-            "info": 0.3
+            "info": 0.3,
         }
 
     def enhance_prioritization(
         self,
         prioritization_report: Dict[str, Any],
         trivy_mapping: Dict[str, Any],
-        semgrep_mapping: Dict[str, Any]
+        semgrep_mapping: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
         Enhance prioritization based on security findings.
@@ -67,14 +66,16 @@ class EnhancedPrioritizer:
 
             # Create enhanced service entry
             enhanced_service = service.copy()
-            enhanced_service.update({
-                "original_risk_level": original_risk,
-                "enhanced_risk_level": enhanced_risk,
-                "security_risk_score": security_score,
-                "security_findings_summary": self._get_findings_summary(
-                    service_name, trivy_mapping, semgrep_mapping
-                )
-            })
+            enhanced_service.update(
+                {
+                    "original_risk_level": original_risk,
+                    "enhanced_risk_level": enhanced_risk,
+                    "security_risk_score": security_score,
+                    "security_findings_summary": self._get_findings_summary(
+                        service_name, trivy_mapping, semgrep_mapping
+                    ),
+                }
+            )
 
             enhanced_services.append(enhanced_service)
             enhanced_counts[enhanced_risk] += 1
@@ -91,7 +92,9 @@ class EnhancedPrioritizer:
         enhanced_report["enhanced_summary"] = {
             "original_priorities": original_counts,
             "enhanced_priorities": enhanced_counts,
-            "security_impact": self._calculate_security_impact(original_counts, enhanced_counts)
+            "security_impact": self._calculate_security_impact(
+                original_counts, enhanced_counts
+            ),
         }
 
         # Print comparison
@@ -103,7 +106,7 @@ class EnhancedPrioritizer:
         self,
         service_name: str,
         trivy_mapping: Dict[str, Any],
-        semgrep_mapping: Dict[str, Any]
+        semgrep_mapping: Dict[str, Any],
     ) -> float:
         """Calculate security risk score for a service."""
         score = 0.0
@@ -116,13 +119,17 @@ class EnhancedPrioritizer:
 
         # Add Semgrep findings score
         if service_name in semgrep_mapping["services"]:
-            for finding in semgrep_mapping["services"][service_name]["semgrep_findings"]:
+            for finding in semgrep_mapping["services"][service_name][
+                "semgrep_findings"
+            ]:
                 severity = finding.get("level", "warning").lower()
                 score += self.severity_weights.get(severity, 1.0)
 
         return score
 
-    def _calculate_enhanced_priority(self, original_risk: str, security_score: float) -> str:
+    def _calculate_enhanced_priority(
+        self, original_risk: str, security_score: float
+    ) -> str:
         """Calculate enhanced priority based on original risk and security score."""
         exposure_weight = self.exposure_weights.get(original_risk, 1.0)
 
@@ -141,7 +148,7 @@ class EnhancedPrioritizer:
         self,
         service_name: str,
         trivy_mapping: Dict[str, Any],
-        semgrep_mapping: Dict[str, Any]
+        semgrep_mapping: Dict[str, Any],
     ) -> Dict[str, Any]:
         """Get summary of security findings for a service."""
         summary = {
@@ -150,7 +157,7 @@ class EnhancedPrioritizer:
             "critical_findings": 0,
             "high_findings": 0,
             "medium_findings": 0,
-            "low_findings": 0
+            "low_findings": 0,
         }
 
         # Count Trivy findings
@@ -169,7 +176,9 @@ class EnhancedPrioritizer:
 
         # Count Semgrep findings
         if service_name in semgrep_mapping["services"]:
-            for finding in semgrep_mapping["services"][service_name]["semgrep_findings"]:
+            for finding in semgrep_mapping["services"][service_name][
+                "semgrep_findings"
+            ]:
                 summary["semgrep_findings"] += 1
                 severity = finding.get("level", "warning").lower()
                 if severity == "error":
@@ -199,14 +208,18 @@ class EnhancedPrioritizer:
         impact = {
             "services_upgraded": 0,
             "services_downgraded": 0,
-            "net_impact": "neutral"
+            "net_impact": "neutral",
         }
 
         for level in ["HIGH", "MEDIUM", "LOW"]:
             if enhanced_counts[level] > original_counts[level]:
-                impact["services_upgraded"] += enhanced_counts[level] - original_counts[level]
+                impact["services_upgraded"] += (
+                    enhanced_counts[level] - original_counts[level]
+                )
             elif enhanced_counts[level] < original_counts[level]:
-                impact["services_downgraded"] += original_counts[level] - enhanced_counts[level]
+                impact["services_downgraded"] += (
+                    original_counts[level] - enhanced_counts[level]
+                )
 
         if impact["services_upgraded"] > impact["services_downgraded"]:
             impact["net_impact"] = "increased_priority"
@@ -235,10 +248,14 @@ class EnhancedPrioritizer:
             print(f"   - {level}: {enhanced} services {change_str}")
 
         # Calculate overall impact
-        upgraded = sum(max(0, enhanced_counts[level] - original_counts[level])
-                      for level in ["HIGH", "MEDIUM", "LOW"])
-        downgraded = sum(max(0, original_counts[level] - enhanced_counts[level])
-                        for level in ["HIGH", "MEDIUM", "LOW"])
+        upgraded = sum(
+            max(0, enhanced_counts[level] - original_counts[level])
+            for level in ["HIGH", "MEDIUM", "LOW"]
+        )
+        downgraded = sum(
+            max(0, original_counts[level] - enhanced_counts[level])
+            for level in ["HIGH", "MEDIUM", "LOW"]
+        )
 
         print(f"\n   📈 Services upgraded: {upgraded}")
         print(f"   📉 Services downgraded: {downgraded}")

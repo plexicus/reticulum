@@ -9,8 +9,7 @@ import json
 import subprocess
 import tempfile
 import time
-from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any
 import os
 
 
@@ -22,14 +21,14 @@ class DockerRunner:
     MAX_RETRIES = 3
     RETRY_DELAY = 5  # seconds
     DEFAULT_MEMORY_LIMIT = "1g"  # 1GB memory limit
-    DEFAULT_CPU_LIMIT = "1.0"    # 1 CPU core
+    DEFAULT_CPU_LIMIT = "1.0"  # 1 CPU core
 
     def __init__(
         self,
         timeout: int = DEFAULT_TIMEOUT,
         max_retries: int = MAX_RETRIES,
         memory_limit: str = DEFAULT_MEMORY_LIMIT,
-        cpu_limit: str = DEFAULT_CPU_LIMIT
+        cpu_limit: str = DEFAULT_CPU_LIMIT,
     ):
         """
         Initialize Docker runner.
@@ -68,7 +67,9 @@ class DockerRunner:
         for attempt in range(self.max_retries + 1):
             try:
                 if attempt > 0:
-                    print(f"🔄 Retry attempt {attempt}/{self.max_retries} for {description}...")
+                    print(
+                        f"🔄 Retry attempt {attempt}/{self.max_retries} for {description}..."
+                    )
                     time.sleep(self.RETRY_DELAY * attempt)  # Exponential backoff
 
                 result = subprocess.run(
@@ -76,17 +77,17 @@ class DockerRunner:
                     capture_output=True,
                     text=True,
                     check=True,
-                    timeout=self.timeout
+                    timeout=self.timeout,
                 )
 
                 return {
                     "success": True,
                     "stdout": result.stdout,
                     "stderr": result.stderr,
-                    "returncode": result.returncode
+                    "returncode": result.returncode,
                 }
 
-            except subprocess.TimeoutExpired as e:
+            except subprocess.TimeoutExpired:
                 last_error = f"{description} timed out after {self.timeout} seconds"
                 print(f"⏰ {last_error}")
 
@@ -105,7 +106,9 @@ class DockerRunner:
         return {
             "success": False,
             "error": last_error,
-            "stderr": getattr(last_error, 'stderr', '') if hasattr(last_error, 'stderr') else ''
+            "stderr": getattr(last_error, "stderr", "")
+            if hasattr(last_error, "stderr")
+            else "",
         }
 
     def run_trivy_sca(self, repo_path: str, output_file: str) -> Dict[str, Any]:
@@ -121,15 +124,12 @@ class DockerRunner:
         """
         # Input validation
         if not self._validate_repository_path(repo_path):
-            return {
-                "success": False,
-                "error": f"Invalid repository path: {repo_path}"
-            }
+            return {"success": False, "error": f"Invalid repository path: {repo_path}"}
 
         if not self._validate_output_path(output_file):
             return {
                 "success": False,
-                "error": f"Invalid output file path: {output_file}"
+                "error": f"Invalid output file path: {output_file}",
             }
 
         print("🔍 Running Trivy SCA scan...")
@@ -137,16 +137,26 @@ class DockerRunner:
         # Mount repository as volume and run Trivy with resource limits
         abs_repo_path = os.path.abspath(repo_path)
         cmd = [
-            "docker", "run", "--rm",
-            "--memory", self.memory_limit,
-            "--cpus", self.cpu_limit,
-            "-v", f"{abs_repo_path}:/repo:ro",
-            "-v", f"{os.path.dirname(output_file)}:/output",
+            "docker",
+            "run",
+            "--rm",
+            "--memory",
+            self.memory_limit,
+            "--cpus",
+            self.cpu_limit,
+            "-v",
+            f"{abs_repo_path}:/repo:ro",
+            "-v",
+            f"{os.path.dirname(output_file)}:/output",
             self.trivy_image,
-            "fs", "/repo",
-            "--format", "sarif",
-            "--output", f"/output/{os.path.basename(output_file)}",
-            "--severity", self.trivy_severity_levels
+            "fs",
+            "/repo",
+            "--format",
+            "sarif",
+            "--output",
+            f"/output/{os.path.basename(output_file)}",
+            "--severity",
+            self.trivy_severity_levels,
         ]
 
         # Execute Docker command with timeout and retry logic
@@ -156,27 +166,29 @@ class DockerRunner:
             return {
                 "success": False,
                 "error": execution_result["error"],
-                "stderr": execution_result.get("stderr", "")
+                "stderr": execution_result.get("stderr", ""),
             }
 
         try:
             # Parse results
-            with open(output_file, 'r') as f:
+            with open(output_file, "r") as f:
                 sarif_data = json.load(f)
 
             # Count vulnerabilities by severity
             severity_counts = self._count_trivy_severities(sarif_data)
 
-            print(f"✅ Trivy scan completed: {severity_counts['total']} vulnerabilities found")
+            print(
+                f"✅ Trivy scan completed: {severity_counts['total']} vulnerabilities found"
+            )
             for severity, count in severity_counts.items():
-                if severity != 'total' and count > 0:
+                if severity != "total" and count > 0:
                     print(f"   - {severity.capitalize()}: {count}")
 
             return {
                 "success": True,
                 "sarif_data": sarif_data,
                 "severity_counts": severity_counts,
-                "output_file": output_file
+                "output_file": output_file,
             }
 
         except Exception as e:
@@ -184,7 +196,7 @@ class DockerRunner:
             return {
                 "success": False,
                 "error": f"Failed to parse Trivy results: {str(e)}",
-                "stderr": execution_result.get("stderr", "")
+                "stderr": execution_result.get("stderr", ""),
             }
 
     def run_semgrep_sast(self, repo_path: str, output_file: str) -> Dict[str, Any]:
@@ -200,15 +212,12 @@ class DockerRunner:
         """
         # Input validation
         if not self._validate_repository_path(repo_path):
-            return {
-                "success": False,
-                "error": f"Invalid repository path: {repo_path}"
-            }
+            return {"success": False, "error": f"Invalid repository path: {repo_path}"}
 
         if not self._validate_output_path(output_file):
             return {
                 "success": False,
-                "error": f"Invalid output file path: {output_file}"
+                "error": f"Invalid output file path: {output_file}",
             }
 
         print("🔍 Running Semgrep SAST scan...")
@@ -216,17 +225,25 @@ class DockerRunner:
         # Mount repository as volume and run Semgrep with resource limits
         abs_repo_path = os.path.abspath(repo_path)
         cmd = [
-            "docker", "run", "--rm",
-            "--memory", self.memory_limit,
-            "--cpus", self.cpu_limit,
-            "-v", f"{abs_repo_path}:/repo:ro",
-            "-v", f"{os.path.dirname(output_file)}:/output",
+            "docker",
+            "run",
+            "--rm",
+            "--memory",
+            self.memory_limit,
+            "--cpus",
+            self.cpu_limit,
+            "-v",
+            f"{abs_repo_path}:/repo:ro",
+            "-v",
+            f"{os.path.dirname(output_file)}:/output",
             self.semgrep_image,
             "scan",
-            "--config", self.semgrep_config,
+            "--config",
+            self.semgrep_config,
             "--sarif",
-            "--output", f"/output/{os.path.basename(output_file)}",
-            "/repo"
+            "--output",
+            f"/output/{os.path.basename(output_file)}",
+            "/repo",
         ]
 
         # Execute Docker command with timeout and retry logic
@@ -236,27 +253,29 @@ class DockerRunner:
             return {
                 "success": False,
                 "error": execution_result["error"],
-                "stderr": execution_result.get("stderr", "")
+                "stderr": execution_result.get("stderr", ""),
             }
 
         try:
             # Parse results
-            with open(output_file, 'r') as f:
+            with open(output_file, "r") as f:
                 sarif_data = json.load(f)
 
             # Count issues by severity
             severity_counts = self._count_semgrep_severities(sarif_data)
 
-            print(f"✅ Semgrep scan completed: {severity_counts['total']} code issues found")
+            print(
+                f"✅ Semgrep scan completed: {severity_counts['total']} code issues found"
+            )
             for severity, count in severity_counts.items():
-                if severity != 'total' and count > 0:
+                if severity != "total" and count > 0:
                     print(f"   - {severity.capitalize()}: {count}")
 
             return {
                 "success": True,
                 "sarif_data": sarif_data,
                 "severity_counts": severity_counts,
-                "output_file": output_file
+                "output_file": output_file,
             }
 
         except Exception as e:
@@ -264,18 +283,12 @@ class DockerRunner:
             return {
                 "success": False,
                 "error": f"Failed to parse Semgrep results: {str(e)}",
-                "stderr": execution_result.get("stderr", "")
+                "stderr": execution_result.get("stderr", ""),
             }
 
     def _count_trivy_severities(self, sarif_data: Dict[str, Any]) -> Dict[str, int]:
         """Count vulnerabilities by severity from Trivy SARIF results."""
-        counts = {
-            "critical": 0,
-            "high": 0,
-            "medium": 0,
-            "low": 0,
-            "total": 0
-        }
+        counts = {"critical": 0, "high": 0, "medium": 0, "low": 0, "total": 0}
 
         for run in sarif_data.get("runs", []):
             for result in run.get("results", []):
@@ -295,12 +308,7 @@ class DockerRunner:
 
     def _count_semgrep_severities(self, sarif_data: Dict[str, Any]) -> Dict[str, int]:
         """Count issues by severity from Semgrep SARIF results."""
-        counts = {
-            "error": 0,
-            "warning": 0,
-            "info": 0,
-            "total": 0
-        }
+        counts = {"error": 0, "warning": 0, "info": 0, "total": 0}
 
         for run in sarif_data.get("runs", []):
             for result in run.get("results", []):
@@ -341,7 +349,11 @@ class DockerRunner:
             # Allow absolute paths (common in CI environments and tests)
             if repo_path.startswith("/"):
                 # Check if it's a test path (common patterns)
-                if "/tmp/" in repo_path or "/var/tmp/" in repo_path or "/tmp/advanced-test-repo" in repo_path:
+                if (
+                    "/tmp/" in repo_path
+                    or "/var/tmp/" in repo_path
+                    or "/tmp/advanced-test-repo" in repo_path
+                ):
                     print(f"📝 Test repository path detected: {repo_path}")
                 else:
                     print(f"📁 Absolute repository path: {repo_path}")
@@ -388,5 +400,6 @@ class DockerRunner:
     def cleanup(self):
         """Clean up temporary files."""
         import shutil
+
         if os.path.exists(self.temp_dir):
             shutil.rmtree(self.temp_dir)

@@ -6,8 +6,7 @@ and processing plugins to demonstrate the plugin architecture.
 """
 
 import json
-import os
-from typing import Dict, Any, List
+from typing import Dict, Any
 from .plugin_base import SecurityToolPlugin, ProcessingPlugin
 
 
@@ -30,47 +29,35 @@ class ExampleSecurityTool(SecurityToolPlugin):
             "runs": [
                 {
                     "tool": {
-                        "driver": {
-                            "name": "Example Security Tool",
-                            "version": "1.0.0"
-                        }
+                        "driver": {"name": "Example Security Tool", "version": "1.0.0"}
                     },
                     "results": [
                         {
                             "ruleId": "EXAMPLE-001",
                             "level": "warning",
-                            "message": {
-                                "text": "Example security finding"
-                            },
+                            "message": {"text": "Example security finding"},
                             "locations": [
                                 {
                                     "physicalLocation": {
-                                        "artifactLocation": {
-                                            "uri": "example/file.py"
-                                        }
+                                        "artifactLocation": {"uri": "example/file.py"}
                                     }
                                 }
-                            ]
+                            ],
                         }
-                    ]
+                    ],
                 }
             ]
         }
 
         # Save results to output file
-        with open(output_file, 'w') as f:
+        with open(output_file, "w") as f:
             json.dump(example_results, f, indent=2)
 
         return {
             "success": True,
             "sarif_data": example_results,
-            "severity_counts": {
-                "error": 0,
-                "warning": 1,
-                "info": 0,
-                "total": 1
-            },
-            "output_file": output_file
+            "severity_counts": {"error": 0, "warning": 1, "info": 0, "total": 1},
+            "output_file": output_file,
         }
 
     def get_name(self) -> str:
@@ -100,7 +87,9 @@ class ExampleProcessor(ProcessingPlugin):
 
         if "enhanced_prioritization" in processed_results:
             processed_results["enhanced_prioritization"]["example_processed"] = True
-            processed_results["enhanced_prioritization"]["processor_applied"] = self.get_name()
+            processed_results["enhanced_prioritization"][
+                "processor_applied"
+            ] = self.get_name()
 
         return processed_results
 
@@ -145,11 +134,7 @@ class RiskScoreCalculator(ProcessingPlugin):
         base_score = 0.0
 
         # Risk level multiplier
-        risk_multipliers = {
-            "HIGH": 1.0,
-            "MEDIUM": 0.6,
-            "LOW": 0.3
-        }
+        risk_multipliers = {"HIGH": 1.0, "MEDIUM": 0.6, "LOW": 0.3}
 
         # Apply risk level multiplier
         risk_level = service_data.get("risk_level", "LOW")
@@ -174,4 +159,6 @@ class RiskScoreCalculator(ProcessingPlugin):
 
     def get_description(self) -> str:
         """Get description of what this plugin does."""
-        return "Calculates overall risk scores for services based on exposure and findings"
+        return (
+            "Calculates overall risk scores for services based on exposure and findings"
+        )

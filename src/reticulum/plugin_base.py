@@ -6,8 +6,7 @@ and processing plugins that can extend the scanner's capabilities.
 """
 
 from abc import ABC, abstractmethod
-from typing import Dict, Any, List, Optional
-from pathlib import Path
+from typing import Dict, Any, List
 
 
 class SecurityToolPlugin(ABC):
@@ -91,7 +90,9 @@ class PluginManager:
         self.processors[name] = processor
         print(f"✅ Registered processor: {name}")
 
-    def run_security_tool(self, tool_name: str, repo_path: str, output_file: str) -> Dict[str, Any]:
+    def run_security_tool(
+        self, tool_name: str, repo_path: str, output_file: str
+    ) -> Dict[str, Any]:
         """Run a registered security tool."""
         if tool_name not in self.security_tools:
             raise ValueError(f"Security tool '{tool_name}' not found")

@@ -1,0 +1,5 @@
+# Production dependencies for Reticulum
+# Generated from pyproject.toml for pip-based installation
+
+pyyaml>=6.0,<7.0
+docker>=6.1,<7.0

@@ -7,7 +7,6 @@ Docker settings, and scan parameters.
 
 import os
 from typing import Dict, Any, Optional
-from pathlib import Path
 
 
 class SecurityScannerConfig:
@@ -68,7 +67,8 @@ class SecurityScannerConfig:
         """Load configuration from file."""
         try:
             import yaml
-            with open(config_file, 'r') as f:
+
+            with open(config_file, "r") as f:
                 file_config = yaml.safe_load(f) or {}
                 self._merge_config(file_config)
             print(f"✅ Loaded configuration from: {config_file}")
@@ -113,7 +113,11 @@ class SecurityScannerConfig:
     def _merge_config(self, new_config: Dict[str, Any]):
         """Recursively merge configuration dictionaries."""
         for key, value in new_config.items():
-            if key in self.config and isinstance(self.config[key], dict) and isinstance(value, dict):
+            if (
+                key in self.config
+                and isinstance(self.config[key], dict)
+                and isinstance(value, dict)
+            ):
                 self._merge_config_section(self.config[key], value)
             else:
                 self.config[key] = value
@@ -182,7 +186,9 @@ class SecurityScannerConfig:
 
             # Validate scanner settings
             scanner_config = self.get_scanner_config()
-            assert isinstance(scanner_config["parallel_execution"], bool), "Parallel execution must be boolean"
+            assert isinstance(
+                scanner_config["parallel_execution"], bool
+            ), "Parallel execution must be boolean"
 
             return True
         except (AssertionError, KeyError) as e:
@@ -193,7 +199,8 @@ class SecurityScannerConfig:
         """Save configuration to file."""
         try:
             import yaml
-            with open(config_file, 'w') as f:
+
+            with open(config_file, "w") as f:
                 yaml.dump(self.config, f, default_flow_style=False)
             print(f"✅ Configuration saved to: {config_file}")
         except Exception as e:
@@ -202,4 +209,5 @@ class SecurityScannerConfig:
     def __str__(self) -> str:
         """String representation of configuration."""
         import json
+
         return json.dumps(self.config, indent=2)

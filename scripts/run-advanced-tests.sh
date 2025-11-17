@@ -5,7 +5,11 @@
 
 set -e
 
-# Colors for output
+# Source common functions
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "$SCRIPT_DIR/lib/common.sh"
+
+# Colors for output (kept for backward compatibility)
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
@@ -13,11 +17,14 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Script configuration
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 ADVANCED_TEST_DIR="$PROJECT_ROOT/tests/advanced-test-repo"
 TEST_RESULTS_DIR="$PROJECT_ROOT/test-results"
 TIMESTAMP=$(date +"%Y%m%d_%H%M%S")
+
+# Detect Python environment
+PYTHON_CMD=$(get_python_cmd)
+PYTHON_EXEC=$(get_python_exec)
 
 # Logging functions
 log_info() {
@@ -42,6 +49,8 @@ echo "=================================="
 echo "Timestamp: $TIMESTAMP"
 echo "Project Root: $PROJECT_ROOT"
 echo "Advanced Test Dir: $ADVANCED_TEST_DIR"
+echo "Environment: $(detect_python_env)"
+echo "Python Command: $PYTHON_CMD"
 echo ""
 
 # Check if we're in the right directory
@@ -134,7 +143,14 @@ fi
 # Test 3: Scanner execution test
 TOTAL_TESTS=$((TOTAL_TESTS + 1))
 if run_tests "Scanner Execution Test" \
-    "cd '$PROJECT_ROOT' && poetry run python -m reticulum '$ADVANCED_TEST_DIR' --json > '$TEST_RESULTS_DIR/scan_results_$TIMESTAMP.json'" \
+    "cd '$PROJECT_ROOT' && $PYTHON_EXEC -c \"
+import sys
+sys.path.insert(0, 'src')
+from reticulum.cli import main
+import sys
+sys.argv = ['reticulum', 'scan', '$ADVANCED_TEST_DIR', '--json']
+main()
+\" > '$TEST_RESULTS_DIR/scan_results_$TIMESTAMP.json'" \
     "$TEST_LOG"; then
     PASSED_TESTS=$((PASSED_TESTS + 1))
     echo "✅ Scanner Execution Test: PASSED" >> "$SUMMARY_LOG"
@@ -147,7 +163,7 @@ fi
 TOTAL_TESTS=$((TOTAL_TESTS + 1))
 if [[ -f "$TEST_RESULTS_DIR/scan_results_$TIMESTAMP.json" ]]; then
     if run_tests "Results Validation" \
-        "cd '$PROJECT_ROOT' && poetry run python -c \"
+        "cd '$PROJECT_ROOT' && $PYTHON_EXEC -c \"
 import json
 import sys
 with open('$TEST_RESULTS_DIR/scan_results_$TIMESTAMP.json') as f:
@@ -174,7 +190,7 @@ fi
 TOTAL_TESTS=$((TOTAL_TESTS + 1))
 if [[ -f "$TEST_RESULTS_DIR/scan_results_$TIMESTAMP.json" ]]; then
     SCAN_TIME=$(grep "Scan Time:" "$TEST_LOG" | tail -1 | grep -o '[0-9.]*s' | grep -o '[0-9.]*' || echo "0")
-    if cd "$PROJECT_ROOT" && poetry run python -c "exit(0 if float('$SCAN_TIME') < 30 else 1)"; then
+    if cd "$PROJECT_ROOT" && $PYTHON_EXEC -c "exit(0 if float('$SCAN_TIME') < 30 else 1)"; then
         PASSED_TESTS=$((PASSED_TESTS + 1))
         echo "✅ Performance Benchmark: PASSED (${SCAN_TIME}s < 30s)" >> "$SUMMARY_LOG"
     else
@@ -189,7 +205,7 @@ fi
 # Test 6: Pytest integration tests
 TOTAL_TESTS=$((TOTAL_TESTS + 1))
 if run_tests "Pytest Integration Tests" \
-    "cd '$PROJECT_ROOT' && poetry run pytest tests/test_advanced_scenarios.py -v" \
+    "cd '$PROJECT_ROOT' && $PYTHON_CMD pytest tests/test_advanced_scenarios.py -v" \
     "$TEST_LOG"; then
     PASSED_TESTS=$((PASSED_TESTS + 1))
     echo "✅ Pytest Integration Tests: PASSED" >> "$SUMMARY_LOG"

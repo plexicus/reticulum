@@ -6,8 +6,7 @@ based on Dockerfile paths and source code paths.
 """
 
 from pathlib import Path
-from typing import Dict, Any, List, Set
-import json
+from typing import Dict, Any, List
 
 
 class FindingsMapper:
@@ -61,8 +60,8 @@ class FindingsMapper:
             "summary": {
                 "total_findings": 0,
                 "mapped_findings": 0,
-                "unmapped_findings": 0
-            }
+                "unmapped_findings": 0,
+            },
         }
 
         for run in trivy_results.get("runs", []):
@@ -89,10 +88,12 @@ class FindingsMapper:
                     if service_name not in mapped_findings["services"]:
                         mapped_findings["services"][service_name] = {
                             "service_info": service,
-                            "trivy_findings": []
+                            "trivy_findings": [],
                         }
 
-                    mapped_findings["services"][service_name]["trivy_findings"].append(result)
+                    mapped_findings["services"][service_name]["trivy_findings"].append(
+                        result
+                    )
                     mapped_findings["summary"]["mapped_findings"] += 1
 
         return mapped_findings
@@ -105,8 +106,8 @@ class FindingsMapper:
             "summary": {
                 "total_findings": 0,
                 "mapped_findings": 0,
-                "unmapped_findings": 0
-            }
+                "unmapped_findings": 0,
+            },
         }
 
         for run in semgrep_results.get("runs", []):
@@ -133,10 +134,12 @@ class FindingsMapper:
                     if service_name not in mapped_findings["services"]:
                         mapped_findings["services"][service_name] = {
                             "service_info": service,
-                            "semgrep_findings": []
+                            "semgrep_findings": [],
                         }
 
-                    mapped_findings["services"][service_name]["semgrep_findings"].append(result)
+                    mapped_findings["services"][service_name][
+                        "semgrep_findings"
+                    ].append(result)
                     mapped_findings["summary"]["mapped_findings"] += 1
 
         return mapped_findings
@@ -172,13 +175,17 @@ class FindingsMapper:
         # Try parent directory matches
         path_parts = file_path.split("/")
         for i in range(len(path_parts)):
-            parent_path = "/".join(path_parts[:i+1]) + "/"
+            parent_path = "/".join(path_parts[: i + 1]) + "/"
             if parent_path in self.services_by_path:
                 matching_services.extend(self.services_by_path[parent_path])
 
         # Special case: root-level files (no directory)
         # If file is in root directory and no specific mapping found, use repository root
-        if "/" not in file_path and not matching_services and "./" in self.services_by_path:
+        if (
+            "/" not in file_path
+            and not matching_services
+            and "./" in self.services_by_path
+        ):
             matching_services.extend(self.services_by_path["./"])
 
         # Remove duplicates
@@ -192,12 +199,14 @@ class FindingsMapper:
 
         return unique_services
 
-    def get_mapping_summary(self, trivy_mapping: Dict[str, Any], semgrep_mapping: Dict[str, Any]) -> Dict[str, Any]:
+    def get_mapping_summary(
+        self, trivy_mapping: Dict[str, Any], semgrep_mapping: Dict[str, Any]
+    ) -> Dict[str, Any]:
         """Generate summary of mapping results."""
         summary = {
             "trivy": trivy_mapping["summary"],
             "semgrep": semgrep_mapping["summary"],
-            "services_with_findings": set()
+            "services_with_findings": set(),
         }
 
         # Count services with findings

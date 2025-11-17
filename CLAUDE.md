@@ -190,8 +190,10 @@ make advanced-tests
 make test-all
 
 # Coverage reporting
-poetry run pytest tests/ --cov=src/reticulum --cov-report=html
+make test  # Uses detected environment for pytest
 ```
+
+**Environment-Agnostic Testing**: All commands now work with Poetry, virtualenv, uv, or system Python. The Makefile automatically detects your environment.
 
 **When to use each command**:
 - **`make dev-check`**: Daily development, pre-commit validation
@@ -224,11 +226,14 @@ poetry run pytest tests/ --cov=src/reticulum --cov-report=html
 **Pytest Markers for Specific Test Categories**:
 ```bash
 # Run specific test categories
-poetry run pytest tests/test_advanced_scenarios.py -m advanced
-poetry run pytest tests/test_advanced_scenarios.py -m performance
-poetry run pytest tests/test_advanced_scenarios.py -m edge_cases
-poetry run pytest tests/test_advanced_scenarios.py -m integration
-poetry run pytest tests/test_advanced_scenarios.py -m slow
+make test  # Uses detected environment for pytest with markers
+
+# Example with specific markers
+$(python -m) pytest tests/test_advanced_scenarios.py -m advanced
+$(python -m) pytest tests/test_advanced_scenarios.py -m performance
+$(python -m) pytest tests/test_advanced_scenarios.py -m edge_cases
+$(python -m) pytest tests/test_advanced_scenarios.py -m integration
+$(python -m) pytest tests/test_advanced_scenarios.py -m slow
 ```
 
 **Marker Definitions**:
@@ -276,17 +281,19 @@ make test-all
 **Troubleshooting Failed Tests**:
 1. Check test logs in `test-results/` directory
 2. Verify test repository exists and is valid
-3. Check for dependency issues (`poetry install`)
+3. Check for dependency issues (`make dev-setup` or install with detected environment)
 4. Look for specific error messages in pytest output
 5. Run individual test files to isolate issues
+6. Verify environment detection (`make help` shows current environment)
 
 ### Claude-Specific Testing Protocol
 
 **Safety Checks Before Testing**:
-- Ensure dependencies are installed (`poetry install`)
+- Ensure dependencies are installed (`make dev-setup` or use detected environment)
 - Verify test repository exists (`tests/advanced-test-repo/`)
 - Check for clean working directory
 - Confirm you're in the project root directory
+- Verify environment detection (`make help`)
 
 **When to Ask for Clarification**:
 - Test failures that are unclear or complex

@@ -28,9 +28,7 @@ def create_parser():
     )
 
     subparsers = parser.add_subparsers(
-        dest="command",
-        help="Available commands",
-        metavar="COMMAND"
+        dest="command", help="Available commands", metavar="COMMAND"
     )
 
     # Original scan command
@@ -43,7 +41,7 @@ Examples:
   reticulum scan /path/to/repo                 # Generate prioritization report
   reticulum scan /path/to/repo --json          # Pretty JSON output (formatted like jq)
   reticulum scan /path/to/repo --dot diagram.dot  # Export network topology as DOT file
-        """
+        """,
     )
 
     scan_parser.add_argument(
@@ -72,7 +70,7 @@ Examples:
 Examples:
   reticulum security-scan /path/to/repo                    # Run complete security scan
   reticulum security-scan /path/to/repo --output results.sarif  # Save SARIF report
-        """
+        """,
     )
 
     security_parser.add_argument(

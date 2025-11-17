@@ -22,7 +22,7 @@ echo ""
 
 # Basic environment checks
 check_project_root
-check_poetry
+check_python_env
 
 print_status "INFO" "Starting development quality checks..."
 if [ "$AUTO_FIX" = true ]; then

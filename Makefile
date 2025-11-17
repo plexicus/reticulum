@@ -1,11 +1,18 @@
 # Makefile for Reticulum project
 # Provides convenient targets for development and release
+# Supports multiple environment managers: Poetry (preferred), pip+virtualenv, uv
 
 .PHONY: help check test lint format clean release-strict advanced-tests test-all dev-setup ci-test ci-lint ci-format-check
+
+# Environment detection
+PYTHON_RUN := $(shell if command -v poetry >/dev/null 2>&1; then echo "poetry run"; elif [ -d ".venv" ]; then echo ".venv/bin/python -m"; else echo "python -m"; fi)
+PYTHON_EXEC := $(shell if command -v poetry >/dev/null 2>&1; then echo "poetry run python"; elif [ -d ".venv" ]; then echo ".venv/bin/python"; else echo "python"; fi)
 
 help: ## Show this help message
 	@echo "Reticulum - Development and Release Management"
 	@echo "=============================================="
+	@echo ""
+	@echo "Environment: $(PYTHON_RUN)"
 	@echo ""
 	@echo "Available targets:"
 	@echo ""
@@ -15,16 +22,16 @@ check: lint format test ## Run all quality checks (lint, format, test)
 
 test: ## Run the test suite
 	@echo "🧪 Running tests..."
-	poetry run pytest tests/ -v
+	$(PYTHON_RUN) pytest tests/ -v
 
 lint: ## Run linting checks
 	@echo "🔍 Running linting checks..."
-	poetry run ruff check src/ --fix
+	$(PYTHON_RUN) ruff check src/ --fix
 	@echo "✅ Linting completed"
 
 format: ## Format code with black
 	@echo "🎨 Formatting code..."
-	poetry run black src/
+	$(PYTHON_RUN) black src/
 	@echo "✅ Code formatting completed"
 
 clean: ## Clean up generated files
@@ -71,18 +78,26 @@ test-all: test advanced-tests ## Run all tests including advanced scenarios
 # Development helpers
 dev-setup: ## Set up development environment
 	@echo "🔧 Setting up development environment..."
-	poetry install
-	@echo "✅ Development environment ready"
+	@if command -v poetry >/dev/null 2>&1; then \
+		poetry install; \
+		@echo "✅ Development environment ready (Poetry)"; \
+	elif command -v uv >/dev/null 2>&1; then \
+		uv pip install -e .; \
+		@echo "✅ Development environment ready (uv)"; \
+	else \
+		python -m venv .venv && .venv/bin/python -m pip install -e .; \
+		@echo "✅ Development environment ready (pip+virtualenv)"; \
+	fi
 
 # CI/CD helpers
 ci-test: ## Run tests for CI environment
 	@echo "🔄 Running CI tests..."
-	poetry run pytest tests/ --junitxml=test-results.xml
+	$(PYTHON_RUN) pytest tests/ --junitxml=test-results.xml
 
 ci-lint: ## Run linting for CI environment
 	@echo "🔄 Running CI linting..."
-	poetry run ruff check src/
+	$(PYTHON_RUN) ruff check src/
 
 ci-format-check: ## Check code formatting for CI
 	@echo "🔄 Checking code formatting..."
-	poetry run black --check src/
+	$(PYTHON_RUN) black --check src/

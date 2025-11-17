@@ -4,15 +4,48 @@ This guide provides comprehensive instructions for developers working on the Ret
 
 ## Quick Start
 
-### Initial Setup
+### Initial Setup (Multiple Options)
 
+Reticulum supports multiple Python environment managers:
+
+**Option 1: Poetry (Recommended)**
 ```bash
+# Install Poetry if not available
+curl -sSL https://install.python-poetry.org | python3 -
+
 # Install dependencies
 poetry install
 
 # Set up development environment
 make dev-setup
 ```
+
+**Option 2: Virtual Environment + pip**
+```bash
+# Create virtual environment
+python -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies
+pip install -e .
+
+# Install development dependencies
+pip install -r requirements-dev.txt
+```
+
+**Option 3: uv (Fast Alternative)**
+```bash
+# Install uv if not available
+curl -LsSf https://astral.sh/uv/install.sh | sh
+
+# Install dependencies
+uv pip install -e .
+
+# Install development dependencies
+uv pip install -r requirements-dev.txt
+```
+
+**Environment Detection**: The Makefile and scripts automatically detect your environment and use the appropriate commands.
 
 ### Daily Development Workflow
 
@@ -168,6 +201,38 @@ git tag v0.5.1
 git push origin v0.5.1
 ```
 
+## Environment-Agnostic Development
+
+### Supported Environment Managers
+
+Reticulum now supports multiple Python environment managers with automatic detection:
+
+- **Poetry** (Recommended): Modern dependency management with lock files
+- **Virtual Environment + pip**: Standard Python approach
+- **uv**: Fast emerging package manager
+- **System Python**: Direct execution (not recommended for development)
+
+### Environment Detection
+
+The Makefile and scripts automatically detect your environment:
+
+```bash
+# Check detected environment
+make help  # Shows current environment
+
+# All commands work with any environment
+make dev-check    # Uses detected environment
+make test         # Uses detected environment
+make advanced-tests  # Uses detected environment
+```
+
+### Requirements Files
+
+For users who prefer pip-based installation:
+
+- `requirements.txt` - Production dependencies only
+- `requirements-dev.txt` - All development dependencies
+
 ## Development Best Practices
 
 ### Commit Message Convention
@@ -238,13 +303,29 @@ poetry lock
 
 ```bash
 # Run specific failing test
-poetry run pytest tests/test_file.py::TestClass::test_method -v
+make test  # Uses detected environment
 
 # Run with detailed output
-poetry run pytest -xvs  # Stop on first failure, verbose, no capture
+$(python -m) pytest -xvs  # Stop on first failure, verbose, no capture
 
 # Check coverage
-poetry run pytest --cov=src/reticulum --cov-report=html
+$(python -m) pytest --cov=src/reticulum --cov-report=html
+```
+
+#### Environment Detection Issues
+
+If environment detection fails:
+
+```bash
+# Check current environment
+make help
+
+# Force specific environment
+PYTHON_RUN="python -m" make test  # Use system Python
+PYTHON_RUN=".venv/bin/python -m" make test  # Use virtual environment
+
+# Install missing dependencies
+make dev-setup  # Auto-detects and installs
 ```
 
 ### Debugging Release Script
