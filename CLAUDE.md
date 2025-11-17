@@ -158,160 +158,22 @@ make release-sync
 
 ## Testing in Reticulum
 
-This section provides Claude-specific guidance for testing in Reticulum. The project has a comprehensive testing framework with multiple test types and execution methods.
+**Use the `/testing` command for comprehensive testing** instead of this documentation. The testing command provides:
 
-### Testing Philosophy & Organization
+- Interactive test category selection
+- Environment-agnostic execution (Poetry, virtualenv, uv, or system Python)
+- Detailed result summaries and performance metrics
+- Auto-fix capabilities for code quality issues
+- Comprehensive test result archiving
 
-**Test Hierarchy**:
-- **Basic Tests**: Component-level validation in `tests/test_exposure_scanner.py`, `tests/test_security_scanner.py`
-- **Advanced Tests**: Complex scenario testing in `tests/test_advanced_scenarios.py`, `tests/test_security_scanner_advanced.py`
+**Quick Reference**:
+- `/testing` - Interactive testing with category selection
+- `/testing quick` - Quick development quality checks
+- `/testing advanced` - Advanced integration scenarios
+- `/testing complete` - Full test suite (basic + advanced)
+- `/testing --fix` - Auto-fix mode for code quality issues
 
-**Test Categories**:
-- **Unit Tests**: Individual component validation
-- **Integration Tests**: Component interaction testing
-- **Advanced Scenarios**: Complex real-world configurations
-- **Performance Benchmarks**: Scan time and resource usage validation
-
-### Test Execution Commands
-
-**Use this decision tree for choosing test commands**:
-
-```bash
-# Quick development testing (recommended for daily use)
-make dev-check
-
-# Basic test suite only
-make test
-
-# Advanced integration scenarios
-make advanced-tests
-
-# Complete test suite (basic + advanced)
-make test-all
-
-# Coverage reporting
-make test  # Uses detected environment for pytest
-```
-
-**Environment-Agnostic Testing**: All commands now work with Poetry, virtualenv, uv, or system Python. The Makefile automatically detects your environment.
-
-**When to use each command**:
-- **`make dev-check`**: Daily development, pre-commit validation
-- **`make test`**: Quick verification, basic functionality
-- **`make advanced-tests`**: Complex scenario validation, performance testing
-- **`make test-all`**: Pre-release validation, comprehensive testing
-
-### Advanced Testing System
-
-**Advanced Test Repository**:
-- Dynamically generated test repository with 10+ Helm charts
-- Various exposure levels (HIGH, MEDIUM, LOW)
-- Complex network topologies and edge cases
-- Generated via: `poetry run python scripts/create-test-repo.py`
-
-**Advanced Test Script (`scripts/run-advanced-tests.sh`)**:
-- Validates test repository structure
-- Runs exposure analysis on multiple configurations
-- Tests network topology analysis
-- Performs performance benchmarks (< 30s scan time)
-- Generates detailed test logs and summaries
-
-**Test Results**:
-- Results stored in `test-results/` directory
-- Timestamped logs for each test run
-- Performance metrics and validation reports
-
-### Test Categories & Markers
-
-**Pytest Markers for Specific Test Categories**:
-```bash
-# Run specific test categories
-make test  # Uses detected environment for pytest with markers
-
-# Example with specific markers
-$(python -m) pytest tests/test_advanced_scenarios.py -m advanced
-$(python -m) pytest tests/test_advanced_scenarios.py -m performance
-$(python -m) pytest tests/test_advanced_scenarios.py -m edge_cases
-$(python -m) pytest tests/test_advanced_scenarios.py -m integration
-$(python -m) pytest tests/test_advanced_scenarios.py -m slow
-```
-
-**Marker Definitions**:
-- **`advanced`**: Complex integration scenarios
-- **`performance`**: Performance benchmarks and timing tests
-- **`edge_cases`**: Boundary conditions and error handling
-- **`integration`**: Component interaction testing
-- **`slow`**: Long-running tests (use sparingly)
-
-### CI/CD Testing Integration
-
-**GitHub Actions Testing**:
-- **Main Pipeline**: Tests on Python 3.9, 3.10, 3.11, 3.12
-- **Advanced Testing Pipeline**: Dedicated complex scenario testing
-- **Automated Quality Checks**: Linting, formatting, dependency validation
-
-**CI Testing Steps**:
-1. Generate test repository
-2. Run pytest test suite
-3. Execute linting checks (ruff)
-4. Validate code formatting (black)
-5. Run advanced test scenarios
-6. Generate coverage reports
-
-### Development Workflow Integration
-
-**Daily Development Testing**:
-```bash
-# Quick quality check (includes tests)
-make dev-check
-
-# Auto-fix issues and test
-make dev-check-fix
-
-# Full test suite before commits
-make test-all
-```
-
-**Pre-Release Testing Requirements**:
-- All basic tests must pass (`make test`)
-- All advanced tests must pass (`make advanced-tests`)
-- Performance benchmarks must meet requirements (< 30s scan time)
-- No critical TODO/FIXME comments blocking release
-
-**Troubleshooting Failed Tests**:
-1. Check test logs in `test-results/` directory
-2. Verify test repository exists and is valid
-3. Check for dependency issues (`make dev-setup` or install with detected environment)
-4. Look for specific error messages in pytest output
-5. Run individual test files to isolate issues
-6. Verify environment detection (`make help` shows current environment)
-
-### Claude-Specific Testing Protocol
-
-**Safety Checks Before Testing**:
-- Ensure dependencies are installed (`make dev-setup` or use detected environment)
-- Verify test repository exists (`tests/advanced-test-repo/`)
-- Check for clean working directory
-- Confirm you're in the project root directory
-- Verify environment detection (`make help`)
-
-**When to Ask for Clarification**:
-- Test failures that are unclear or complex
-- Performance benchmark failures
-- Advanced test repository generation issues
-- CI/CD test failures that need investigation
-
-**Success Verification**:
-- All tests pass without errors
-- Performance benchmarks meet requirements
-- Test logs show successful execution
-- Coverage reports generated (if requested)
-
-**Testing Decision Protocol**:
-- **Daily Development**: Use `make dev-check`
-- **Feature Validation**: Use `make test-all`
-- **Performance Testing**: Use `make advanced-tests`
-- **Pre-Release**: Use `make test-all` and verify all requirements
+For detailed testing workflows, development commands, and troubleshooting, refer to `DEVELOPER.md`.
 
 ---
 
