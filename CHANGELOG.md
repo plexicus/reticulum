@@ -1,3 +1,9 @@
+## v0.6.8 (2025-11-18)
+
+### Fix
+
+- prevent double-commit in release script when Commitizen already committed changes
+
 ## v0.6.7 (2025-11-18)
 
 ### Fix
