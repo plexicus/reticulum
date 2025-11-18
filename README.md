@@ -1,4 +1,6 @@
-# Reticulum - Combat Cloud-Native Application Alert Fatigue
+# Reticulum 
+
+## Combat Cloud-Native Application Alert Fatigue
 
 ![Reticulum Logo](assets/images/reticulum-logo.png)
 
