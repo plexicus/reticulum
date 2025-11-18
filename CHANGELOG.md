@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+## [0.6.1] - 2025-11-18
+
 ### Changed
 - **CHANGELOG restructuring**: Enhanced version-bump command to properly restructure CHANGELOG with [Unreleased] section at top
 
