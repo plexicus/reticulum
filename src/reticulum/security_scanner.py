@@ -385,9 +385,11 @@ class SecurityScanner:
             return {
                 "available": result.returncode == 0,
                 "version": self._extract_docker_version(result.stdout),
-                "details": "Docker daemon is running"
-                if result.returncode == 0
-                else "Docker daemon not available",
+                "details": (
+                    "Docker daemon is running"
+                    if result.returncode == 0
+                    else "Docker daemon not available"
+                ),
             }
         except Exception as e:
             return {
@@ -403,9 +405,11 @@ class SecurityScanner:
             return {
                 "valid": valid,
                 "loaded_from": self.config.config_file or "defaults",
-                "details": "Configuration loaded successfully"
-                if valid
-                else "Configuration validation failed",
+                "details": (
+                    "Configuration loaded successfully"
+                    if valid
+                    else "Configuration validation failed"
+                ),
             }
         except Exception as e:
             return {
@@ -431,9 +435,11 @@ class SecurityScanner:
             tools_status["trivy"] = {
                 "available": result.returncode == 0,
                 "image": self.docker_runner.trivy_image,
-                "details": "Trivy image available"
-                if result.returncode == 0
-                else "Failed to pull Trivy image",
+                "details": (
+                    "Trivy image available"
+                    if result.returncode == 0
+                    else "Failed to pull Trivy image"
+                ),
             }
         except Exception as e:
             tools_status["trivy"] = {
@@ -455,9 +461,11 @@ class SecurityScanner:
             tools_status["semgrep"] = {
                 "available": result.returncode == 0,
                 "image": self.docker_runner.semgrep_image,
-                "details": "Semgrep image available"
-                if result.returncode == 0
-                else "Failed to pull Semgrep image",
+                "details": (
+                    "Semgrep image available"
+                    if result.returncode == 0
+                    else "Failed to pull Semgrep image"
+                ),
             }
         except Exception as e:
             tools_status["semgrep"] = {

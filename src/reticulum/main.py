@@ -59,9 +59,9 @@ class ExposureScanner:
         self.chart_containers = {}
         for chart_file in charts:
             chart_dir = chart_file.parent
-            self.chart_containers[
-                chart_dir.name
-            ] = self.exposure_analyzer.analyze_chart(chart_dir, repo_path)
+            self.chart_containers[chart_dir.name] = (
+                self.exposure_analyzer.analyze_chart(chart_dir, repo_path)
+            )
 
         # Add all found containers to results and filter out redundant base configurations
         for chart_name, chart_info in self.chart_containers.items():
@@ -75,17 +75,17 @@ class ExposureScanner:
                 self.results["containers"].extend(filtered_containers)
 
         # Reconstruct containers from dependencies
-        self.results[
-            "containers"
-        ] = self.dependency_analyzer.reconstruct_containers_from_dependencies(
-            self.chart_containers, self.results["containers"], repo_path
+        self.results["containers"] = (
+            self.dependency_analyzer.reconstruct_containers_from_dependencies(
+                self.chart_containers, self.results["containers"], repo_path
+            )
         )
 
         # Detect internal containers
-        self.results[
-            "containers"
-        ] = self.dependency_analyzer.detect_internal_containers(
-            self.chart_containers, self.results["containers"], repo_path
+        self.results["containers"] = (
+            self.dependency_analyzer.detect_internal_containers(
+                self.chart_containers, self.results["containers"], repo_path
+            )
         )
 
         # Enrich containers with Dockerfile information
@@ -132,10 +132,10 @@ class ExposureScanner:
                 container["dockerfile_path"] = str(
                     dockerfile_path.relative_to(repo_path)
                 )
-                container[
-                    "source_code_path"
-                ] = self.dockerfile_analyzer.parse_dockerfile_for_source_paths(
-                    dockerfile_path, repo_path
+                container["source_code_path"] = (
+                    self.dockerfile_analyzer.parse_dockerfile_for_source_paths(
+                        dockerfile_path, repo_path
+                    )
                 )
 
     def _build_summary(self):

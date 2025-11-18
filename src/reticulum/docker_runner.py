@@ -106,9 +106,11 @@ class DockerRunner:
         return {
             "success": False,
             "error": last_error,
-            "stderr": getattr(last_error, "stderr", "")
-            if hasattr(last_error, "stderr")
-            else "",
+            "stderr": (
+                getattr(last_error, "stderr", "")
+                if hasattr(last_error, "stderr")
+                else ""
+            ),
         }
 
     def run_trivy_sca(self, repo_path: str, output_file: str) -> Dict[str, Any]:

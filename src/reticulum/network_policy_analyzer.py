@@ -162,10 +162,10 @@ class NetworkPolicyAnalyzer:
                         ]
 
                         # Determine egress risk level
-                        analysis[
-                            "egress_risk_level"
-                        ] = self._determine_egress_risk_level(
-                            internet_egress_found["found"], len(egress_rules)
+                        analysis["egress_risk_level"] = (
+                            self._determine_egress_risk_level(
+                                internet_egress_found["found"], len(egress_rules)
+                            )
                         )
 
                     break  # Only analyze first NetworkPolicy in file
