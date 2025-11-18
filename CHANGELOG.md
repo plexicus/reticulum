@@ -8,6 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Version synchronization fixes**: Fixed regex patterns for README.md version detection
+- **Enhanced validation**: Added comprehensive version validation with detailed error reporting
+- **CHANGELOG integration**: Integrated CHANGELOG management into release scripts
+
+### Changed
+- **Release workflow**: Updated release scripts to handle CHANGELOG restructuring automatically
 
 ## [0.6.1] - 2025-11-18
 
