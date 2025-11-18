@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+
+## [Unreleased]
+
+### Changed
+- **CHANGELOG restructuring**: Enhanced version-bump command to properly restructure CHANGELOG with [Unreleased] section at top
+
+
 ## [0.6.0] - 2025-11-18
 
 ### Added
@@ -28,9 +35,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Code quality improvements**: Fixed linting issues, formatting, and bare except clauses
 - **Documentation simplification**: Removed redundant testing details from CLAUDE.md, now references `/testing` command
 - **Project cleanup**: Removed unnecessary `.devcontainer` directory (Reticulum uses Docker for security scanning, not development)
-
-## [Unreleased]
-
-### Changed
-- **CHANGELOG restructuring**: Enhanced version-bump command to properly restructure CHANGELOG with [Unreleased] section at top
 
