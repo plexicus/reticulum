@@ -8,12 +8,6 @@
 
 **Latest Release: v0.6.7**
 
-### What's New 
-- Enhanced validation and CHANGELOG integration in release scripts
-- Fixed color code issues in output system to prevent git commit failures
-- Improved version synchronization with comprehensive error reporting
-- Streamlined release workflow with automatic CHANGELOG restructuring
-- Better environment detection across multiple Python package managers
 
 **Reticulum** is a tool to combat cloud-native application alert fatigue. For every vulnerability detected, it tracks the container and examines the Helm chart configuration in Kubernetes to determine its exposure, helping to know what is truly critical.
 
