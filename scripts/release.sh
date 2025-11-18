@@ -114,29 +114,31 @@ if ! run_quality_checks false; then
 fi
 print_status "PASS" "All quality checks passed"
 
-# Calculate new version
-new_version=$(calculate_next_version "$current_version" "$COMMAND")
-print_status "BUMP" "$COMMAND version: $current_version → $new_version"
-
-# Update pyproject.toml
-print_status "INFO" "Updating pyproject.toml..."
-update_pyproject_version "$new_version"
-
-# Verify update
-updated_version=$(get_pyproject_version)
-if [ "$updated_version" != "$new_version" ]; then
-    print_status "FAIL" "Failed to update pyproject.toml"
+# Use Commitizen for version bump
+print_status "BUMP" "Using Commitizen for $COMMAND version bump"
+if commitizen_bump_version "$COMMAND"; then
+    # Get the new version from pyproject.toml
+    new_version=$(get_pyproject_version)
+    print_status "PASS" "Commitizen version bump: $current_version → $new_version"
+else
+    print_status "FAIL" "Commitizen version bump failed"
     exit 1
 fi
-print_status "PASS" "pyproject.toml updated successfully"
 
-# Sync all version files
-print_status "SYNC" "Synchronizing all version files..."
-files_updated_str=$(sync_all_versions)
-files_updated=($files_updated_str)
-
-# Manage CHANGELOG for release
-manage_changelog_for_release "$new_version"
+# Verify version sync
+print_status "SYNC" "Verifying version synchronization..."
+if validate_versions >/dev/null 2>&1; then
+    print_status "PASS" "All version files synchronized"
+else
+    print_status "WARN" "Version files out of sync - attempting to fix..."
+    files_updated_str=$(sync_all_versions)
+    files_updated=($files_updated_str)
+    if [ ${#files_updated[@]} -gt 0 ]; then
+        print_status "PASS" "Fixed synchronization for ${#files_updated[@]} files"
+    else
+        print_status "PASS" "Version files already synchronized"
+    fi
+fi
 
 # Check for TODO/FIXME comments
 print_status "INFO" "Checking for critical TODO/FIXME comments..."

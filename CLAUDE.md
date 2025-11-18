@@ -61,10 +61,39 @@ This file provides Claude Code (claude.ai/code) with specific guidance for worki
 - Any uncertainty about development workflow
 
 ### Commit Best Practices
-- **Use `/commit-push` command**: For intelligent commit creation with automatic CHANGELOG.md updates
+- **Use Commitizen for commits**: Use `cz commit` for conventional commit format with automatic CHANGELOG generation
+- **Use `/commit-push` command**: For simple commit creation and pushing (no CHANGELOG updates)
 - **English only**: All commit messages and CHANGELOG entries must be in English
 - **Descriptive messages**: Use clear, descriptive commit messages that explain the "why"
 - **Interactive mode**: Use `/commit-push` without arguments for guided commit creation
+
+### Commitizen Integration
+
+Reticulum now uses **Commitizen** for automated version management and CHANGELOG generation:
+
+**Key Benefits**:
+- **Automatic CHANGELOG generation**: Based on conventional commit messages
+- **Semantic versioning**: Automatic version bumps based on commit types
+- **Version synchronization**: Updates all version files automatically
+- **Resilient CHANGELOG management**: Built-in recovery mechanisms
+
+**Commitizen Commands**:
+```bash
+# Create conventional commit
+cz commit
+
+# Check commit format compliance
+cz check --rev-range HEAD~10..HEAD
+
+# Bump version (used internally by release script)
+cz bump --yes --changelog --increment patch|minor|major
+```
+
+**Release Workflow**:
+1. Make changes with conventional commits (`cz commit`)
+2. Run quality checks (`make check`)
+3. Use release commands (`make release-patch|minor|major`)
+4. Commitizen handles version bumping and CHANGELOG updates automatically
 
 ## Creating a New Release
 
@@ -110,8 +139,8 @@ make release-major
 **What happens during release creation**:
 1. Environment validation (branch, git status)
 2. Quality checks (linting, formatting, tests)
-3. Version calculation based on semantic versioning
-4. Update `pyproject.toml` and synchronize all version files
+3. **Commitizen version bump**: Automatic version calculation and CHANGELOG updates
+4. **Version synchronization**: All version files updated automatically
 5. Git commit with intelligent commit message
 6. Git tag creation (`vX.Y.Z`)
 7. Final validation and success summary
@@ -144,9 +173,10 @@ make release-sync
 - `README.md`
 
 **CHANGELOG.md management**:
-- **Development phase**: Use `/commit-push` to automatically document changes in `[Unreleased]` section
-- **Release process**: Move `[Unreleased]` changes to new version section during release
-- **Never modify manually**: Always use `/commit-push` for CHANGELOG updates during development
+- **Development phase**: Use conventional commits (`cz commit`) for automatic CHANGELOG updates
+- **Release process**: Commitizen automatically moves `[Unreleased]` changes to new version section
+- **Resilient system**: Built-in recovery mechanisms for CHANGELOG corruption
+- **Never modify manually**: Always use conventional commits for CHANGELOG updates
 
 ### Claude-Specific Release Protocol
 

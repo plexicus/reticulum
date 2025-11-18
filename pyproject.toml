@@ -33,6 +33,7 @@ pytest = "^7.0"
 pytest-cov = "^4.1"
 ruff = "^0.1.0"
 black = "^24.3.0"
+commitizen = "^4.10.0"
 
 [tool.poetry.scripts]
 reticulum = "reticulum.cli:main"
@@ -44,3 +45,22 @@ build-backend = "poetry.core.masonry.api"
 [tool.poetry.urls]
 "Homepage" = "https://github.com/plexicus/reticulum"
 "Repository" = "https://github.com/plexicus/reticulum"
+
+[tool.commitizen]
+name = "cz_conventional_commits"
+version = "0.6.4"
+version_files = [
+    "pyproject.toml:version",
+    "src/reticulum/__init__.py:__version__",
+    "src/reticulum/cli.py:version",
+    "README.md:Latest Release: v"
+]
+update_changelog_on_bump = true
+changelog_file = "CHANGELOG.md"
+changelog_format = "keepachangelog"
+changelog_incremental = true
+major_version_zero = true
+tag_format = "v$version"
+legacy_tag_formats = [
+    "v$version"
+]

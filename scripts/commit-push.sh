@@ -1,7 +1,7 @@
 #!/bin/bash
 
-# Intelligent Commit and Push with CHANGELOG Automation
-# Automatically updates CHANGELOG.md with intelligent change detection
+# Intelligent Commit and Push
+# Creates commits in English and optionally pushes to remote
 
 set -e
 
@@ -10,8 +10,8 @@ source "$SCRIPT_DIR/lib/common.sh"
 
 # Function to display usage
 show_usage() {
-    echo "Intelligent Commit and Push with CHANGELOG Automation"
-    echo "===================================================="
+    echo "Intelligent Commit and Push"
+    echo "==========================="
     echo ""
     echo "Usage: $0 [COMMIT_MESSAGE] [--push|--no-push]"
     echo ""
@@ -24,6 +24,8 @@ show_usage() {
     echo "  $0 \"Implement user authentication\""
     echo "  $0 \"Fix security vulnerability\" --push"
     echo "  $0  # Interactive mode - asks for details"
+    echo ""
+    echo "Note: CHANGELOG management is handled by Commitizen (cz commit)"
 }
 
 # Function to validate English text
@@ -34,101 +36,6 @@ validate_english() {
         return 1
     fi
     return 0
-}
-
-# Function to detect change categories
-detect_changes() {
-    local changes=""
-
-    # Get git status
-    local git_status=$(git status --porcelain)
-
-    # Analyze changes
-    while IFS= read -r line; do
-        if [[ -n "$line" ]]; then
-            local status="${line:0:2}"
-            local file="${line:3}"
-
-            case "$status" in
-                "A "|"??")
-                    if [[ "$file" == *.py ]]; then
-                        changes+="- **Added**: New Python file: \`$file\`\n"
-                    elif [[ "$file" == *.md ]]; then
-                        changes+="- **Added**: New documentation: \`$file\`\n"
-                    elif [[ "$file" == test* ]] || [[ "$file" == *test* ]]; then
-                        changes+="- **Added**: New test: \`$file\`\n"
-                    else
-                        changes+="- **Added**: New file: \`$file\`\n"
-                    fi
-                    ;;
-                "M ")
-                    if [[ "$file" == *.py ]]; then
-                        changes+="- **Changed**: Modified Python file: \`$file\`\n"
-                    elif [[ "$file" == *.md ]]; then
-                        changes+="- **Documentation**: Updated: \`$file\`\n"
-                    elif [[ "$file" == test* ]] || [[ "$file" == *test* ]]; then
-                        changes+="- **Tests**: Updated: \`$file\`\n"
-                    else
-                        changes+="- **Changed**: Modified: \`$file\`\n"
-                    fi
-                    ;;
-                "D ")
-                    changes+="- **Removed**: Deleted: \`$file\`\n"
-                    ;;
-            esac
-        fi
-    done <<< "$git_status"
-
-    echo "$changes"
-}
-
-# Function to update CHANGELOG.md
-update_changelog() {
-    local commit_message="$1"
-    local changes="$2"
-
-    if [[ -z "$changes" ]]; then
-        echo "No changes detected to add to CHANGELOG.md"
-        return 0
-    fi
-
-    # Create temporary file
-    local temp_file=$(mktemp)
-
-    # Read current CHANGELOG.md and update [Unreleased] section
-    local in_unreleased=false
-    local unreleased_updated=false
-
-    while IFS= read -r line; do
-        if [[ "$line" == "## [Unreleased]" ]]; then
-            in_unreleased=true
-            echo "$line" >> "$temp_file"
-            echo "" >> "$temp_file"
-            echo "### Added" >> "$temp_file"
-            echo "$changes" >> "$temp_file"
-            unreleased_updated=true
-        elif [[ "$in_unreleased" == true && "$line" =~ ^##\ \[.*\]$ ]]; then
-            in_unreleased=false
-            echo "" >> "$temp_file"
-            echo "$line" >> "$temp_file"
-        elif [[ "$in_unreleased" == false || "$unreleased_updated" == false ]]; then
-            echo "$line" >> "$temp_file"
-        fi
-    done < "CHANGELOG.md"
-
-    # If [Unreleased] section wasn't found, add it
-    if [[ "$unreleased_updated" == false ]]; then
-        echo "## [Unreleased]" >> "$temp_file"
-        echo "" >> "$temp_file"
-        echo "### Added" >> "$temp_file"
-        echo "$changes" >> "$temp_file"
-        echo "" >> "$temp_file"
-    fi
-
-    # Replace original file
-    mv "$temp_file" "CHANGELOG.md"
-
-    echo "✅ CHANGELOG.md updated with detected changes"
 }
 
 # Main function
@@ -221,26 +128,10 @@ main() {
         fi
     fi
 
-    # Detect changes for CHANGELOG
+    # Skip CHANGELOG analysis (now handled by Commitizen)
     echo ""
-    echo "🔍 Analyzing changes for CHANGELOG.md..."
-    local changes=$(detect_changes)
-
-    if [[ -n "$changes" ]]; then
-        echo "📝 Changes detected:"
-        echo "$changes"
-        echo ""
-
-        # Ask for confirmation to update CHANGELOG
-        read -p "✅ Update CHANGELOG.md with these changes? [Y/n]: " changelog_confirm
-        if [[ "$changelog_confirm" =~ ^[Nn]$ ]]; then
-            echo "ℹ️  Skipping CHANGELOG update"
-        else
-            update_changelog "$commit_message" "$changes"
-        fi
-    else
-        echo "ℹ️  No changes detected for CHANGELOG.md"
-    fi
+    echo "ℹ️  CHANGELOG management is now handled by Commitizen"
+    echo "   Use 'cz commit' for conventional commits with automatic CHANGELOG updates"
 
     # Stage all changes
     echo ""

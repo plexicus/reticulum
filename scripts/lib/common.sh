@@ -416,12 +416,99 @@ extract_unreleased_section() {
     echo "$unreleased_content"
 }
 
+# Function to recover CHANGELOG structure when corrupted
+recover_changelog_structure() {
+    local changelog_file="CHANGELOG.md"
+    local temp_file=$(mktemp)
+
+    echo "🔧 Recovering CHANGELOG structure..."
+
+    # Create proper Keep a Changelog structure
+    cat > "$temp_file" << 'EOF'
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+
+## [Unreleased]
+
+EOF
+
+    # Preserve existing version sections if they exist
+    if grep -q "^## \[[0-9]" "$changelog_file"; then
+        echo "" >> "$temp_file"
+        # Extract all version sections
+        grep -A 1000 "^## \[[0-9]" "$changelog_file" >> "$temp_file" 2>/dev/null || true
+    else
+        echo "# No previous versions found - starting fresh" >> "$temp_file"
+    fi
+
+    # Replace original file
+    mv "$temp_file" "$changelog_file"
+    echo "✅ CHANGELOG structure recovered successfully"
+}
+
+# Commitizen wrapper functions
+commitizen_bump_version() {
+    local bump_type="$1"
+
+    echo "🚀 Using Commitizen for version bump: $bump_type"
+
+    # Run commitizen bump
+    if cz bump --yes --changelog --increment "$bump_type"; then
+        echo "✅ Commitizen version bump completed successfully"
+        return 0
+    else
+        echo "❌ Commitizen version bump failed"
+        return 1
+    fi
+}
+
+commitizen_check_commits() {
+    echo "🔍 Validating commits with Commitizen..."
+
+    if cz check --rev-range HEAD~10..HEAD; then
+        echo "✅ All commits follow conventional commit format"
+        return 0
+    else
+        echo "⚠️  Some commits don't follow conventional commit format"
+        echo "   Consider using 'cz commit' for future commits"
+        return 1
+    fi
+}
+
+commitizen_commit() {
+    echo "📝 Using Commitizen for commit creation..."
+
+    if cz commit; then
+        echo "✅ Commitizen commit created successfully"
+        return 0
+    else
+        echo "❌ Commitizen commit failed"
+        return 1
+    fi
+}
+
 # Function to update CHANGELOG with new version section
 update_changelog_with_version() {
     local new_version="$1"
     local unreleased_content="$2"
     local changelog_file="CHANGELOG.md"
     local temp_file=$(mktemp)
+
+    # Create backup of CHANGELOG for recovery
+    local backup_file="${changelog_file}.backup.$(date +%s)"
+    cp "$changelog_file" "$backup_file"
+
+    # Validate CHANGELOG structure
+    if ! grep -q "^## \[Unreleased\]" "$changelog_file"; then
+        echo "⚠️  WARNING: [Unreleased] section not found in CHANGELOG.md"
+        echo "   Attempting to recover structure..."
+        recover_changelog_structure
+    fi
 
     # Get current date in YYYY-MM-DD format
     local current_date=$(date +%Y-%m-%d)
@@ -473,12 +560,16 @@ update_changelog_with_version() {
             fi
         elif [[ "$in_unreleased" == true ]]; then
             # Skip content of [Unreleased] section - we'll create a fresh one
+            # Only stop skipping when we hit a new version section
             if [[ "$line" =~ ^##\ \[[0-9]+\.[0-9]+\.[0-9]+\] ]]; then
                 in_unreleased=false
                 version_sections+="$line\n"
             fi
         else
-            version_sections+="$line\n"
+            # Add all other lines to version_sections when not in unreleased section
+            if [[ "$in_unreleased" == false ]]; then
+                version_sections+="$line\n"
+            fi
         fi
     done < "$changelog_file"
 
@@ -489,10 +580,18 @@ update_changelog_with_version() {
     echo -n "$new_version_section" >> "$temp_file"
     echo -n "$version_sections" >> "$temp_file"
 
-    # Replace original file
-    mv "$temp_file" "$changelog_file"
-
-    echo "✅ Updated CHANGELOG.md with version $new_version"
+    # Replace original file with atomic operation
+    if [[ -f "$temp_file" ]]; then
+        mv "$temp_file" "$changelog_file"
+        echo "✅ Updated CHANGELOG.md with version $new_version"
+        # Clean up backup on success
+        rm -f "$backup_file"
+    else
+        echo "❌ ERROR: Failed to create updated CHANGELOG"
+        echo "   Restoring from backup..."
+        mv "$backup_file" "$changelog_file"
+        exit 1
+    fi
 }
 
 # Function to manage CHANGELOG during releases
