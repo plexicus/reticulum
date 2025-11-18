@@ -3,40 +3,33 @@
 # Common functions for Reticulum scripts
 # Shared utilities to eliminate code duplication
 
-# Colors for output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-PURPLE='\033[0;35m'
-CYAN='\033[0;36m'
-NC='\033[0m' # No Color
+# Status output (no colors)
 
-# Function to print colored output
+# Function to print status output
 print_status() {
     local status=$1
     local message=$2
     case $status in
         "PASS")
-            echo -e "${GREEN}✅ PASS${NC}: $message"
+            echo "✅ PASS: $message"
             ;;
         "FAIL")
-            echo -e "${RED}❌ FAIL${NC}: $message"
+            echo "❌ FAIL: $message"
             ;;
         "WARN")
-            echo -e "${YELLOW}⚠️  WARN${NC}: $message"
+            echo "⚠️  WARN: $message"
             ;;
         "INFO")
-            echo -e "${BLUE}ℹ️  INFO${NC}: $message"
+            echo "ℹ️  INFO: $message"
             ;;
         "AUTO")
-            echo -e "${CYAN}🤖 AUTO${NC}: $message"
+            echo "🤖 AUTO: $message"
             ;;
         "SYNC")
-            echo -e "${PURPLE}🔄 SYNC${NC}: $message"
+            echo "🔄 SYNC: $message"
             ;;
         "BUMP")
-            echo -e "${PURPLE}📈 BUMP${NC}: $message"
+            echo "📈 BUMP: $message"
             ;;
     esac
 }
@@ -261,7 +254,7 @@ sync_all_versions() {
         print_status "PASS" "All version files are already synchronized"
     fi
 
-    # Return files updated (trimmed)
+    # Return files updated (trimmed and without color codes)
     echo "$files_updated" | sed 's/^ *//'
 }
 

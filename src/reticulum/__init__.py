@@ -2,7 +2,7 @@
 Reticulum - Cloud Infrastructure Exposure Scanner
 """
 
-__version__ = "0.6.2"
+__version__ = "0.6.3"
 __author__ = "Jose Palanco <jose.palanco@plexicus.ai>"
 __license__ = "MIT"
 
