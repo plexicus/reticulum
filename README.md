@@ -4,14 +4,14 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
-**Latest Release: v0.5.3**
+**Latest Release: v0.6.1**
 
-### What's New in v0.5.3
-- Enhanced Dockerfile detection with deep search strategy and pattern matching
-- Improved dependency analysis with better false positive filtering
-- Better path consolidation with validation against repository structure
-- Fixed critical bug in main.py where chart_containers access was unsafe
-- Added robust error handling throughout the codebase
+### What's New in v0.6.1
+- Enhanced version management and release automation system
+- Improved CHANGELOG restructuring logic for better organization
+- Fixed version synchronization across all project files
+- Streamlined release process with automated quality checks
+- Better error handling and validation in release workflows
 
 **Reticulum** is a prioritization report generator designed to analyze cloud infrastructure, particularly Kubernetes Helm charts, and generate security prioritization reports. It provides structured prioritization data for external security tools, mapping services to their risk levels, code paths, and Dockerfiles.
 
