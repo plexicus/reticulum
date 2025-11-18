@@ -127,6 +127,112 @@ echo ""
 echo "🔄 Starting version bump process..."
 ```
 
+## CHANGELOG Management
+
+Before executing the version bump, let's manage the CHANGELOG.md file:
+
+```bash
+echo "📝 Managing CHANGELOG.md..."
+
+# Function to extract [Unreleased] section content
+extract_unreleased_section() {
+    local changelog_file="CHANGELOG.md"
+    local in_unreleased=false
+    local unreleased_content=""
+    local current_category=""
+
+    while IFS= read -r line; do
+        if [[ "$line" == "## [Unreleased]" ]]; then
+            in_unreleased=true
+            continue
+        elif [[ "$in_unreleased" == true && "$line" =~ ^##\ \[[0-9]+\.[0-9]+\.[0-9]+\] ]]; then
+            # Reached next version section, stop extracting
+            break
+        elif [[ "$in_unreleased" == true ]]; then
+            if [[ "$line" =~ ^###\ (Added|Changed|Fixed|Removed|Notes)$ ]]; then
+                current_category="${BASH_REMATCH[1]}"
+                unreleased_content+="$line\n"
+            elif [[ -n "$current_category" && -n "$line" ]]; then
+                unreleased_content+="$line\n"
+            fi
+        fi
+    done < "$changelog_file"
+
+    echo "$unreleased_content"
+}
+
+# Function to update CHANGELOG with new version section
+update_changelog_with_version() {
+    local new_version="$1"
+    local unreleased_content="$2"
+    local changelog_file="CHANGELOG.md"
+    local temp_file=$(mktemp)
+
+    # Get current date in YYYY-MM-DD format
+    local current_date=$(date +%Y-%m-%d)
+
+    # Create new version section
+    local new_version_section="## [$new_version] - $current_date\n\n"
+
+    # Process unreleased content
+    if [[ -n "$unreleased_content" ]]; then
+        local in_category=false
+        local current_category=""
+
+        while IFS= read -r line; do
+            if [[ "$line" =~ ^###\ (Added|Changed|Fixed|Removed|Notes)$ ]]; then
+                if [[ "$in_category" == true ]]; then
+                    new_version_section+="\n"
+                fi
+                current_category="${BASH_REMATCH[1]}"
+                new_version_section+="$line\n"
+                in_category=true
+            elif [[ -n "$line" && "$in_category" == true ]]; then
+                new_version_section+="$line\n"
+            fi
+        done <<< "$unreleased_content"
+    else
+        new_version_section+="### Added\n- No changes documented\n\n"
+    fi
+
+    # Read current CHANGELOG and replace [Unreleased] with new version section
+    local in_unreplaced=true
+    while IFS= read -r line; do
+        if [[ "$in_unreplaced" == true && "$line" == "## [Unreleased]" ]]; then
+            # Replace [Unreleased] with new version section and fresh [Unreleased]
+            echo "$new_version_section" >> "$temp_file"
+            echo "## [Unreleased]" >> "$temp_file"
+            echo "" >> "$temp_file"
+            in_unreplaced=false
+            # Skip the rest of the unreleased section
+            while IFS= read -r skip_line; do
+                if [[ "$skip_line" =~ ^##\ \[[0-9]+\.[0-9]+\.[0-9]+\] ]]; then
+                    echo "$skip_line" >> "$temp_file"
+                    break
+                fi
+            done
+        elif [[ "$in_unreplaced" == false ]]; then
+            echo "$line" >> "$temp_file"
+        fi
+    done < "$changelog_file"
+
+    # Replace original file
+    mv "$temp_file" "$changelog_file"
+
+    echo "✅ Updated CHANGELOG.md with version $new_version"
+}
+
+# Extract unreleased content
+UNRELEASED_CONTENT=$(extract_unreleased_section)
+
+if [[ -n "$UNRELEASED_CONTENT" ]]; then
+    echo "📋 Found unreleased changes to move to version $NEW_VERSION"
+else
+    echo "⚠️  No unreleased changes found in CHANGELOG.md"
+fi
+
+```
+
 ## Execute Version Bump
 
 ```bash
@@ -147,6 +253,9 @@ else
     echo "✅ Updated pyproject.toml to version $NEW_VERSION"
     echo "✅ Updated src/reticulum/__init__.py to version $NEW_VERSION"
 
+    # Update CHANGELOG.md with new version section
+    update_changelog_with_version "$NEW_VERSION" "$UNRELEASED_CONTENT"
+
     EXIT_CODE=0
 fi
 
@@ -155,12 +264,50 @@ if [ $EXIT_CODE -eq 0 ]; then
     echo "🎉 Version bump completed successfully!"
     echo "📦 New version: $NEW_VERSION"
     echo ""
+
+    # Commit the version and CHANGELOG changes
+    echo "💾 Committing version and CHANGELOG changes..."
+
+    # Check if there are changes to commit
+    if git diff --quiet && git diff --cached --quiet; then
+        echo "⚠️  No changes to commit"
+    else
+        # Create commit message based on bump type and CHANGELOG content
+        COMMIT_SUBJECT=""
+        case $BUMP_TYPE in
+            "patch") COMMIT_SUBJECT="fix" ;;
+            "minor") COMMIT_SUBJECT="feat" ;;
+            "major") COMMIT_SUBJECT="feat" ;;
+            *) COMMIT_SUBJECT="chore" ;;
+        esac
+
+        # Check if there were actual changes in the unreleased section
+        if [[ -n "$UNRELEASED_CONTENT" ]]; then
+            CHANGELOG_SUMMARY=" with CHANGELOG updates"
+        else
+            CHANGELOG_SUMMARY=""
+        fi
+
+        COMMIT_MESSAGE="$COMMIT_SUBJECT: bump version to $NEW_VERSION$CHANGELOG_SUMMARY"
+
+        # Stage all changes
+        git add pyproject.toml src/reticulum/__init__.py CHANGELOG.md
+
+        # Create commit
+        if git commit -m "$COMMIT_MESSAGE"; then
+            echo "✅ Changes committed successfully"
+            echo "📝 Commit message: $COMMIT_MESSAGE"
+        else
+            echo "❌ Failed to commit changes"
+        fi
+    fi
+
+    echo ""
     echo "📋 Next steps:"
     echo "   1. Verify all version files are synchronized: make release-sync"
     echo "   2. Run tests: make test-all"
     echo "   3. Consider creating a git tag: git tag v$NEW_VERSION"
-    echo "   4. Update CHANGELOG.md with changes"
-    echo "   5. Commit the version changes"
+    echo "   4. Push changes to remote if needed: git push"
 else
     echo "❌ Version bump failed with exit code $EXIT_CODE"
     exit $EXIT_CODE
