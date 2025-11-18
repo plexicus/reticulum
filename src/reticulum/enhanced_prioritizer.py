@@ -5,6 +5,7 @@ Modifies service priorities based on security findings and exposure levels.
 """
 
 from typing import Dict, Any
+from .network_policy_analyzer import NetworkPolicyAnalyzer
 
 
 class EnhancedPrioritizer:
@@ -26,6 +27,15 @@ class EnhancedPrioritizer:
             "low": 0.5,
             "info": 0.3,
         }
+
+        # Egress risk multipliers
+        self.egress_risk_multipliers = {
+            "HIGH": 1.5,  # Internet egress detected
+            "MEDIUM": 1.2,  # Complex egress rules
+            "LOW": 1.0,  # Minimal egress risk
+        }
+
+        self.network_policy_analyzer = NetworkPolicyAnalyzer()
 
     def enhance_prioritization(
         self,
@@ -59,9 +69,12 @@ class EnhancedPrioritizer:
                 service_name, trivy_mapping, semgrep_mapping
             )
 
+            # Calculate egress risk score
+            egress_score = self._calculate_egress_risk_score(service)
+
             # Calculate enhanced priority
             enhanced_risk = self._calculate_enhanced_priority(
-                original_risk, security_score
+                original_risk, security_score, egress_score
             )
 
             # Create enhanced service entry
@@ -71,9 +84,11 @@ class EnhancedPrioritizer:
                     "original_risk_level": original_risk,
                     "enhanced_risk_level": enhanced_risk,
                     "security_risk_score": security_score,
+                    "egress_risk_score": egress_score,
                     "security_findings_summary": self._get_findings_summary(
                         service_name, trivy_mapping, semgrep_mapping
                     ),
+                    "egress_analysis": service.get("egress_analysis", {}),
                 }
             )
 
@@ -128,13 +143,13 @@ class EnhancedPrioritizer:
         return score
 
     def _calculate_enhanced_priority(
-        self, original_risk: str, security_score: float
+        self, original_risk: str, security_score: float, egress_score: float
     ) -> str:
-        """Calculate enhanced priority based on original risk and security score."""
+        """Calculate enhanced priority based on original risk, security score, and egress score."""
         exposure_weight = self.exposure_weights.get(original_risk, 1.0)
 
-        # Combine exposure and security factors
-        combined_score = exposure_weight * (1.0 + security_score * 0.1)
+        # Combine exposure, security, and egress factors
+        combined_score = exposure_weight * (1.0 + security_score * 0.1) * egress_score
 
         # Determine enhanced priority
         if combined_score >= 2.5:
@@ -259,3 +274,19 @@ class EnhancedPrioritizer:
 
         print(f"\n   📈 Services upgraded: {upgraded}")
         print(f"   📉 Services downgraded: {downgraded}")
+
+    def _calculate_egress_risk_score(self, service: Dict[str, Any]) -> float:
+        """
+        Calculate egress risk score based on network policy analysis.
+
+        Args:
+            service: Service information including egress analysis
+
+        Returns:
+            Egress risk multiplier
+        """
+        egress_analysis = service.get("egress_analysis", {})
+        egress_risk_level = egress_analysis.get("egress_risk_level", "LOW")
+
+        # Get multiplier based on egress risk level
+        return self.egress_risk_multipliers.get(egress_risk_level, 1.0)

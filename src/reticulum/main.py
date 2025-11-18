@@ -192,6 +192,13 @@ class ExposureScanner:
         # Create exposure analyzer instance for endpoint extraction
         exposure_analyzer = ExposureAnalyzer()
 
+        # Analyze network policies for the entire repository
+        network_policy_analysis = (
+            exposure_analyzer.network_policy_analyzer.analyze_network_policies(
+                self.results["repo_path"]
+            )
+        )
+
         prioritized_services = []
         for container in sorted_containers:
             service_info = {
@@ -210,8 +217,16 @@ class ExposureScanner:
                 "public_endpoints": exposure_analyzer._extract_public_endpoints(
                     container
                 ),
+                "egress_analysis": container.get("egress_analysis", {}),
             }
             prioritized_services.append(service_info)
+
+        # Generate egress summary
+        egress_summary = (
+            exposure_analyzer.network_policy_analyzer.generate_egress_summary(
+                network_policy_analysis
+            )
+        )
 
         return {
             "repo_path": self.results["repo_path"],
@@ -229,4 +244,8 @@ class ExposureScanner:
                 ),
             },
             "prioritized_services": prioritized_services,
+            "network_policy_analysis": {
+                "egress_summary": egress_summary,
+                "detailed_analysis": network_policy_analysis,
+            },
         }

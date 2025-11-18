@@ -8,12 +8,15 @@ from pathlib import Path
 from typing import Dict, List, Any
 import yaml
 
+from .network_policy_analyzer import NetworkPolicyAnalyzer
+
 
 class ExposureAnalyzer:
     """Analyzes Helm charts and Kubernetes resources for exposure patterns."""
 
     def __init__(self):
         self.chart_containers = {}
+        self.network_policy_analyzer = NetworkPolicyAnalyzer()
 
         # Define exposure patterns using regex for flexibility
         self.exposure_patterns = {
@@ -292,6 +295,80 @@ class ExposureAnalyzer:
 
         return containers
 
+    def _analyze_egress_capabilities(
+        self, chart_name: str, values: Dict[str, Any], chart_dir: Path
+    ) -> Dict[str, Any]:
+        """
+        Analyze egress capabilities for the service.
+
+        Args:
+            chart_name: Name of the chart
+            values: Values from values.yaml
+            chart_dir: Path to chart directory
+
+        Returns:
+            Egress analysis results
+        """
+        egress_analysis = {
+            "egress_risk_level": "LOW",
+            "has_internet_egress": False,
+            "network_policies_analyzed": 0,
+            "egress_rules_count": 0,
+            "internet_cidrs_found": [],
+            "recommendations": [],
+        }
+
+        # Analyze NetworkPolicy resources for this chart
+        repo_path = chart_dir.parent
+        network_policy_analysis = self.network_policy_analyzer.analyze_network_policies(
+            str(repo_path)
+        )
+
+        # Update analysis with network policy findings
+        egress_analysis["network_policies_analyzed"] = network_policy_analysis[
+            "total_policies"
+        ]
+        egress_analysis["has_internet_egress"] = (
+            network_policy_analysis["policies_with_internet_egress"] > 0
+        )
+
+        # Find policies that might affect this specific chart
+        chart_policies = []
+        for policy in network_policy_analysis["policies_analyzed"]:
+            # Check if this policy applies to the current chart
+            policy_file = policy.get("policy_file", "")
+            if chart_name.lower() in policy_file.lower() or "templates" in policy_file:
+                chart_policies.append(policy)
+                egress_analysis["egress_rules_count"] += len(
+                    policy.get("egress_rules", [])
+                )
+                egress_analysis["internet_cidrs_found"].extend(
+                    policy.get("internet_cidrs_found", [])
+                )
+
+        # Determine egress risk level based on findings
+        if egress_analysis["has_internet_egress"]:
+            egress_analysis["egress_risk_level"] = "HIGH"
+            egress_analysis["recommendations"].append(
+                "Internet egress detected. Consider restricting egress to specific CIDR blocks."
+            )
+        elif egress_analysis["egress_rules_count"] > 5:
+            egress_analysis["egress_risk_level"] = "MEDIUM"
+            egress_analysis["recommendations"].append(
+                "Complex egress rules detected. Review for unnecessary external access."
+            )
+        else:
+            egress_analysis["egress_risk_level"] = "LOW"
+
+        # Add recommendation if no NetworkPolicies found
+        if egress_analysis["network_policies_analyzed"] == 0:
+            egress_analysis["recommendations"].append(
+                "No NetworkPolicy resources found. Consider implementing network policies "
+                "to restrict pod-to-pod and external communication."
+            )
+
+        return egress_analysis
+
     def _create_container_info(
         self,
         chart_name: str,
@@ -342,6 +419,11 @@ class ExposureAnalyzer:
         if values:
             service_account = self._analyze_service_account(values)
 
+        # Analyze egress capabilities
+        egress_analysis = self._analyze_egress_capabilities(
+            chart_name, values, chart_dir
+        )
+
         return {
             "name": container_name,
             "chart": chart_name,
@@ -358,6 +440,7 @@ class ExposureAnalyzer:
             "depends_on": depends_on,
             "security_context": security_context,
             "service_account": service_account,
+            "egress_analysis": egress_analysis,
         }
 
     def _analyze_service_exposure(
@@ -766,3 +849,77 @@ class ExposureAnalyzer:
                 containers.append(container_info)
 
         return containers
+
+    def _analyze_egress_capabilities(
+        self, chart_name: str, values: Dict[str, Any], chart_dir: Path
+    ) -> Dict[str, Any]:
+        """
+        Analyze egress capabilities for the service.
+
+        Args:
+            chart_name: Name of the chart
+            values: Values from values.yaml
+            chart_dir: Path to chart directory
+
+        Returns:
+            Egress analysis results
+        """
+        egress_analysis = {
+            "egress_risk_level": "LOW",
+            "has_internet_egress": False,
+            "network_policies_analyzed": 0,
+            "egress_rules_count": 0,
+            "internet_cidrs_found": [],
+            "recommendations": [],
+        }
+
+        # Analyze NetworkPolicy resources for this chart
+        repo_path = chart_dir.parent
+        network_policy_analysis = self.network_policy_analyzer.analyze_network_policies(
+            str(repo_path)
+        )
+
+        # Update analysis with network policy findings
+        egress_analysis["network_policies_analyzed"] = network_policy_analysis[
+            "total_policies"
+        ]
+        egress_analysis["has_internet_egress"] = (
+            network_policy_analysis["policies_with_internet_egress"] > 0
+        )
+
+        # Find policies that might affect this specific chart
+        chart_policies = []
+        for policy in network_policy_analysis["policies_analyzed"]:
+            # Check if this policy applies to the current chart
+            policy_file = policy.get("policy_file", "")
+            if chart_name.lower() in policy_file.lower() or "templates" in policy_file:
+                chart_policies.append(policy)
+                egress_analysis["egress_rules_count"] += len(
+                    policy.get("egress_rules", [])
+                )
+                egress_analysis["internet_cidrs_found"].extend(
+                    policy.get("internet_cidrs_found", [])
+                )
+
+        # Determine egress risk level based on findings
+        if egress_analysis["has_internet_egress"]:
+            egress_analysis["egress_risk_level"] = "HIGH"
+            egress_analysis["recommendations"].append(
+                "Internet egress detected. Consider restricting egress to specific CIDR blocks."
+            )
+        elif egress_analysis["egress_rules_count"] > 5:
+            egress_analysis["egress_risk_level"] = "MEDIUM"
+            egress_analysis["recommendations"].append(
+                "Complex egress rules detected. Review for unnecessary external access."
+            )
+        else:
+            egress_analysis["egress_risk_level"] = "LOW"
+
+        # Add recommendation if no NetworkPolicies found
+        if egress_analysis["network_policies_analyzed"] == 0:
+            egress_analysis["recommendations"].append(
+                "No NetworkPolicy resources found. Consider implementing network policies "
+                "to restrict pod-to-pod and external communication."
+            )
+
+        return egress_analysis
