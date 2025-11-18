@@ -1,6 +1,6 @@
 # Reticulum - Combat Cloud-Native Application Alert Fatigue
 
-![Reticulum Logo](assets/images/reticulum-security-scanner.png)
+![Reticulum Logo](assets/images/reticulum-logo.png)
 
 [![PyPI version](https://badge.fury.io/py/reticulum.svg)](https://badge.fury.io/py/reticulum)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)

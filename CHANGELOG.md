@@ -223,3 +223,8 @@
 
 - resolve linting and formatting issues
 - install project in CI to make tests work
+## [Unreleased]
+
+### Added
+- **Added**: New file: `assets/images/reticulum-logo.png`\n
+
