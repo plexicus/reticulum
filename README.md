@@ -1,4 +1,6 @@
-# Reticulum - Cloud Infrastructure Security Scanner
+# Reticulum - Combat Cloud-Native Application Alert Fatigue
+
+![Reticulum Logo](assets/images/reticulum-security-scanner.png)
 
 [![PyPI version](https://badge.fury.io/py/reticulum.svg)](https://badge.fury.io/py/reticulum)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -13,7 +15,9 @@
 - Streamlined release workflow with automatic CHANGELOG restructuring
 - Better environment detection across multiple Python package managers
 
-**Reticulum** is a prioritization report generator designed to analyze cloud infrastructure, particularly Kubernetes Helm charts, and generate security prioritization reports. It provides structured prioritization data for external security tools, mapping services to their risk levels, code paths, and Dockerfiles.
+**Reticulum** is a tool to combat cloud-native application alert fatigue. For every vulnerability detected, it tracks the container and examines the Helm chart configuration in Kubernetes to determine its exposure, helping to know what is truly critical.
+
+**Reticulum** is also a prioritization report generator designed to analyze cloud infrastructure, particularly Kubernetes Helm charts, and generate security prioritization reports. It provides structured prioritization data for external security tools, mapping services to their risk levels, code paths, and Dockerfiles.
 
 ## Production Ready
 
