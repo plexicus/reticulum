@@ -135,6 +135,9 @@ print_status "SYNC" "Synchronizing all version files..."
 files_updated_str=$(sync_all_versions)
 files_updated=($files_updated_str)
 
+# Manage CHANGELOG for release
+manage_changelog_for_release "$new_version"
+
 # Check for TODO/FIXME comments
 print_status "INFO" "Checking for critical TODO/FIXME comments..."
 critical_todos=$(grep -r "TODO\|FIXME" src/ --exclude-dir=__pycache__ 2>/dev/null | grep -i "critical\|urgent\|blocking" | wc -l || echo "0")
@@ -150,9 +153,9 @@ fi
 # Commit all changes
 print_status "INFO" "Committing version bump..."
 if [ ${#files_updated[@]} -gt 0 ]; then
-    git add pyproject.toml ${files_updated[@]}
+    git add pyproject.toml CHANGELOG.md ${files_updated[@]}
 else
-    git add pyproject.toml
+    git add pyproject.toml CHANGELOG.md
 fi
 
 # Create intelligent commit message

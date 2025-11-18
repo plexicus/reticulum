@@ -175,7 +175,7 @@ get_cli_version() {
 }
 
 get_readme_version() {
-    grep '🚀 \*\*Latest Release:' README.md | sed 's/.*v\([0-9.][0-9.]*[0-9]\).*/\1/' 2>/dev/null || echo "none"
+    grep '\*\*Latest Release:' README.md | sed 's/.*v\([0-9.][0-9.]*[0-9]\).*/\1/' 2>/dev/null || echo "none"
 }
 
 get_latest_tag() {
@@ -200,7 +200,7 @@ update_cli_version() {
 update_readme_version() {
     local new_version=$1
     print_status "AUTO" "Updating README.md to version $new_version"
-    sed -i.bak "s/🚀 \*\*Latest Release: v[0-9.][0-9.]*[0-9]/🚀 **Latest Release: v$new_version/" README.md
+    sed -i.bak "s/\*\*Latest Release: v[0-9.][0-9.]*[0-9]/**Latest Release: v$new_version/" README.md
     sed -i.bak "s/### ✅ \*\*What's New in v[0-9.][0-9.]*[0-9]/### ✅ **What's New in v$new_version/" README.md
     rm -f README.md.bak
 }
@@ -216,7 +216,9 @@ update_pyproject_version() {
 sync_all_versions() {
     local source_version=$(get_pyproject_version)
     local files_updated=""
-    
+
+    print_status "SYNC" "Synchronizing all version files to $source_version"
+
     # Get current versions
     local init_version=$(get_init_version)
     local cli_version=$(get_cli_version)
@@ -228,6 +230,8 @@ sync_all_versions() {
         sed -i.bak "s/^__version__ = \".*\"/__version__ = \"$source_version\"/" src/reticulum/__init__.py
         rm -f src/reticulum/__init__.py.bak
         files_updated="$files_updated src/reticulum/__init__.py"
+    else
+        print_status "PASS" "__init__.py already synchronized: $init_version"
     fi
     
     if [ "$cli_version" != "$source_version" ]; then
@@ -235,16 +239,28 @@ sync_all_versions() {
         sed -i.bak "s/version=\"%(prog)s [^\"]*\"/version=\"%(prog)s $source_version\"/" src/reticulum/cli.py
         rm -f src/reticulum/cli.py.bak
         files_updated="$files_updated src/reticulum/cli.py"
+    else
+        print_status "PASS" "CLI already synchronized: $cli_version"
     fi
     
-    if [ "$readme_version" != "$source_version" ] && [ "$readme_version" != "none" ]; then
+    if [ "$readme_version" = "none" ]; then
+        print_status "WARN" "README.md version not found - regex pattern may need adjustment"
+    elif [ "$readme_version" != "$source_version" ]; then
         print_status "AUTO" "Updating README.md to version $source_version" >&2
-        sed -i.bak "s/🚀 \*\*Latest Release: v[0-9.][0-9.]*[0-9]/🚀 **Latest Release: v$source_version/" README.md
+        sed -i.bak "s/\*\*Latest Release: v[0-9.][0-9.]*[0-9]/**Latest Release: v$source_version/" README.md
         sed -i.bak "s/### ✅ \*\*What's New in v[0-9.][0-9.]*[0-9]/### ✅ **What's New in v$source_version/" README.md
         rm -f README.md.bak
         files_updated="$files_updated README.md"
+    else
+        print_status "PASS" "README.md already synchronized: $readme_version"
     fi
     
+    if [ -n "$files_updated" ]; then
+        print_status "SYNC" "Updated files: $files_updated"
+    else
+        print_status "PASS" "All version files are already synchronized"
+    fi
+
     # Return files updated (trimmed)
     echo "$files_updated" | sed 's/^ *//'
 }
@@ -255,24 +271,42 @@ validate_versions() {
     local init_version=$(get_init_version)
     local cli_version=$(get_cli_version)
     local readme_version=$(get_readme_version)
-    
+
     local mismatches=0
-    
+
+    print_status "INFO" "Validating version synchronization..."
+    print_status "INFO" "Source version (pyproject.toml): $pyproject_version"
+
     if [ "$pyproject_version" != "$init_version" ]; then
         print_status "WARN" "Version mismatch: pyproject.toml ($pyproject_version) != __init__.py ($init_version)"
         mismatches=$((mismatches + 1))
+    else
+        print_status "PASS" "__init__.py version synchronized: $init_version"
     fi
-    
+
     if [ "$pyproject_version" != "$cli_version" ]; then
         print_status "WARN" "Version mismatch: pyproject.toml ($pyproject_version) != cli.py ($cli_version)"
         mismatches=$((mismatches + 1))
+    else
+        print_status "PASS" "CLI version synchronized: $cli_version"
     fi
-    
-    if [ "$pyproject_version" != "$readme_version" ] && [ "$readme_version" != "none" ]; then
+
+    if [ "$readme_version" = "none" ]; then
+        print_status "WARN" "README.md version not found (regex pattern may be incorrect)"
+        mismatches=$((mismatches + 1))
+    elif [ "$pyproject_version" != "$readme_version" ]; then
         print_status "WARN" "Version mismatch: pyproject.toml ($pyproject_version) != README.md ($readme_version)"
         mismatches=$((mismatches + 1))
+    else
+        print_status "PASS" "README.md version synchronized: $readme_version"
     fi
-    
+
+    if [ $mismatches -eq 0 ]; then
+        print_status "PASS" "All version files are synchronized"
+    else
+        print_status "WARN" "Found $mismatches version synchronization issue(s)"
+    fi
+
     return $mismatches
 }
 
@@ -337,12 +371,12 @@ run_quality_checks() {
 calculate_next_version() {
     local current_version=$1
     local bump_type=$2
-    
+
     IFS='.' read -r -a version_parts <<< "$current_version"
     local major=${version_parts[0]}
     local minor=${version_parts[1]}
     local patch=${version_parts[2]}
-    
+
     case $bump_type in
         patch)
             echo "$major.$minor.$((patch + 1))"
@@ -358,4 +392,133 @@ calculate_next_version() {
             return 1
             ;;
     esac
+}
+
+# CHANGELOG Management Functions
+
+# Function to extract [Unreleased] section content
+extract_unreleased_section() {
+    local changelog_file="CHANGELOG.md"
+    local in_unreleased=false
+    local unreleased_content=""
+    local current_category=""
+
+    while IFS= read -r line; do
+        if [[ "$line" == "## [Unreleased]" ]]; then
+            in_unreleased=true
+            continue
+        elif [[ "$in_unreleased" == true && "$line" =~ ^##\ \[[0-9]+\.[0-9]+\.[0-9]+\] ]]; then
+            # Reached next version section, stop extracting
+            break
+        elif [[ "$in_unreleased" == true ]]; then
+            if [[ "$line" =~ ^###\ (Added|Changed|Fixed|Removed|Notes)$ ]]; then
+                current_category="${BASH_REMATCH[1]}"
+                unreleased_content+="$line\n"
+            elif [[ -n "$current_category" && -n "$line" ]]; then
+                unreleased_content+="$line\n"
+            fi
+        fi
+    done < "$changelog_file"
+
+    echo "$unreleased_content"
+}
+
+# Function to update CHANGELOG with new version section
+update_changelog_with_version() {
+    local new_version="$1"
+    local unreleased_content="$2"
+    local changelog_file="CHANGELOG.md"
+    local temp_file=$(mktemp)
+
+    # Get current date in YYYY-MM-DD format
+    local current_date=$(date +%Y-%m-%d)
+
+    # Create new version section
+    local new_version_section="## [$new_version] - $current_date\n\n"
+
+    # Process unreleased content
+    if [[ -n "$unreleased_content" ]]; then
+        local in_category=false
+        local current_category=""
+
+        while IFS= read -r line; do
+            if [[ "$line" =~ ^###\ (Added|Changed|Fixed|Removed|Notes)$ ]]; then
+                if [[ "$in_category" == true ]]; then
+                    new_version_section+="\n"
+                fi
+                current_category="${BASH_REMATCH[1]}"
+                new_version_section+="$line\n"
+                in_category=true
+            elif [[ -n "$line" && "$in_category" == true ]]; then
+                new_version_section+="$line\n"
+            fi
+        done <<< "$unreleased_content"
+    else
+        new_version_section+="### Added\n- No changes documented\n\n"
+    fi
+
+    # Read current CHANGELOG and restructure with [Unreleased] at top
+    local in_header=true
+    local header_lines=""
+    local version_sections=""
+    local in_unreleased=false
+
+    while IFS= read -r line; do
+        # Capture header lines (before first version section)
+        if [[ "$in_header" == true && ! "$line" =~ ^##\ \[ ]]; then
+            header_lines+="$line\n"
+        elif [[ "$line" =~ ^##\ \[ ]]; then
+            in_header=false
+            # Skip [Unreleased] section - we'll create a fresh one at the top
+            if [[ "$line" == "## [Unreleased]" ]]; then
+                in_unreleased=true
+                continue
+            fi
+            # Add version sections to the collection
+            if [[ "$in_unreleased" == false ]]; then
+                version_sections+="$line\n"
+            fi
+        elif [[ "$in_unreleased" == true ]]; then
+            # Skip content of [Unreleased] section - we'll create a fresh one
+            if [[ "$line" =~ ^##\ \[[0-9]+\.[0-9]+\.[0-9]+\] ]]; then
+                in_unreleased=false
+                version_sections+="$line\n"
+            fi
+        else
+            version_sections+="$line\n"
+        fi
+    done < "$changelog_file"
+
+    # Write the restructured CHANGELOG
+    echo -n "$header_lines" >> "$temp_file"
+    echo "## [Unreleased]" >> "$temp_file"
+    echo "" >> "$temp_file"
+    echo -n "$new_version_section" >> "$temp_file"
+    echo -n "$version_sections" >> "$temp_file"
+
+    # Replace original file
+    mv "$temp_file" "$changelog_file"
+
+    echo "✅ Updated CHANGELOG.md with version $new_version"
+}
+
+# Function to manage CHANGELOG during releases
+manage_changelog_for_release() {
+    local new_version="$1"
+
+    print_status "INFO" "Managing CHANGELOG.md for release $new_version..."
+
+    # Extract unreleased content
+    local unreleased_content=$(extract_unreleased_section)
+
+    if [[ -n "$unreleased_content" ]]; then
+        print_status "INFO" "Found unreleased changes to move to version $new_version"
+    else
+        print_status "WARN" "No unreleased changes found in CHANGELOG.md"
+    fi
+
+    # Update CHANGELOG with new version
+    update_changelog_with_version "$new_version" "$unreleased_content"
+
+    print_status "PASS" "CHANGELOG.md updated successfully"
 }
