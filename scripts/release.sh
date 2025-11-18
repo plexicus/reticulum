@@ -152,21 +152,27 @@ else
     print_status "PASS" "No critical TODO/FIXME comments found"
 fi
 
-# Commit all changes
-print_status "INFO" "Committing version bump..."
-if [ ${#files_updated[@]} -gt 0 ]; then
-    git add pyproject.toml CHANGELOG.md ${files_updated[@]}
+# Check if Commitizen already committed the changes
+print_status "INFO" "Checking if changes are already committed..."
+if is_git_clean; then
+    print_status "PASS" "Changes already committed by Commitizen"
 else
-    git add pyproject.toml CHANGELOG.md
-fi
+    # Commit any remaining changes
+    print_status "INFO" "Committing version bump..."
+    if [ ${#files_updated[@]} -gt 0 ]; then
+        git add pyproject.toml CHANGELOG.md ${files_updated[@]}
+    else
+        git add pyproject.toml CHANGELOG.md
+    fi
 
-# Create intelligent commit message
-commit_msg="chore: bump version to v$new_version ($COMMAND release)"
-if git commit -m "$commit_msg"; then
-    print_status "PASS" "Version bump committed"
-else
-    print_status "FAIL" "Failed to commit version bump"
-    exit 1
+    # Create intelligent commit message
+    commit_msg="chore: bump version to v$new_version ($COMMAND release)"
+    if git commit -m "$commit_msg"; then
+        print_status "PASS" "Version bump committed"
+    else
+        print_status "FAIL" "Failed to commit version bump"
+        exit 1
+    fi
 fi
 
 # Create git tag
