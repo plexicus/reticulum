@@ -254,27 +254,15 @@ fi
 ## Execute Version Bump
 
 ```bash
-# Use project's release script if available
+# Use project's release script
 if [ -f "scripts/release.sh" ]; then
     echo "📜 Using project release script..."
     ./scripts/release.sh $BUMP_TYPE
     EXIT_CODE=$?
 else
-    echo "📝 Manual version update required..."
-
-    # Update pyproject.toml
-    sed -i '' "s/^version = \"$current_version\"/version = \"$NEW_VERSION\"/" pyproject.toml
-
-    # Update src/reticulum/__init__.py
-    sed -i '' "s/__version__ = \"$current_version\"/__version__ = \"$NEW_VERSION\"/" src/reticulum/__init__.py
-
-    echo "✅ Updated pyproject.toml to version $NEW_VERSION"
-    echo "✅ Updated src/reticulum/__init__.py to version $NEW_VERSION"
-
-    # Update CHANGELOG.md with new version section
-    update_changelog_with_version "$NEW_VERSION" "$UNRELEASED_CONTENT"
-
-    EXIT_CODE=0
+    echo "❌ Release script not found: scripts/release.sh"
+    echo "   Please ensure the release automation system is available"
+    exit 1
 fi
 
 if [ $EXIT_CODE -eq 0 ]; then
@@ -282,50 +270,12 @@ if [ $EXIT_CODE -eq 0 ]; then
     echo "🎉 Version bump completed successfully!"
     echo "📦 New version: $NEW_VERSION"
     echo ""
-
-    # Commit the version and CHANGELOG changes
-    echo "💾 Committing version and CHANGELOG changes..."
-
-    # Check if there are changes to commit
-    if git diff --quiet && git diff --cached --quiet; then
-        echo "⚠️  No changes to commit"
-    else
-        # Create commit message based on bump type and CHANGELOG content
-        COMMIT_SUBJECT=""
-        case $BUMP_TYPE in
-            "patch") COMMIT_SUBJECT="fix" ;;
-            "minor") COMMIT_SUBJECT="feat" ;;
-            "major") COMMIT_SUBJECT="feat" ;;
-            *) COMMIT_SUBJECT="chore" ;;
-        esac
-
-        # Check if there were actual changes in the unreleased section
-        if [[ -n "$UNRELEASED_CONTENT" ]]; then
-            CHANGELOG_SUMMARY=" with CHANGELOG updates"
-        else
-            CHANGELOG_SUMMARY=""
-        fi
-
-        COMMIT_MESSAGE="$COMMIT_SUBJECT: bump version to $NEW_VERSION$CHANGELOG_SUMMARY"
-
-        # Stage all changes
-        git add pyproject.toml src/reticulum/__init__.py CHANGELOG.md
-
-        # Create commit
-        if git commit -m "$COMMIT_MESSAGE"; then
-            echo "✅ Changes committed successfully"
-            echo "📝 Commit message: $COMMIT_MESSAGE"
-        else
-            echo "❌ Failed to commit changes"
-        fi
-    fi
-
+    echo "✅ Git tag v$NEW_VERSION created automatically"
+    echo "✅ GitHub Actions release workflow triggered"
     echo ""
     echo "📋 Next steps:"
-    echo "   1. Verify all version files are synchronized: make release-sync"
-    echo "   2. Run tests: make test-all"
-    echo "   3. Consider creating a git tag: git tag v$NEW_VERSION"
-    echo "   4. Push changes to remote if needed: git push"
+    echo "   • Monitor GitHub Actions: https://github.com/plexicus/reticulum/actions"
+    echo "   • Check PyPI for new release: https://pypi.org/project/reticulum/"
 else
     echo "❌ Version bump failed with exit code $EXIT_CODE"
     exit $EXIT_CODE
