@@ -49,12 +49,27 @@ check_project_root() {
     fi
 }
 
-# Check if Poetry is available
-check_poetry() {
-    if ! command -v poetry >/dev/null 2>&1; then
-        print_status "FAIL" "Poetry is not installed or not in PATH"
-        exit 1
-    fi
+# Check if any Python environment is available
+check_python_env_available() {
+    local env=$(detect_python_env)
+    case $env in
+        "poetry")
+            print_status "INFO" "Using Poetry environment"
+            ;;
+        "venv")
+            print_status "INFO" "Using virtual environment (.venv)"
+            ;;
+        "uv")
+            print_status "INFO" "Using uv environment"
+            ;;
+        "system")
+            print_status "WARN" "Using system Python (no environment detected)"
+            print_status "INFO" "Consider setting up a Python environment for better dependency management:"
+            print_status "INFO" "  - Poetry (recommended): curl -sSL https://install.python-poetry.org | python3 -"
+            print_status "INFO" "  - Virtual environment: python -m venv .venv && source .venv/bin/activate"
+            print_status "INFO" "  - uv: curl -LsSf https://astral.sh/uv/install.sh | sh"
+            ;;
+    esac
 }
 
 # Detect available Python environment manager

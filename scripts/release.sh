@@ -64,7 +64,7 @@ echo ""
 # Environment validation
 print_status "INFO" "Validating environment..."
 check_project_root
-check_poetry
+check_python_env_available
 check_main_branch
 
 # Check git working directory
