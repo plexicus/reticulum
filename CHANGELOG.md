@@ -1,3 +1,9 @@
+## v0.6.7 (2025-11-18)
+
+### Fix
+
+- regenerate CHANGELOG using Commitizen for standardization
+
 ## v0.6.6 (2025-11-18)
 
 ## v0.6.5 (2025-11-18)
