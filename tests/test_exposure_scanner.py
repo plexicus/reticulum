@@ -93,20 +93,27 @@ class TestExposureAnalyzer:
 
     def test_create_container_info(self):
         """Test container info creation."""
+        import tempfile
         from reticulum.exposure_analyzer import ExposureAnalyzer
 
         analyzer = ExposureAnalyzer()
 
-        container_info = analyzer._create_container_info(
-            chart_name="test-chart",
-            gateway_type="Ingress",
-            host="test.example.com",
-            chart_dir=Path("/tmp"),
-            repo_path=Path("/tmp"),
-            score=3,
-            level="HIGH",
-            env_name="prod"
-        )
+        # Use temporary directory instead of /tmp to avoid permission issues
+        with tempfile.TemporaryDirectory() as tmpdir:
+            tmp_path = Path(tmpdir)
+            chart_dir = tmp_path / "test-chart"
+            chart_dir.mkdir()
+
+            container_info = analyzer._create_container_info(
+                chart_name="test-chart",
+                gateway_type="Ingress",
+                host="test.example.com",
+                chart_dir=chart_dir,
+                repo_path=tmp_path,
+                score=3,
+                level="HIGH",
+                env_name="prod"
+            )
 
         assert container_info["name"] == "test-chart-prod-container"
         assert container_info["chart"] == "test-chart"

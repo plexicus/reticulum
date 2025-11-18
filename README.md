@@ -1,12 +1,12 @@
-# 🔍 Reticulum - Cloud Infrastructure Security Scanner
+# Reticulum - Cloud Infrastructure Security Scanner
 
 [![PyPI version](https://badge.fury.io/py/reticulum.svg)](https://badge.fury.io/py/reticulum)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
-🚀 **Latest Release: v0.5.3**
+**Latest Release: v0.5.3**
 
-### ✅ **What's New in v0.5.3**
+### What's New in v0.5.3
 - Enhanced Dockerfile detection with deep search strategy and pattern matching
 - Improved dependency analysis with better false positive filtering
 - Better path consolidation with validation against repository structure
@@ -15,11 +15,11 @@
 
 **Reticulum** is a prioritization report generator designed to analyze cloud infrastructure, particularly Kubernetes Helm charts, and generate security prioritization reports. It provides structured prioritization data for external security tools, mapping services to their risk levels, code paths, and Dockerfiles.
 
-## 🚀 **Production Ready**
+## Production Ready
 
 Reticulum is **production-ready** with comprehensive testing, validation, and zero critical bugs. The scanner has been thoroughly validated against complex real-world scenarios.
 
-### ✅ **Key Features**
+### Key Features
 - **Complete bug elimination** - All critical issues resolved
 - **Exhaustive validation** - Tested with extensive real-world repositories
 - **Production ready** - 100% reliable and accurate
@@ -27,7 +27,7 @@ Reticulum is **production-ready** with comprehensive testing, validation, and ze
 - **Edge case handling** - Robust handling of complex configurations
 - **Advanced testing suite** - Comprehensive test scenarios for validation
 
-### 🧪 **Validation Status**
+### Validation Status
 | Metric | Status | Value |
 |--------|--------|-------|
 | **Bug Status** | ✅ **ZERO CRITICAL BUGS** | 100% Clean |
@@ -39,15 +39,15 @@ Reticulum is **production-ready** with comprehensive testing, validation, and ze
 
 ## Features
 
-- **🎯 Prioritization Focus**: Generates security prioritization reports for external tools
-- **🔍 Risk Classification**: Categorizes services by exposure level (HIGH, MEDIUM, LOW)
-- **📁 Code Path Mapping**: Maps services to their Dockerfiles and source code paths
-- **📊 Structured Output**: Clean JSON format optimized for external tool consumption
-- **📐 Graph Visualization**: Export network topology as Graphviz DOT files
-- **🚀 High Performance**: Fast scanning of large repositories
-- **🧪 Advanced Testing**: Comprehensive test suite with complex scenarios
+- **Prioritization Focus**: Generates security prioritization reports for external tools
+- **Risk Classification**: Categorizes services by exposure level (HIGH, MEDIUM, LOW)
+- **Code Path Mapping**: Maps services to their Dockerfiles and source code paths
+- **Structured Output**: Clean JSON format optimized for external tool consumption
+- **Graph Visualization**: Export network topology as Graphviz DOT files
+- **High Performance**: Fast scanning of large repositories
+- **Advanced Testing**: Comprehensive test suite with complex scenarios
 
-## 🧪 **Advanced Testing Suite**
+## Advanced Testing Suite
 
 Reticulum includes a comprehensive testing framework that validates the scanner against complex, real-world scenarios:
 
@@ -221,7 +221,7 @@ make format
 make clean
 ```
 
-## 🚀 **CI/CD Pipeline**
+## CI/CD Pipeline
 
 Reticulum includes comprehensive CI/CD workflows:
 
@@ -242,14 +242,14 @@ Reticulum includes comprehensive CI/CD workflows:
 - **`release.sh`**: Unified release management with version synchronization
 - **`run-advanced-tests.sh`**: Advanced test scenario execution
 
-## 📊 **Performance Benchmarks**
+## Performance Benchmarks
 
 - **Scan Time**: < 30 seconds for complex repositories
 - **Memory Usage**: < 512MB peak usage
 - **Output Size**: < 100KB for typical scans
 - **Scalability**: Handles repositories with 100+ charts
 
-## 🔧 **Configuration**
+## Configuration
 
 ### **Environment Variables**
 - `RETICULUM_LOG_LEVEL`: Set logging level (DEBUG, INFO, WARNING, ERROR)
@@ -261,7 +261,7 @@ Reticulum includes comprehensive CI/CD workflows:
 - `pytest.ini`: Testing configuration
 - `.github/workflows/`: CI/CD workflow definitions
 
-## 🤝 **Contributing**
+## Contributing
 
 1. Fork the repository
 2. Create a feature branch
@@ -290,19 +290,19 @@ git commit -am "feat: add new feature"
 git push origin feature-branch
 ```
 
-## 📄 **License**
+## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 Copyright (c) 2025 Plexicus, LLC
 
-## 🙏 **Acknowledgments**
+## Acknowledgments
 
 - **Kubernetes Community**: For the excellent Helm chart ecosystem
 - **Python Community**: For the robust testing and development tools
 - **Security Community**: For continuous feedback and improvement suggestions
 
-## 📞 **Support**
+## Support
 
 - **Issues**: [GitHub Issues](https://github.com/plexicus/reticulum/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/plexicus/reticulum/discussions)
@@ -310,4 +310,4 @@ Copyright (c) 2025 Plexicus, LLC
 
 ---
 
-**Reticulum** - Making cloud infrastructure security scanning accessible, reliable, and comprehensive. 🔍✨
+**Reticulum** - Making cloud infrastructure security scanning accessible, reliable, and comprehensive.

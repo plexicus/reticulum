@@ -75,7 +75,9 @@ class NetworkPolicyAnalyzer:
 
         for pattern in search_patterns:
             for file_path in repo_path.glob(pattern):
-                if file_path not in seen_files and self._is_network_policy_file(file_path):
+                if file_path not in seen_files and self._is_network_policy_file(
+                    file_path
+                ):
                     network_policies.append(file_path)
                     seen_files.add(file_path)
 
@@ -253,7 +255,9 @@ class NetworkPolicyAnalyzer:
         summary = {
             "total_network_policies": analysis_results["total_policies"],
             "policies_with_egress": sum(
-                1 for p in analysis_results["policies_analyzed"] if p.get("has_egress", False)
+                1
+                for p in analysis_results["policies_analyzed"]
+                if p.get("has_egress", False)
             ),
             "policies_with_internet_egress": analysis_results[
                 "policies_with_internet_egress"
