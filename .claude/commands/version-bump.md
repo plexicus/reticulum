@@ -195,26 +195,44 @@ update_changelog_with_version() {
         new_version_section+="### Added\n- No changes documented\n\n"
     fi
 
-    # Read current CHANGELOG and replace [Unreleased] with new version section
-    local in_unreplaced=true
+    # Read current CHANGELOG and restructure with [Unreleased] at top
+    local in_header=true
+    local header_lines=""
+    local version_sections=""
+    local in_unreleased=false
+
     while IFS= read -r line; do
-        if [[ "$in_unreplaced" == true && "$line" == "## [Unreleased]" ]]; then
-            # Replace [Unreleased] with new version section and fresh [Unreleased]
-            echo "$new_version_section" >> "$temp_file"
-            echo "## [Unreleased]" >> "$temp_file"
-            echo "" >> "$temp_file"
-            in_unreplaced=false
-            # Skip the rest of the unreleased section
-            while IFS= read -r skip_line; do
-                if [[ "$skip_line" =~ ^##\ \[[0-9]+\.[0-9]+\.[0-9]+\] ]]; then
-                    echo "$skip_line" >> "$temp_file"
-                    break
-                fi
-            done
-        elif [[ "$in_unreplaced" == false ]]; then
-            echo "$line" >> "$temp_file"
+        # Capture header lines (before first version section)
+        if [[ "$in_header" == true && ! "$line" =~ ^##\ \[ ]]; then
+            header_lines+="$line\n"
+        elif [[ "$line" =~ ^##\ \[ ]]; then
+            in_header=false
+            # Skip [Unreleased] section - we'll create a fresh one at the top
+            if [[ "$line" == "## [Unreleased]" ]]; then
+                in_unreleased=true
+                continue
+            fi
+            # Add version sections to the collection
+            if [[ "$in_unreleased" == false ]]; then
+                version_sections+="$line\n"
+            fi
+        elif [[ "$in_unreleased" == true ]]; then
+            # Skip content of [Unreleased] section - we'll create a fresh one
+            if [[ "$line" =~ ^##\ \[[0-9]+\.[0-9]+\.[0-9]+\] ]]; then
+                in_unreleased=false
+                version_sections+="$line\n"
+            fi
+        else
+            version_sections+="$line\n"
         fi
     done < "$changelog_file"
+
+    # Write the restructured CHANGELOG
+    echo -n "$header_lines" >> "$temp_file"
+    echo "## [Unreleased]" >> "$temp_file"
+    echo "" >> "$temp_file"
+    echo -n "$new_version_section" >> "$temp_file"
+    echo -n "$version_sections" >> "$temp_file"
 
     # Replace original file
     mv "$temp_file" "$changelog_file"

@@ -31,3 +31,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- **CHANGELOG restructuring**: Enhanced version-bump command to properly restructure CHANGELOG with [Unreleased] section at top
+
