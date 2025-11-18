@@ -72,7 +72,11 @@ advanced-tests: ## Run advanced test scenarios against complex repository
 	@echo "🔬 Running advanced test scenarios..."
 	@scripts/run-advanced-tests.sh
 
-test-all: test advanced-tests ## Run all tests including advanced scenarios
+test-all: ## Run all tests including advanced scenarios
+	@echo "🧪 Running all tests..."
+	@$(PYTHON_RUN) pytest tests/ -v
+	@echo "🔬 Running advanced test scenarios..."
+	@scripts/run-advanced-tests.sh
 	@echo "🎉 All tests completed!"
 
 # Development helpers
@@ -88,6 +92,9 @@ dev-setup: ## Set up development environment
 		python -m venv .venv && .venv/bin/python -m pip install -e .; \
 		@echo "✅ Development environment ready (pip+virtualenv)"; \
 	fi
+	@echo "🔧 Generating advanced test repository..."
+	@$(PYTHON_EXEC) scripts/create-test-repo.py
+	@echo "✅ Advanced test repository generated"
 
 # CI/CD helpers
 ci-test: ## Run tests for CI environment

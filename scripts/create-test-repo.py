@@ -108,6 +108,35 @@ spec:
     (chart_path / "templates").mkdir(exist_ok=True)
     (chart_path / "templates" / "service.yaml").write_text(service_template)
 
+    # templates/networkpolicy.yaml - Allow internet egress
+    networkpolicy_template = """apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Chart.Name }}-network-policy
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+    ports:
+    - protocol: TCP
+      port: 80
+    - protocol: TCP
+      port: 443
+"""
+    (chart_path / "templates" / "networkpolicy.yaml").write_text(networkpolicy_template)
+
 
 def create_api_gateway_chart(chart_path: Path):
     """Create API gateway chart with high exposure (LoadBalancer)."""
@@ -140,6 +169,39 @@ def create_api_gateway_chart(chart_path: Path):
         }
     }
     (chart_path / "values.yaml").write_text(yaml.dump(values))
+
+    # templates/networkpolicy.yaml - Restricted egress
+    networkpolicy_template = """apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Chart.Name }}-network-policy
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: backend-services
+    ports:
+    - protocol: TCP
+      port: 8080
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/8
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+"""
+    (chart_path / "templates").mkdir(exist_ok=True)
+    (chart_path / "templates" / "networkpolicy.yaml").write_text(networkpolicy_template)
 
 
 def create_backend_service_chart(chart_path: Path):
@@ -411,6 +473,68 @@ def create_edge_cases_chart(chart_path: Path):
     }
     (chart_path / "values.yaml").write_text(yaml.dump(values))
 
+    # templates/networkpolicy.yaml - Complex NetworkPolicy with multiple rules
+    networkpolicy_template = """apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ .Chart.Name }}-network-policy
+  labels:
+    app: {{ .Chart.Name }}
+spec:
+  podSelector:
+    matchLabels:
+      app: {{ .Chart.Name }}
+  policyTypes:
+  - Ingress
+  - Egress
+  ingress:
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: frontend
+    ports:
+    - protocol: TCP
+      port: 80
+  - from:
+    - ipBlock:
+        cidr: 192.168.1.0/24
+    ports:
+    - protocol: TCP
+      port: 8080
+  - from:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - protocol: TCP
+      port: 9090
+  egress:
+  - to:
+    - ipBlock:
+        cidr: 10.0.0.0/8
+    ports:
+    - protocol: TCP
+      port: 53
+    - protocol: UDP
+      port: 53
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: database
+    ports:
+    - protocol: TCP
+      port: 5432
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: cache
+    ports:
+    - protocol: TCP
+      port: 6379
+"""
+    (chart_path / "templates").mkdir(exist_ok=True)
+    (chart_path / "templates" / "networkpolicy.yaml").write_text(networkpolicy_template)
+
 
 def create_dockerfiles(base_path: Path):
     """Create sample Dockerfiles."""
@@ -518,9 +642,30 @@ def main():
     """Main function to generate the test repository."""
     repo_path = Path(__file__).parent.parent / "tests" / "advanced-test-repo"
 
-    # Clean up existing repository
+    # Handle existing repository
     if repo_path.exists():
-        shutil.rmtree(repo_path)
+        print(f"⚠️  Advanced test repository already exists at: {repo_path}")
+        print("Options:")
+        print("  [r] Regenerate (delete and recreate)")
+        print("  [s] Skip (keep existing)")
+        print("  [q] Quit")
+
+        while True:
+            choice = input("\nChoose option [r/s/q]: ").strip().lower()
+            if choice in ['r', 'regenerate']:
+                print("🗑️  Removing existing repository...")
+                shutil.rmtree(repo_path)
+                break
+            elif choice in ['s', 'skip']:
+                print("✅ Keeping existing repository.")
+                return
+            elif choice in ['q', 'quit']:
+                print("👋 Exiting without changes.")
+                return
+            else:
+                print("❌ Invalid option. Please choose 'r', 's', or 'q'.")
+    else:
+        print(f"🔧 Creating advanced test repository at: {repo_path}")
 
     # Create directory structure
     create_directory_structure(repo_path)

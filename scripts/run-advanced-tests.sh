@@ -62,7 +62,8 @@ fi
 # Check if advanced test repository exists
 if [[ ! -d "$ADVANCED_TEST_DIR" ]]; then
     log_error "Advanced test repository not found at $ADVANCED_TEST_DIR"
-    log_info "Please ensure the advanced-test-repo is copied to tests/advanced-test-repo"
+    log_info "Generate it with: python scripts/create-test-repo.py"
+    log_info "Or run: make dev-setup (automatically generates test repository)"
     exit 1
 fi
 
@@ -126,6 +127,34 @@ if run_tests "Repository Structure Validation" \
 else
     FAILED_TESTS=$((FAILED_TESTS + 1))
     echo "❌ Repository Structure Validation: FAILED" >> "$SUMMARY_LOG"
+fi
+
+# Test 1.5: NetworkPolicy template validation
+TOTAL_TESTS=$((TOTAL_TESTS + 1))
+if run_tests "NetworkPolicy Template Validation" \
+    "cd '$ADVANCED_TEST_DIR' && find charts -name 'networkpolicy.yaml' | wc -l" \
+    "$TEST_LOG"; then
+    PASSED_TESTS=$((PASSED_TESTS + 1))
+    echo "✅ NetworkPolicy Template Validation: PASSED" >> "$SUMMARY_LOG"
+else
+    FAILED_TESTS=$((FAILED_TESTS + 1))
+    echo "❌ NetworkPolicy Template Validation: FAILED" >> "$SUMMARY_LOG"
+fi
+
+# Test 1.6: Specific NetworkPolicy files validation
+TOTAL_TESTS=$((TOTAL_TESTS + 1))
+if run_tests "Specific NetworkPolicy Files Validation" \
+    "cd '$ADVANCED_TEST_DIR' && \
+     test -f charts/frontend-web/templates/networkpolicy.yaml && \
+     test -f charts/api-gateway/templates/networkpolicy.yaml && \
+     test -f charts/edge-cases/templates/networkpolicy.yaml && \
+     echo 'All expected NetworkPolicy files found'" \
+    "$TEST_LOG"; then
+    PASSED_TESTS=$((PASSED_TESTS + 1))
+    echo "✅ Specific NetworkPolicy Files Validation: PASSED" >> "$SUMMARY_LOG"
+else
+    FAILED_TESTS=$((FAILED_TESTS + 1))
+    echo "❌ Specific NetworkPolicy Files Validation: FAILED" >> "$SUMMARY_LOG"
 fi
 
 # Test 2: Chart count validation

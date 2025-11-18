@@ -22,7 +22,10 @@ class TestAdvancedScenarios:
         """Set up the advanced test repository."""
         test_repo_path = Path(__file__).parent / "advanced-test-repo"
         if not test_repo_path.exists():
-            pytest.skip("Advanced test repository not found")
+            pytest.skip(
+                "Advanced test repository not found. "
+                "Generate it with: python scripts/create-test-repo.py"
+            )
         return test_repo_path
     
     @pytest.fixture

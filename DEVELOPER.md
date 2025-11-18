@@ -252,6 +252,28 @@ chore: bump version to v0.5.1
 - **Advanced Tests**: `tests/test_advanced_scenarios.py` - Complex scenarios
 - **Test Markers**: Use appropriate markers (`slow`, `integration`, `advanced`)
 
+### Test Repository Setup
+
+The advanced test scenarios require a dynamically generated test repository:
+
+```bash
+# Generate the advanced test repository
+python scripts/create-test-repo.py
+
+# This creates: tests/advanced-test-repo/ with:
+# - Multiple Helm charts with different exposure levels
+# - Dockerfiles for various services
+# - Sample source code files
+# - NetworkPolicy templates for testing network security analysis
+```
+
+**Note**: The `tests/advanced-test-repo/` directory is intentionally excluded from git tracking to avoid committing large test data. You must generate it locally to run advanced tests.
+
+**When to regenerate**:
+- After cloning the repository for the first time
+- If you modify the test repository generation script
+- If advanced tests fail due to missing test data
+
 ### Code Quality Standards
 
 - **Linting**: Ruff for code quality
@@ -311,6 +333,23 @@ $(python -m) pytest -xvs  # Stop on first failure, verbose, no capture
 # Check coverage
 $(python -m) pytest --cov=src/reticulum --cov-report=html
 ```
+
+#### Advanced Tests Skipped Due to Missing Test Repository
+
+If advanced tests are skipped with "Advanced test repository not found":
+
+```bash
+# Generate the test repository
+python scripts/create-test-repo.py
+
+# Run advanced tests
+make advanced-tests
+
+# Or run all tests
+make test-all
+```
+
+**Note**: The test repository is regenerated automatically in CI/CD environments but must be generated manually for local development.
 
 #### Environment Detection Issues
 

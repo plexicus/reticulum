@@ -177,6 +177,9 @@ The tool generates a prioritization report with the following structure:
 ### **Setup Development Environment**
 ```bash
 make dev-setup
+
+# Generate advanced test repository (required for advanced tests)
+python scripts/create-test-repo.py
 ```
 
 ### **Quality Checks**
@@ -195,11 +198,27 @@ make release-strict
 ```
 
 ### **Testing**
+
+#### **Test Repository Setup**
+Advanced tests require a dynamically generated test repository. This is intentionally excluded from git to avoid committing large test data.
+
+```bash
+# Generate the advanced test repository
+python scripts/create-test-repo.py
+
+# This creates: tests/advanced-test-repo/ with:
+# - 10 Helm charts with various exposure levels
+# - Dockerfiles for each service
+# - Sample source code files
+# - NetworkPolicy templates for security analysis
+```
+
+#### **Running Tests**
 ```bash
 # Run basic tests
 make test
 
-# Run advanced test scenarios
+# Run advanced test scenarios (requires test repository)
 make advanced-tests
 
 # Run all tests
@@ -301,6 +320,25 @@ Copyright (c) 2025 Plexicus, LLC
 - **Kubernetes Community**: For the excellent Helm chart ecosystem
 - **Python Community**: For the robust testing and development tools
 - **Security Community**: For continuous feedback and improvement suggestions
+
+## Troubleshooting
+
+### **Advanced Tests Skipped Due to Missing Test Repository**
+
+If advanced tests are skipped with "Advanced test repository not found":
+
+```bash
+# Generate the test repository
+python scripts/create-test-repo.py
+
+# Run advanced tests
+make advanced-tests
+
+# Or run all tests
+make test-all
+```
+
+**Note**: The test repository is regenerated automatically in CI/CD environments but must be generated manually for local development.
 
 ## Support
 
