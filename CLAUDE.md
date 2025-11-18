@@ -44,6 +44,7 @@ This file provides Claude Code (claude.ai/code) with specific guidance for worki
 - **Redundant documentation**: Don't duplicate information from `DEVELOPER.md`
 - **Missing dependencies**: Ensure all test/CI dependencies are in `pyproject.toml`
 - **Unsynced versions**: Use `make release-sync` when version files get out of sync
+- **Premature CHANGELOG updates**: Never modify CHANGELOG.md outside of release process
 
 ## Quick Reference
 
@@ -58,6 +59,12 @@ This file provides Claude Code (claude.ai/code) with specific guidance for worki
 - Release timing and strategy
 - Complex architectural decisions
 - Any uncertainty about development workflow
+
+### Commit Best Practices
+- **Use `/commit-push` command**: For intelligent commit creation with automatic CHANGELOG.md updates
+- **English only**: All commit messages and CHANGELOG entries must be in English
+- **Descriptive messages**: Use clear, descriptive commit messages that explain the "why"
+- **Interactive mode**: Use `/commit-push` without arguments for guided commit creation
 
 ## Creating a New Release
 
@@ -135,6 +142,11 @@ make release-sync
 - `src/reticulum/__init__.py`
 - `src/reticulum/cli.py`
 - `README.md`
+
+**CHANGELOG.md management**:
+- **Development phase**: Use `/commit-push` to automatically document changes in `[Unreleased]` section
+- **Release process**: Move `[Unreleased]` changes to new version section during release
+- **Never modify manually**: Always use `/commit-push` for CHANGELOG updates during development
 
 ### Claude-Specific Release Protocol
 
