@@ -1,3 +1,9 @@
+## v0.6.9 (2025-11-18)
+
+### Feat
+
+- enhance test repository setup and developer experience
+
 ## v0.6.8 (2025-11-18)
 
 ### Fix

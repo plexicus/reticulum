@@ -85,7 +85,7 @@ Examples:
         help="Save enhanced SARIF report to file",
     )
 
-    parser.add_argument("--version", action="version", version="%(prog)s 0.6.8")
+    parser.add_argument("--version", action="version", version="%(prog)s 0.6.9")
 
     return parser
 
