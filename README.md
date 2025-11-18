@@ -8,7 +8,7 @@
 
 **Latest Release: v0.6.7**
 
-### What's New in v0.6.3
+### What's New 
 - Enhanced validation and CHANGELOG integration in release scripts
 - Fixed color code issues in output system to prevent git commit failures
 - Improved version synchronization with comprehensive error reporting
