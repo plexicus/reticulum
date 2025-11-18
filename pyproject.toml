@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "reticulum"
-version = "0.5.3"
+version = "0.6.0"
 description = "Exposure Scanner for Cloud Infrastructure Security Analysis"
 authors = ["Jose Palanco <jose.palanco@plexicus.ai>"]
 license = "MIT"
