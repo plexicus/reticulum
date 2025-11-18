@@ -8,13 +8,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.3] - 2025-11-18
+
 ### Added
-- **Version synchronization fixes**: Fixed regex patterns for README.md version detection
 - **Enhanced validation**: Added comprehensive version validation with detailed error reporting
 - **CHANGELOG integration**: Integrated CHANGELOG management into release scripts
 
 ### Changed
 - **Release workflow**: Updated release scripts to handle CHANGELOG restructuring automatically
+- **Output system**: Removed color codes to prevent git commit failures, simplified to emoji-based status messages
+
+### Fixed
+- **Version synchronization**: Fixed regex patterns for README.md version detection
+
+## [0.6.2] - 2025-11-18
+
+### Changed
+- **Environment detection**: Replaced hard Poetry dependency with flexible Python environment detection (Poetry → venv → uv → system Python)
+- **Version synchronization**: Enhanced version synchronization system across all project files
 
 ## [0.6.1] - 2025-11-18
 

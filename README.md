@@ -6,12 +6,12 @@
 
 **Latest Release: v0.6.3**
 
-### What's New in v0.6.1
-- Enhanced version management and release automation system
-- Improved CHANGELOG restructuring logic for better organization
-- Fixed version synchronization across all project files
-- Streamlined release process with automated quality checks
-- Better error handling and validation in release workflows
+### What's New in v0.6.3
+- Enhanced validation and CHANGELOG integration in release scripts
+- Fixed color code issues in output system to prevent git commit failures
+- Improved version synchronization with comprehensive error reporting
+- Streamlined release workflow with automatic CHANGELOG restructuring
+- Better environment detection across multiple Python package managers
 
 **Reticulum** is a prioritization report generator designed to analyze cloud infrastructure, particularly Kubernetes Helm charts, and generate security prioritization reports. It provides structured prioritization data for external security tools, mapping services to their risk levels, code paths, and Dockerfiles.
 
