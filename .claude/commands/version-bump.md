@@ -84,40 +84,11 @@ echo ""
 echo "✅ Selected bump type: $BUMP_TYPE"
 ```
 
-## Calculate New Version
-
-```bash
-# Calculate new version based on current version and bump type
-IFS='.' read -r major minor patch <<< "$current_version"
-
-case $BUMP_TYPE in
-    "patch")
-        NEW_PATCH=$((patch + 1))
-        NEW_VERSION="$major.$minor.$NEW_PATCH"
-        ;;
-    "minor")
-        NEW_MINOR=$((minor + 1))
-        NEW_VERSION="$major.$NEW_MINOR.0"
-        ;;
-    "major")
-        NEW_MAJOR=$((major + 1))
-        NEW_VERSION="$NEW_MAJOR.0.0"
-        ;;
-    *)
-        echo "❌ Invalid bump type"
-        exit 1
-        ;;
-esac
-
-echo "📊 Version change: $current_version → $NEW_VERSION"
-echo ""
-```
-
 ## User Confirmation
 
 ```bash
 # Get user confirmation before proceeding
-read -p "🚀 Proceed with version bump to $NEW_VERSION? (y/N): " confirm
+read -p "🚀 Proceed with version bump? (y/N): " confirm
 if [[ ! $confirm =~ ^[Yy]$ ]]; then
     echo "❌ Version bump cancelled."
     exit 0
@@ -125,130 +96,7 @@ fi
 
 echo ""
 echo "🔄 Starting version bump process..."
-```
-
-## CHANGELOG Management
-
-Before executing the version bump, let's manage the CHANGELOG.md file:
-
-```bash
-echo "📝 Managing CHANGELOG.md..."
-
-# Function to extract [Unreleased] section content
-extract_unreleased_section() {
-    local changelog_file="CHANGELOG.md"
-    local in_unreleased=false
-    local unreleased_content=""
-    local current_category=""
-
-    while IFS= read -r line; do
-        if [[ "$line" == "## [Unreleased]" ]]; then
-            in_unreleased=true
-            continue
-        elif [[ "$in_unreleased" == true && "$line" =~ ^##\ \[[0-9]+\.[0-9]+\.[0-9]+\] ]]; then
-            # Reached next version section, stop extracting
-            break
-        elif [[ "$in_unreleased" == true ]]; then
-            if [[ "$line" =~ ^###\ (Added|Changed|Fixed|Removed|Notes)$ ]]; then
-                current_category="${BASH_REMATCH[1]}"
-                unreleased_content+="$line\n"
-            elif [[ -n "$current_category" && -n "$line" ]]; then
-                unreleased_content+="$line\n"
-            fi
-        fi
-    done < "$changelog_file"
-
-    echo "$unreleased_content"
-}
-
-# Function to update CHANGELOG with new version section
-update_changelog_with_version() {
-    local new_version="$1"
-    local unreleased_content="$2"
-    local changelog_file="CHANGELOG.md"
-    local temp_file=$(mktemp)
-
-    # Get current date in YYYY-MM-DD format
-    local current_date=$(date +%Y-%m-%d)
-
-    # Create new version section
-    local new_version_section="## [$new_version] - $current_date\n\n"
-
-    # Process unreleased content
-    if [[ -n "$unreleased_content" ]]; then
-        local in_category=false
-        local current_category=""
-
-        while IFS= read -r line; do
-            if [[ "$line" =~ ^###\ (Added|Changed|Fixed|Removed|Notes)$ ]]; then
-                if [[ "$in_category" == true ]]; then
-                    new_version_section+="\n"
-                fi
-                current_category="${BASH_REMATCH[1]}"
-                new_version_section+="$line\n"
-                in_category=true
-            elif [[ -n "$line" && "$in_category" == true ]]; then
-                new_version_section+="$line\n"
-            fi
-        done <<< "$unreleased_content"
-    else
-        new_version_section+="### Added\n- No changes documented\n\n"
-    fi
-
-    # Read current CHANGELOG and restructure with [Unreleased] at top
-    local in_header=true
-    local header_lines=""
-    local version_sections=""
-    local in_unreleased=false
-
-    while IFS= read -r line; do
-        # Capture header lines (before first version section)
-        if [[ "$in_header" == true && ! "$line" =~ ^##\ \[ ]]; then
-            header_lines+="$line\n"
-        elif [[ "$line" =~ ^##\ \[ ]]; then
-            in_header=false
-            # Skip [Unreleased] section - we'll create a fresh one at the top
-            if [[ "$line" == "## [Unreleased]" ]]; then
-                in_unreleased=true
-                continue
-            fi
-            # Add version sections to the collection
-            if [[ "$in_unreleased" == false ]]; then
-                version_sections+="$line\n"
-            fi
-        elif [[ "$in_unreleased" == true ]]; then
-            # Skip content of [Unreleased] section - we'll create a fresh one
-            if [[ "$line" =~ ^##\ \[[0-9]+\.[0-9]+\.[0-9]+\] ]]; then
-                in_unreleased=false
-                version_sections+="$line\n"
-            fi
-        else
-            version_sections+="$line\n"
-        fi
-    done < "$changelog_file"
-
-    # Write the restructured CHANGELOG
-    echo -n "$header_lines" >> "$temp_file"
-    echo "## [Unreleased]" >> "$temp_file"
-    echo "" >> "$temp_file"
-    echo -n "$new_version_section" >> "$temp_file"
-    echo -n "$version_sections" >> "$temp_file"
-
-    # Replace original file
-    mv "$temp_file" "$changelog_file"
-
-    echo "✅ Updated CHANGELOG.md with version $new_version"
-}
-
-# Extract unreleased content
-UNRELEASED_CONTENT=$(extract_unreleased_section)
-
-if [[ -n "$UNRELEASED_CONTENT" ]]; then
-    echo "📋 Found unreleased changes to move to version $NEW_VERSION"
-else
-    echo "⚠️  No unreleased changes found in CHANGELOG.md"
-fi
-
+echo "ℹ️  Using Commitizen for automated version management and CHANGELOG updates"
 ```
 
 ## Execute Version Bump
@@ -268,9 +116,8 @@ fi
 if [ $EXIT_CODE -eq 0 ]; then
     echo ""
     echo "🎉 Version bump completed successfully!"
-    echo "📦 New version: $NEW_VERSION"
     echo ""
-    echo "✅ Git tag v$NEW_VERSION created automatically"
+    echo "✅ Git tag created automatically"
     echo "✅ GitHub Actions release workflow triggered"
     echo ""
     echo "📋 Next steps:"

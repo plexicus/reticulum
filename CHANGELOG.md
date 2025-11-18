@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-
+## [Unreleased]
 
 ### Added
 - **Environment-agnostic testing**: Automatic detection of Python environments (Poetry → venv → uv → system Python)
@@ -28,13 +28,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Code quality improvements**: Fixed linting issues, formatting, and bare except clauses
 - **Documentation simplification**: Removed redundant testing details from CLAUDE.md, now references `/testing` command
 - **Project cleanup**: Removed unnecessary `.devcontainer` directory (Reticulum uses Docker for security scanning, not development)
-## v0.6.5 (2025-11-18)
+## [0.6.5] - 2025-11-18
 
 ### Feat
 
 - integrate Commitizen for automated version management and CHANGELOG generation
 
-## v0.6.4 (2025-11-18)
+## [0.6.4] - 2025-11-18
 
 ### Feat
 
@@ -48,14 +48,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - remove duplicate [Unreleased] section in CHANGELOG
 - restore version 0.6.3 and maintain CHANGELOG structure
 
-## v0.6.3 (2025-11-18)
+## [0.6.3] - 2025-11-18
 
 ### Fix
 
 - remove color codes from output system to prevent git commit failures
 - update version synchronization system
 
-## v0.6.2 (2025-11-18)
+## [0.6.2] - 2025-11-18
 
 ### Fix
 
@@ -63,7 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - synchronize version files to v0.6.1 across all project files
 - update version-bump command to use release script for complete automation
 
-## v0.6.1 (2025-11-18)
+## [0.6.1] -2025-11-18)
 
 ### Fix
 
@@ -71,7 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - improve CHANGELOG restructuring logic in version-bump command
 - improve CHANGELOG restructuring logic in version-bump command
 
-## v0.6.0 (2025-11-18)
+## [0.6.0] -2025-11-18)
 
 ### Feat
 
@@ -93,9 +93,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - improve code quality and test reliability
 - remove unused mermaid_builder.py
 
-## v0.5.3 (2025-11-02)
+## [0.5.3] -2025-11-02)
 
-## v0.5.2 (2025-11-02)
+## [0.5.2] -2025-11-02)
 
 ### Fix
 
@@ -103,7 +103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - improve Dockerfile detection and dependency analysis
 - remove advanced-test-repo from git tracking
 
-## v0.5.1 (2025-11-02)
+## [0.5.1] -2025-11-02)
 
 ### Fix
 
@@ -112,7 +112,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - update release notes with correct CLI usage examples
 - add pytest-cov dependency for coverage support
 
-## v0.5.0 (2025-11-02)
+## [0.5.0] -2025-11-02)
 
 ### Feat
 
@@ -123,14 +123,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - improve CLI version extraction with awk
 - resolve GitHub Actions failures and version synchronization issues
 
-## v0.4.6 (2025-11-02)
+## [0.4.6] -2025-11-02)
 
 ### Feat
 
 - replace Mermaid with Graphviz DOT diagram generation
 - add comprehensive advanced test repository with 10 Helm charts
 
-## v0.4.5 (2025-08-21)
+## [0.4.5] -2025-08-21)
 
 ### Feat
 
@@ -145,21 +145,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - complete script unification with 62% code reduction
 
-## v0.4.3 (2025-08-21)
+## [0.4.3] -2025-08-21)
 
 ### Fix
 
 - sync all version files to v0.4.3
 - revert to token-based PyPI publishing
 
-## v0.4.2 (2025-08-21)
+## [0.4.2] -2025-08-21)
 
 ### Fix
 
 - sync all version files to v0.4.2
 - resolve GitHub Actions warnings and enable Trusted Publishing
 
-## v0.4.1 (2025-08-21)
+## [0.4.1] -2025-08-21)
 
 ### Feat
 
@@ -179,26 +179,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - clean up scripts and change version to 0.4.1
 
-## v0.3.2 (2025-08-20)
+## [0.3.2] -2025-08-20)
 
 ### Feat
 
 - make scripts fully unattended and intelligent - no more user prompts
 
-## v0.3.1 (2025-08-20)
+## [0.3.1] -2025-08-20)
 
 ### Feat
 
-- improve JSON output formatting - always pretty formatted like jq (v0.3.1)
+- improve JSON output formatting - always pretty formatted like jq] -v0.3.1)
 
-## v0.3.0 (2025-08-20)
+## [0.3.0] -2025-08-20)
 
 ### Feat
 
 - bump version to 0.3.0 - major quality assurance system release
 - enhance scripts with strict quality gates - tests MUST pass before release
 
-## v0.2.3 (2025-08-20)
+## [0.2.3] -2025-08-20)
 
 ### Feat
 
@@ -209,7 +209,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - update version to 0.2.3 to match git tag v0.2.3
 
-## v0.2.2 (2025-08-20)
+## [0.2.2] -2025-08-20)
 
 ### Feat
 
@@ -219,13 +219,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - sync version to 0.2.2 in pyproject.toml and __init__.py
 
-## v0.2.1 (2025-08-20)
+## [0.2.1] -2025-08-20)
 
 ### Fix
 
 - container naming includes environment for non-base environments
 
-## v0.2.0 (2025-08-20)
+## [0.2.0] -2025-08-20)
 
 ### Feat
 
@@ -235,7 +235,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - improve file discovery to properly detect values.yaml files
 
-## v0.1.0 (2025-08-20)
+## [0.1.0] -2025-08-20)
 
 ### Feat
 
