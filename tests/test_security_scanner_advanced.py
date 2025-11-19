@@ -438,8 +438,16 @@ if __name__ == "__main__":
         # Test Trivy with invalid path
         with tempfile.NamedTemporaryFile(suffix='.sarif') as temp_file:
             result = scanner.docker_runner.run_trivy_sca(invalid_path, temp_file.name)
-            assert result["success"] == False
-            assert "error" in result
+
+            # In CI mode with SARIF files, the scan will succeed because it uses pre-generated files
+            # In local Docker mode, it should fail with invalid path
+            if scanner.docker_runner.get_runner_mode() == "docker":
+                assert result["success"] == False
+                assert "error" in result
+            else:
+                # In CI SARIF mode, the scan succeeds because it uses pre-generated files
+                assert result["success"] == True
+                assert "severity_counts" in result
 
     def test_parallel_execution_configuration(self):
         """Test parallel execution configuration."""

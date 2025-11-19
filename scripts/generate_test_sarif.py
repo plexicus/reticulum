@@ -17,119 +17,15 @@ from reticulum.docker_runner import DockerRunner
 
 
 def generate_trivy_sarif():
-    """Generate Trivy SARIF file from test repository."""
+    """Generate Trivy SARIF file from static test repository."""
     print("🔍 Generating Trivy SARIF file...")
 
-    # Create test repository (exactly matching test fixture)
-    test_repo_dir = tempfile.mkdtemp(prefix="reticulum-test-")
+    # Use the static test repository
+    test_repo_dir = "tests/advanced-test-repo"
 
-    # Create vulnerable_app.py with security issues (exactly matching test fixture)
-    vulnerable_app_content = '''import subprocess
-import pickle
-import os
-
-def sql_injection_vulnerable(username):
-    # VULNERABLE: SQL injection
-    query = f"SELECT * FROM users WHERE username = '{username}'"
-    return query
-
-def command_injection_vulnerable(command):
-    # VULNERABLE: Command injection
-    result = subprocess.run(f"echo {command}", shell=True, capture_output=True)
-    return result.stdout
-
-def insecure_deserialization_vulnerable(data):
-    # VULNERABLE: Insecure deserialization
-    return pickle.loads(data)
-
-def xss_vulnerable(user_input):
-    # VULNERABLE: XSS - direct HTML injection
-    html = f"<div>{user_input}</div>"
-    return html
-
-def hardcoded_secret_vulnerable():
-    # VULNERABLE: Hardcoded secret
-    api_key = "sk-1234567890abcdefghijklmnopqrstuvwxyz"
-    return api_key
-
-def weak_crypto_vulnerable():
-    # VULNERABLE: Weak cryptographic algorithm
-    import hashlib
-    password_hash = hashlib.md5(b"password123").hexdigest()
-    return password_hash
-
-def path_traversal_vulnerable(filename):
-    # VULNERABLE: Path traversal
-    file_path = f"/var/www/uploads/{filename}"
-    with open(file_path, 'r') as f:
-        return f.read()
-
-def eval_injection_vulnerable(user_input):
-    # VULNERABLE: eval injection
-    result = eval(user_input)
-    return result
-'''
-
-    with open(os.path.join(test_repo_dir, "vulnerable_app.py"), "w") as f:
-        f.write(vulnerable_app_content)
-
-    # Create requirements.txt with vulnerable dependencies (exactly matching test fixture)
-    requirements_content = '''requests==2.25.1
-Django==3.1.14
-urllib3==1.26.4
-'''
-
-    with open(os.path.join(test_repo_dir, "requirements.txt"), "w") as f:
-        f.write(requirements_content)
-
-    # Create insecure_config.py (exactly matching test fixture)
-    insecure_config_content = '''# Insecure configuration
-DEBUG = True
-SECRET_KEY = "weaksecret"
-ALLOWED_HOSTS = ['*']
-'''
-
-    with open(os.path.join(test_repo_dir, "insecure_config.py"), "w") as f:
-        f.write(insecure_config_content)
-
-    # Create web_app.py with XSS vulnerabilities (exactly matching test fixture)
-    web_app_content = '''from flask import Flask, request, render_template_string
-
-app = Flask(__name__)
-
-@app.route("/")
-def home():
-    # VULNERABLE: XSS in Flask template
-    user_input = request.args.get("name", "World")
-    template = f"<h1>Hello, {user_input}!</h1>"
-    return render_template_string(template)
-
-@app.route("/search")
-def search():
-    # VULNERABLE: XSS in search results
-    query = request.args.get("q", "")
-    results = f"<p>Search results for: {query}</p>"
-    return results
-
-@app.route("/profile")
-def profile():
-    # VULNERABLE: XSS in user profile
-    username = request.args.get("username", "guest")
-    bio = request.args.get("bio", "No bio")
-    profile_html = f"""
-    <div class=\"profile\">
-        <h2>{username}</h2>
-        <p>{bio}</p>
-    </div>
-    """
-    return profile_html
-
-if __name__ == "__main__":
-    app.run(debug=True, host="0.0.0.0", port=5000)
-'''
-
-    with open(os.path.join(test_repo_dir, "web_app.py"), "w") as f:
-        f.write(web_app_content)
+    if not os.path.exists(test_repo_dir):
+        print(f"❌ Static test repository not found: {test_repo_dir}")
+        return False
 
     # Run Trivy scan
     runner = DockerRunner()
@@ -155,69 +51,19 @@ if __name__ == "__main__":
     else:
         print(f"❌ Failed to generate Trivy SARIF: {result['error']}")
 
-    # Clean up
-    import shutil
-    shutil.rmtree(test_repo_dir)
-
     return result["success"]
 
 
 def generate_semgrep_sarif():
-    """Generate Semgrep SARIF file from test repository."""
+    """Generate Semgrep SARIF file from static test repository."""
     print("🔍 Generating Semgrep SARIF file...")
 
-    # Create test repository
-    test_repo_dir = tempfile.mkdtemp(prefix="reticulum-test-")
+    # Use the static test repository
+    test_repo_dir = "tests/advanced-test-repo"
 
-    # Create vulnerable_app.py
-    vulnerable_app_content = '''import subprocess
-import pickle
-import os
-
-def sql_injection_vulnerable(username):
-    # VULNERABLE: SQL injection
-    query = f"SELECT * FROM users WHERE username = '{username}'"
-    return query
-
-def command_injection_vulnerable(command):
-    # VULNERABLE: Command injection
-    result = subprocess.run(f"echo {command}", shell=True, capture_output=True)
-    return result.stdout
-
-def insecure_deserialization_vulnerable(data):
-    # VULNERABLE: Insecure deserialization
-    return pickle.loads(data)
-
-def xss_vulnerable(user_input):
-    # VULNERABLE: XSS - direct HTML injection
-    html = f"<div>{user_input}</div>"
-    return html
-
-def hardcoded_secret_vulnerable():
-    # VULNERABLE: Hardcoded secret
-    api_key = "sk-1234567890abcdefghijklmnopqrstuvwxyz"
-    return api_key
-
-def weak_crypto_vulnerable():
-    # VULNERABLE: Weak cryptographic algorithm
-    import hashlib
-    password_hash = hashlib.md5(b"password123").hexdigest()
-    return password_hash
-
-def path_traversal_vulnerable(filename):
-    # VULNERABLE: Path traversal
-    file_path = f"/var/www/uploads/{filename}"
-    with open(file_path, 'r') as f:
-        return f.read()
-
-def eval_injection_vulnerable(user_input):
-    # VULNERABLE: eval injection
-    result = eval(user_input)
-    return result
-'''
-
-    with open(os.path.join(test_repo_dir, "vulnerable_app.py"), "w") as f:
-        f.write(vulnerable_app_content)
+    if not os.path.exists(test_repo_dir):
+        print(f"❌ Static test repository not found: {test_repo_dir}")
+        return False
 
     # Run Semgrep scan
     runner = DockerRunner()
@@ -242,10 +88,6 @@ def eval_injection_vulnerable(user_input):
         print(f"   Issues found: {result['severity_counts']['total']}")
     else:
         print(f"❌ Failed to generate Semgrep SARIF: {result['error']}")
-
-    # Clean up
-    import shutil
-    shutil.rmtree(test_repo_dir)
 
     return result["success"]
 

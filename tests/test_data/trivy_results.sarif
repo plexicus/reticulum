@@ -184,6 +184,261 @@
               }
             },
             {
+              "id": "CVE-2023-0286",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "openssl: X.400 address type confusion in X.509 GeneralName"
+              },
+              "fullDescription": {
+                "text": "There is a type confusion vulnerability relating to X.400 address processing\ninside an X.509 GeneralName. X.400 addresses were parsed as an ASN1_STRING but\nthe public structure definition for GENERAL_NAME incorrectly specified the type\nof the x400Address field as ASN1_TYPE. This field is subsequently interpreted by\nthe OpenSSL function GENERAL_NAME_cmp as an ASN1_TYPE rather than an\nASN1_STRING.\n\nWhen CRL checking is enabled (i.e. the application sets the\nX509_V_FLAG_CRL_CHECK flag), this vulnerability may allow an attacker to pass\narbitrary pointers to a memcmp call, enabling them to read memory contents or\nenact a denial of service. In most cases, the attack requires the attacker to\nprovide both the certificate chain and CRL, neither of which need to have a\nvalid signature. If the attacker only controls one of these inputs, the other\ninput must already contain an X.400 address as a CRL distribution point, which\nis uncommon. As such, this vulnerability is most likely to only affect\napplications which have implemented their own functionality for retrieving CRLs\nover a network."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2023-0286",
+              "help": {
+                "text": "Vulnerability CVE-2023-0286\nSeverity: HIGH\nPackage: cryptography\nFixed Version: 39.0.1\nLink: [CVE-2023-0286](https://avd.aquasec.com/nvd/cve-2023-0286)\nThere is a type confusion vulnerability relating to X.400 address processing\ninside an X.509 GeneralName. X.400 addresses were parsed as an ASN1_STRING but\nthe public structure definition for GENERAL_NAME incorrectly specified the type\nof the x400Address field as ASN1_TYPE. This field is subsequently interpreted by\nthe OpenSSL function GENERAL_NAME_cmp as an ASN1_TYPE rather than an\nASN1_STRING.\n\nWhen CRL checking is enabled (i.e. the application sets the\nX509_V_FLAG_CRL_CHECK flag), this vulnerability may allow an attacker to pass\narbitrary pointers to a memcmp call, enabling them to read memory contents or\nenact a denial of service. In most cases, the attack requires the attacker to\nprovide both the certificate chain and CRL, neither of which need to have a\nvalid signature. If the attacker only controls one of these inputs, the other\ninput must already contain an X.400 address as a CRL distribution point, which\nis uncommon. As such, this vulnerability is most likely to only affect\napplications which have implemented their own functionality for retrieving CRLs\nover a network.",
+                "markdown": "**Vulnerability CVE-2023-0286**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|HIGH|cryptography|39.0.1|[CVE-2023-0286](https://avd.aquasec.com/nvd/cve-2023-0286)|\n\nThere is a type confusion vulnerability relating to X.400 address processing\ninside an X.509 GeneralName. X.400 addresses were parsed as an ASN1_STRING but\nthe public structure definition for GENERAL_NAME incorrectly specified the type\nof the x400Address field as ASN1_TYPE. This field is subsequently interpreted by\nthe OpenSSL function GENERAL_NAME_cmp as an ASN1_TYPE rather than an\nASN1_STRING.\n\nWhen CRL checking is enabled (i.e. the application sets the\nX509_V_FLAG_CRL_CHECK flag), this vulnerability may allow an attacker to pass\narbitrary pointers to a memcmp call, enabling them to read memory contents or\nenact a denial of service. In most cases, the attack requires the attacker to\nprovide both the certificate chain and CRL, neither of which need to have a\nvalid signature. If the attacker only controls one of these inputs, the other\ninput must already contain an X.400 address as a CRL distribution point, which\nis uncommon. As such, this vulnerability is most likely to only affect\napplications which have implemented their own functionality for retrieving CRLs\nover a network."
+              },
+              "properties": {
+                "cvssv3_baseScore": 7.4,
+                "cvssv3_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:H/I:N/A:H",
+                "precision": "very-high",
+                "security-severity": "7.4",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "HIGH"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2023-50782",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "python-cryptography: Bleichenbacher timing oracle attack against RSA decryption - incomplete fix for CVE-2020-25659"
+              },
+              "fullDescription": {
+                "text": "A flaw was found in the python-cryptography package. This issue may allow a remote attacker to decrypt captured messages in TLS servers that use RSA key exchanges, which may lead to exposure of confidential or sensitive data."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2023-50782",
+              "help": {
+                "text": "Vulnerability CVE-2023-50782\nSeverity: HIGH\nPackage: cryptography\nFixed Version: 42.0.0\nLink: [CVE-2023-50782](https://avd.aquasec.com/nvd/cve-2023-50782)\nA flaw was found in the python-cryptography package. This issue may allow a remote attacker to decrypt captured messages in TLS servers that use RSA key exchanges, which may lead to exposure of confidential or sensitive data.",
+                "markdown": "**Vulnerability CVE-2023-50782**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|HIGH|cryptography|42.0.0|[CVE-2023-50782](https://avd.aquasec.com/nvd/cve-2023-50782)|\n\nA flaw was found in the python-cryptography package. This issue may allow a remote attacker to decrypt captured messages in TLS servers that use RSA key exchanges, which may lead to exposure of confidential or sensitive data."
+              },
+              "properties": {
+                "cvssv3_baseScore": 7.5,
+                "cvssv3_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                "precision": "very-high",
+                "security-severity": "7.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "HIGH"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2023-23931",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "python-cryptography: memory corruption via immutable objects"
+              },
+              "fullDescription": {
+                "text": "cryptography is a package designed to expose cryptographic primitives and recipes to Python developers. In affected versions `Cipher.update_into` would accept Python objects which implement the buffer protocol, but provide only immutable buffers. This would allow immutable objects (such as `bytes`) to be mutated, thus violating fundamental rules of Python and resulting in corrupted output. This now correctly raises an exception. This issue has been present since `update_into` was originally introduced in cryptography 1.8."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2023-23931",
+              "help": {
+                "text": "Vulnerability CVE-2023-23931\nSeverity: MEDIUM\nPackage: cryptography\nFixed Version: 39.0.1\nLink: [CVE-2023-23931](https://avd.aquasec.com/nvd/cve-2023-23931)\ncryptography is a package designed to expose cryptographic primitives and recipes to Python developers. In affected versions `Cipher.update_into` would accept Python objects which implement the buffer protocol, but provide only immutable buffers. This would allow immutable objects (such as `bytes`) to be mutated, thus violating fundamental rules of Python and resulting in corrupted output. This now correctly raises an exception. This issue has been present since `update_into` was originally introduced in cryptography 1.8.",
+                "markdown": "**Vulnerability CVE-2023-23931**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|cryptography|39.0.1|[CVE-2023-23931](https://avd.aquasec.com/nvd/cve-2023-23931)|\n\ncryptography is a package designed to expose cryptographic primitives and recipes to Python developers. In affected versions `Cipher.update_into` would accept Python objects which implement the buffer protocol, but provide only immutable buffers. This would allow immutable objects (such as `bytes`) to be mutated, thus violating fundamental rules of Python and resulting in corrupted output. This now correctly raises an exception. This issue has been present since `update_into` was originally introduced in cryptography 1.8."
+              },
+              "properties": {
+                "cvssv3_baseScore": 6.5,
+                "cvssv3_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:L/A:L",
+                "precision": "very-high",
+                "security-severity": "6.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2023-49083",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "python-cryptography: NULL-dereference when loading PKCS7 certificates"
+              },
+              "fullDescription": {
+                "text": "cryptography is a package designed to expose cryptographic primitives and recipes to Python developers. Calling `load_pem_pkcs7_certificates` or `load_der_pkcs7_certificates` could lead to a NULL-pointer dereference and segfault. Exploitation of this vulnerability poses a serious risk of Denial of Service (DoS) for any application attempting to deserialize a PKCS7 blob/certificate. The consequences extend to potential disruptions in system availability and stability. This vulnerability has been patched in version 41.0.6."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2023-49083",
+              "help": {
+                "text": "Vulnerability CVE-2023-49083\nSeverity: MEDIUM\nPackage: cryptography\nFixed Version: 41.0.6\nLink: [CVE-2023-49083](https://avd.aquasec.com/nvd/cve-2023-49083)\ncryptography is a package designed to expose cryptographic primitives and recipes to Python developers. Calling `load_pem_pkcs7_certificates` or `load_der_pkcs7_certificates` could lead to a NULL-pointer dereference and segfault. Exploitation of this vulnerability poses a serious risk of Denial of Service (DoS) for any application attempting to deserialize a PKCS7 blob/certificate. The consequences extend to potential disruptions in system availability and stability. This vulnerability has been patched in version 41.0.6.",
+                "markdown": "**Vulnerability CVE-2023-49083**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|cryptography|41.0.6|[CVE-2023-49083](https://avd.aquasec.com/nvd/cve-2023-49083)|\n\ncryptography is a package designed to expose cryptographic primitives and recipes to Python developers. Calling `load_pem_pkcs7_certificates` or `load_der_pkcs7_certificates` could lead to a NULL-pointer dereference and segfault. Exploitation of this vulnerability poses a serious risk of Denial of Service (DoS) for any application attempting to deserialize a PKCS7 blob/certificate. The consequences extend to potential disruptions in system availability and stability. This vulnerability has been patched in version 41.0.6."
+              },
+              "properties": {
+                "cvssv3_baseScore": 5.9,
+                "cvssv3_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                "precision": "very-high",
+                "security-severity": "5.9",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2024-0727",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "openssl: denial of service via null dereference"
+              },
+              "fullDescription": {
+                "text": "Issue summary: Processing a maliciously formatted PKCS12 file may lead OpenSSL\nto crash leading to a potential Denial of Service attack\n\nImpact summary: Applications loading files in the PKCS12 format from untrusted\nsources might terminate abruptly.\n\nA file in PKCS12 format can contain certificates and keys and may come from an\nuntrusted source. The PKCS12 specification allows certain fields to be NULL, but\nOpenSSL does not correctly check for this case. This can lead to a NULL pointer\ndereference that results in OpenSSL crashing. If an application processes PKCS12\nfiles from an untrusted source using the OpenSSL APIs then that application will\nbe vulnerable to this issue.\n\nOpenSSL APIs that are vulnerable to this are: PKCS12_parse(),\nPKCS12_unpack_p7data(), PKCS12_unpack_p7encdata(), PKCS12_unpack_authsafes()\nand PKCS12_newpass().\n\nWe have also fixed a similar issue in SMIME_write_PKCS7(). However since this\nfunction is related to writing data we do not consider it security significant.\n\nThe FIPS modules in 3.2, 3.1 and 3.0 are not affected by this issue."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2024-0727",
+              "help": {
+                "text": "Vulnerability CVE-2024-0727\nSeverity: MEDIUM\nPackage: cryptography\nFixed Version: 42.0.2\nLink: [CVE-2024-0727](https://avd.aquasec.com/nvd/cve-2024-0727)\nIssue summary: Processing a maliciously formatted PKCS12 file may lead OpenSSL\nto crash leading to a potential Denial of Service attack\n\nImpact summary: Applications loading files in the PKCS12 format from untrusted\nsources might terminate abruptly.\n\nA file in PKCS12 format can contain certificates and keys and may come from an\nuntrusted source. The PKCS12 specification allows certain fields to be NULL, but\nOpenSSL does not correctly check for this case. This can lead to a NULL pointer\ndereference that results in OpenSSL crashing. If an application processes PKCS12\nfiles from an untrusted source using the OpenSSL APIs then that application will\nbe vulnerable to this issue.\n\nOpenSSL APIs that are vulnerable to this are: PKCS12_parse(),\nPKCS12_unpack_p7data(), PKCS12_unpack_p7encdata(), PKCS12_unpack_authsafes()\nand PKCS12_newpass().\n\nWe have also fixed a similar issue in SMIME_write_PKCS7(). However since this\nfunction is related to writing data we do not consider it security significant.\n\nThe FIPS modules in 3.2, 3.1 and 3.0 are not affected by this issue.",
+                "markdown": "**Vulnerability CVE-2024-0727**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|cryptography|42.0.2|[CVE-2024-0727](https://avd.aquasec.com/nvd/cve-2024-0727)|\n\nIssue summary: Processing a maliciously formatted PKCS12 file may lead OpenSSL\nto crash leading to a potential Denial of Service attack\n\nImpact summary: Applications loading files in the PKCS12 format from untrusted\nsources might terminate abruptly.\n\nA file in PKCS12 format can contain certificates and keys and may come from an\nuntrusted source. The PKCS12 specification allows certain fields to be NULL, but\nOpenSSL does not correctly check for this case. This can lead to a NULL pointer\ndereference that results in OpenSSL crashing. If an application processes PKCS12\nfiles from an untrusted source using the OpenSSL APIs then that application will\nbe vulnerable to this issue.\n\nOpenSSL APIs that are vulnerable to this are: PKCS12_parse(),\nPKCS12_unpack_p7data(), PKCS12_unpack_p7encdata(), PKCS12_unpack_authsafes()\nand PKCS12_newpass().\n\nWe have also fixed a similar issue in SMIME_write_PKCS7(). However since this\nfunction is related to writing data we do not consider it security significant.\n\nThe FIPS modules in 3.2, 3.1 and 3.0 are not affected by this issue."
+              },
+              "properties": {
+                "cvssv3_baseScore": 5.5,
+                "cvssv3_vector": "CVSS:3.1/AV:L/AC:L/PR:N/UI:R/S:U/C:N/I:N/A:H",
+                "precision": "very-high",
+                "security-severity": "5.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "GHSA-5cpq-8wj7-hf2v",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "Vulnerable OpenSSL included in cryptography wheels"
+              },
+              "fullDescription": {
+                "text": "pyca/cryptography's wheels include a statically linked copy of OpenSSL. The versions of OpenSSL included in cryptography 0.5-40.0.2 are vulnerable to a security issue. More details about the vulnerability itself can be found in https://www.openssl.org/news/secadv/20230530.txt.\n\nIf you are building cryptography source (\"sdist\") then you are responsible for upgrading your copy of OpenSSL. Only users installing from wheels built by the cryptography project (i.e., those distributed on PyPI) need to update their cryptography versions."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "helpUri": "https://github.com/advisories/GHSA-5cpq-8wj7-hf2v",
+              "help": {
+                "text": "Vulnerability GHSA-5cpq-8wj7-hf2v\nSeverity: LOW\nPackage: cryptography\nFixed Version: 41.0.0\nLink: [GHSA-5cpq-8wj7-hf2v](https://github.com/advisories/GHSA-5cpq-8wj7-hf2v)\npyca/cryptography's wheels include a statically linked copy of OpenSSL. The versions of OpenSSL included in cryptography 0.5-40.0.2 are vulnerable to a security issue. More details about the vulnerability itself can be found in https://www.openssl.org/news/secadv/20230530.txt.\n\nIf you are building cryptography source (\"sdist\") then you are responsible for upgrading your copy of OpenSSL. Only users installing from wheels built by the cryptography project (i.e., those distributed on PyPI) need to update their cryptography versions.",
+                "markdown": "**Vulnerability GHSA-5cpq-8wj7-hf2v**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|LOW|cryptography|41.0.0|[GHSA-5cpq-8wj7-hf2v](https://github.com/advisories/GHSA-5cpq-8wj7-hf2v)|\n\npyca/cryptography's wheels include a statically linked copy of OpenSSL. The versions of OpenSSL included in cryptography 0.5-40.0.2 are vulnerable to a security issue. More details about the vulnerability itself can be found in https://www.openssl.org/news/secadv/20230530.txt.\n\nIf you are building cryptography source (\"sdist\") then you are responsible for upgrading your copy of OpenSSL. Only users installing from wheels built by the cryptography project (i.e., those distributed on PyPI) need to update their cryptography versions."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "2.0",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "LOW"
+                ]
+              }
+            },
+            {
+              "id": "GHSA-jm77-qphf-c4w8",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "pyca/cryptography's wheels include vulnerable OpenSSL"
+              },
+              "fullDescription": {
+                "text": "pyca/cryptography's wheels include a statically linked copy of OpenSSL. The versions of OpenSSL included in cryptography 0.8-41.0.2 are vulnerable to several security issues. More details about the vulnerabilities themselves can be found in https://www.openssl.org/news/secadv/20230731.txt, https://www.openssl.org/news/secadv/20230719.txt, and https://www.openssl.org/news/secadv/20230714.txt.\n\nIf you are building cryptography source (\"sdist\") then you are responsible for upgrading your copy of OpenSSL. Only users installing from wheels built by the cryptography project (i.e., those distributed on PyPI) need to update their cryptography versions."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "helpUri": "https://github.com/advisories/GHSA-jm77-qphf-c4w8",
+              "help": {
+                "text": "Vulnerability GHSA-jm77-qphf-c4w8\nSeverity: LOW\nPackage: cryptography\nFixed Version: 41.0.3\nLink: [GHSA-jm77-qphf-c4w8](https://github.com/advisories/GHSA-jm77-qphf-c4w8)\npyca/cryptography's wheels include a statically linked copy of OpenSSL. The versions of OpenSSL included in cryptography 0.8-41.0.2 are vulnerable to several security issues. More details about the vulnerabilities themselves can be found in https://www.openssl.org/news/secadv/20230731.txt, https://www.openssl.org/news/secadv/20230719.txt, and https://www.openssl.org/news/secadv/20230714.txt.\n\nIf you are building cryptography source (\"sdist\") then you are responsible for upgrading your copy of OpenSSL. Only users installing from wheels built by the cryptography project (i.e., those distributed on PyPI) need to update their cryptography versions.",
+                "markdown": "**Vulnerability GHSA-jm77-qphf-c4w8**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|LOW|cryptography|41.0.3|[GHSA-jm77-qphf-c4w8](https://github.com/advisories/GHSA-jm77-qphf-c4w8)|\n\npyca/cryptography's wheels include a statically linked copy of OpenSSL. The versions of OpenSSL included in cryptography 0.8-41.0.2 are vulnerable to several security issues. More details about the vulnerabilities themselves can be found in https://www.openssl.org/news/secadv/20230731.txt, https://www.openssl.org/news/secadv/20230719.txt, and https://www.openssl.org/news/secadv/20230714.txt.\n\nIf you are building cryptography source (\"sdist\") then you are responsible for upgrading your copy of OpenSSL. Only users installing from wheels built by the cryptography project (i.e., those distributed on PyPI) need to update their cryptography versions."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "2.0",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "LOW"
+                ]
+              }
+            },
+            {
+              "id": "GHSA-v8gr-m533-ghj9",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "Vulnerable OpenSSL included in cryptography wheels"
+              },
+              "fullDescription": {
+                "text": "pyca/cryptography's wheels include a statically linked copy of OpenSSL. The versions of OpenSSL included in cryptography 2.5-41.0.3 are vulnerable to several security issues. More details about the vulnerabilities themselves can be found in https://www.openssl.org/news/secadv/20230908.txt.\n\nIf you are building cryptography source (\"sdist\") then you are responsible for upgrading your copy of OpenSSL. Only users installing from wheels built by the cryptography project (i.e., those distributed on PyPI) need to update their cryptography versions."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "helpUri": "https://github.com/advisories/GHSA-v8gr-m533-ghj9",
+              "help": {
+                "text": "Vulnerability GHSA-v8gr-m533-ghj9\nSeverity: LOW\nPackage: cryptography\nFixed Version: 41.0.4\nLink: [GHSA-v8gr-m533-ghj9](https://github.com/advisories/GHSA-v8gr-m533-ghj9)\npyca/cryptography's wheels include a statically linked copy of OpenSSL. The versions of OpenSSL included in cryptography 2.5-41.0.3 are vulnerable to several security issues. More details about the vulnerabilities themselves can be found in https://www.openssl.org/news/secadv/20230908.txt.\n\nIf you are building cryptography source (\"sdist\") then you are responsible for upgrading your copy of OpenSSL. Only users installing from wheels built by the cryptography project (i.e., those distributed on PyPI) need to update their cryptography versions.",
+                "markdown": "**Vulnerability GHSA-v8gr-m533-ghj9**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|LOW|cryptography|41.0.4|[GHSA-v8gr-m533-ghj9](https://github.com/advisories/GHSA-v8gr-m533-ghj9)|\n\npyca/cryptography's wheels include a statically linked copy of OpenSSL. The versions of OpenSSL included in cryptography 2.5-41.0.3 are vulnerable to several security issues. More details about the vulnerabilities themselves can be found in https://www.openssl.org/news/secadv/20230908.txt.\n\nIf you are building cryptography source (\"sdist\") then you are responsible for upgrading your copy of OpenSSL. Only users installing from wheels built by the cryptography project (i.e., those distributed on PyPI) need to update their cryptography versions."
+              },
+              "properties": {
+                "precision": "very-high",
+                "security-severity": "2.0",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "LOW"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2023-30861",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "flask: Possible disclosure of permanent session cookie due to missing Vary: Cookie header"
+              },
+              "fullDescription": {
+                "text": "Flask is a lightweight WSGI web application framework. When all of the following conditions are met, a response containing data intended for one client may be cached and subsequently sent by the proxy to other clients. If the proxy also caches `Set-Cookie` headers, it may send one client's `session` cookie to other clients. The severity depends on the application's use of the session and the proxy's behavior regarding cookies. The risk depends on all these conditions being met.\n\n1. The application must be hosted behind a caching proxy that does not strip cookies or ignore responses with cookies.\n2. The application sets `session.permanent = True`\n3. The application does not access or modify the session at any point during a request.\n4. `SESSION_REFRESH_EACH_REQUEST` enabled (the default).\n5. The application does not set a `Cache-Control` header to indicate that a page is private or should not be cached.\n\nThis happens because vulnerable versions of Flask only set the `Vary: Cookie` header when the session is accessed or modified, not when it is refreshed (re-sent to update the expiration) without being accessed or modified. This issue has been fixed in versions 2.3.2 and 2.2.5."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2023-30861",
+              "help": {
+                "text": "Vulnerability CVE-2023-30861\nSeverity: HIGH\nPackage: flask\nFixed Version: 2.3.2, 2.2.5\nLink: [CVE-2023-30861](https://avd.aquasec.com/nvd/cve-2023-30861)\nFlask is a lightweight WSGI web application framework. When all of the following conditions are met, a response containing data intended for one client may be cached and subsequently sent by the proxy to other clients. If the proxy also caches `Set-Cookie` headers, it may send one client's `session` cookie to other clients. The severity depends on the application's use of the session and the proxy's behavior regarding cookies. The risk depends on all these conditions being met.\n\n1. The application must be hosted behind a caching proxy that does not strip cookies or ignore responses with cookies.\n2. The application sets `session.permanent = True`\n3. The application does not access or modify the session at any point during a request.\n4. `SESSION_REFRESH_EACH_REQUEST` enabled (the default).\n5. The application does not set a `Cache-Control` header to indicate that a page is private or should not be cached.\n\nThis happens because vulnerable versions of Flask only set the `Vary: Cookie` header when the session is accessed or modified, not when it is refreshed (re-sent to update the expiration) without being accessed or modified. This issue has been fixed in versions 2.3.2 and 2.2.5.",
+                "markdown": "**Vulnerability CVE-2023-30861**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|HIGH|flask|2.3.2, 2.2.5|[CVE-2023-30861](https://avd.aquasec.com/nvd/cve-2023-30861)|\n\nFlask is a lightweight WSGI web application framework. When all of the following conditions are met, a response containing data intended for one client may be cached and subsequently sent by the proxy to other clients. If the proxy also caches `Set-Cookie` headers, it may send one client's `session` cookie to other clients. The severity depends on the application's use of the session and the proxy's behavior regarding cookies. The risk depends on all these conditions being met.\n\n1. The application must be hosted behind a caching proxy that does not strip cookies or ignore responses with cookies.\n2. The application sets `session.permanent = True`\n3. The application does not access or modify the session at any point during a request.\n4. `SESSION_REFRESH_EACH_REQUEST` enabled (the default).\n5. The application does not set a `Cache-Control` header to indicate that a page is private or should not be cached.\n\nThis happens because vulnerable versions of Flask only set the `Vary: Cookie` header when the session is accessed or modified, not when it is refreshed (re-sent to update the expiration) without being accessed or modified. This issue has been fixed in versions 2.3.2 and 2.2.5."
+              },
+              "properties": {
+                "cvssv3_baseScore": 7.5,
+                "cvssv3_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:N/A:N",
+                "precision": "very-high",
+                "security-severity": "7.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "HIGH"
+                ]
+              }
+            },
+            {
               "id": "CVE-2023-32681",
               "name": "LanguageSpecificPackageVulnerability",
               "shortDescription": {
@@ -431,18 +686,18 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "requirements.txt",
+                  "uri": "source-code/backend/requirements.txt",
                   "uriBaseId": "ROOTPATH"
                 },
                 "region": {
-                  "startLine": 2,
+                  "startLine": 3,
                   "startColumn": 1,
-                  "endLine": 2,
+                  "endLine": 3,
                   "endColumn": 1
                 }
               },
               "message": {
-                "text": "requirements.txt: Django@3.1.14"
+                "text": "source-code/backend/requirements.txt: Django@3.1.14"
               }
             }
           ]
@@ -458,18 +713,18 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "requirements.txt",
+                  "uri": "source-code/backend/requirements.txt",
                   "uriBaseId": "ROOTPATH"
                 },
                 "region": {
-                  "startLine": 2,
+                  "startLine": 3,
                   "startColumn": 1,
-                  "endLine": 2,
+                  "endLine": 3,
                   "endColumn": 1
                 }
               },
               "message": {
-                "text": "requirements.txt: Django@3.1.14"
+                "text": "source-code/backend/requirements.txt: Django@3.1.14"
               }
             }
           ]
@@ -485,18 +740,18 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "requirements.txt",
+                  "uri": "source-code/backend/requirements.txt",
                   "uriBaseId": "ROOTPATH"
                 },
                 "region": {
-                  "startLine": 2,
+                  "startLine": 3,
                   "startColumn": 1,
-                  "endLine": 2,
+                  "endLine": 3,
                   "endColumn": 1
                 }
               },
               "message": {
-                "text": "requirements.txt: Django@3.1.14"
+                "text": "source-code/backend/requirements.txt: Django@3.1.14"
               }
             }
           ]
@@ -512,18 +767,18 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "requirements.txt",
+                  "uri": "source-code/backend/requirements.txt",
                   "uriBaseId": "ROOTPATH"
                 },
                 "region": {
-                  "startLine": 2,
+                  "startLine": 3,
                   "startColumn": 1,
-                  "endLine": 2,
+                  "endLine": 3,
                   "endColumn": 1
                 }
               },
               "message": {
-                "text": "requirements.txt: Django@3.1.14"
+                "text": "source-code/backend/requirements.txt: Django@3.1.14"
               }
             }
           ]
@@ -539,18 +794,18 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "requirements.txt",
+                  "uri": "source-code/backend/requirements.txt",
                   "uriBaseId": "ROOTPATH"
                 },
                 "region": {
-                  "startLine": 2,
+                  "startLine": 3,
                   "startColumn": 1,
-                  "endLine": 2,
+                  "endLine": 3,
                   "endColumn": 1
                 }
               },
               "message": {
-                "text": "requirements.txt: Django@3.1.14"
+                "text": "source-code/backend/requirements.txt: Django@3.1.14"
               }
             }
           ]
@@ -566,7 +821,277 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "requirements.txt",
+                  "uri": "source-code/backend/requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 3,
+                  "startColumn": 1,
+                  "endLine": 3,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "source-code/backend/requirements.txt: Django@3.1.14"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2023-0286",
+          "ruleIndex": 6,
+          "level": "error",
+          "message": {
+            "text": "Package: cryptography\nInstalled Version: 3.3.2\nVulnerability CVE-2023-0286\nSeverity: HIGH\nFixed Version: 39.0.1\nLink: [CVE-2023-0286](https://avd.aquasec.com/nvd/cve-2023-0286)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "source-code/backend/requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 5,
+                  "startColumn": 1,
+                  "endLine": 5,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "source-code/backend/requirements.txt: cryptography@3.3.2"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2023-50782",
+          "ruleIndex": 7,
+          "level": "error",
+          "message": {
+            "text": "Package: cryptography\nInstalled Version: 3.3.2\nVulnerability CVE-2023-50782\nSeverity: HIGH\nFixed Version: 42.0.0\nLink: [CVE-2023-50782](https://avd.aquasec.com/nvd/cve-2023-50782)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "source-code/backend/requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 5,
+                  "startColumn": 1,
+                  "endLine": 5,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "source-code/backend/requirements.txt: cryptography@3.3.2"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2023-23931",
+          "ruleIndex": 8,
+          "level": "warning",
+          "message": {
+            "text": "Package: cryptography\nInstalled Version: 3.3.2\nVulnerability CVE-2023-23931\nSeverity: MEDIUM\nFixed Version: 39.0.1\nLink: [CVE-2023-23931](https://avd.aquasec.com/nvd/cve-2023-23931)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "source-code/backend/requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 5,
+                  "startColumn": 1,
+                  "endLine": 5,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "source-code/backend/requirements.txt: cryptography@3.3.2"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2023-49083",
+          "ruleIndex": 9,
+          "level": "warning",
+          "message": {
+            "text": "Package: cryptography\nInstalled Version: 3.3.2\nVulnerability CVE-2023-49083\nSeverity: MEDIUM\nFixed Version: 41.0.6\nLink: [CVE-2023-49083](https://avd.aquasec.com/nvd/cve-2023-49083)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "source-code/backend/requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 5,
+                  "startColumn": 1,
+                  "endLine": 5,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "source-code/backend/requirements.txt: cryptography@3.3.2"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2024-0727",
+          "ruleIndex": 10,
+          "level": "warning",
+          "message": {
+            "text": "Package: cryptography\nInstalled Version: 3.3.2\nVulnerability CVE-2024-0727\nSeverity: MEDIUM\nFixed Version: 42.0.2\nLink: [CVE-2024-0727](https://avd.aquasec.com/nvd/cve-2024-0727)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "source-code/backend/requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 5,
+                  "startColumn": 1,
+                  "endLine": 5,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "source-code/backend/requirements.txt: cryptography@3.3.2"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "GHSA-5cpq-8wj7-hf2v",
+          "ruleIndex": 11,
+          "level": "note",
+          "message": {
+            "text": "Package: cryptography\nInstalled Version: 3.3.2\nVulnerability GHSA-5cpq-8wj7-hf2v\nSeverity: LOW\nFixed Version: 41.0.0\nLink: [GHSA-5cpq-8wj7-hf2v](https://github.com/advisories/GHSA-5cpq-8wj7-hf2v)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "source-code/backend/requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 5,
+                  "startColumn": 1,
+                  "endLine": 5,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "source-code/backend/requirements.txt: cryptography@3.3.2"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "GHSA-jm77-qphf-c4w8",
+          "ruleIndex": 12,
+          "level": "note",
+          "message": {
+            "text": "Package: cryptography\nInstalled Version: 3.3.2\nVulnerability GHSA-jm77-qphf-c4w8\nSeverity: LOW\nFixed Version: 41.0.3\nLink: [GHSA-jm77-qphf-c4w8](https://github.com/advisories/GHSA-jm77-qphf-c4w8)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "source-code/backend/requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 5,
+                  "startColumn": 1,
+                  "endLine": 5,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "source-code/backend/requirements.txt: cryptography@3.3.2"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "GHSA-v8gr-m533-ghj9",
+          "ruleIndex": 13,
+          "level": "note",
+          "message": {
+            "text": "Package: cryptography\nInstalled Version: 3.3.2\nVulnerability GHSA-v8gr-m533-ghj9\nSeverity: LOW\nFixed Version: 41.0.4\nLink: [GHSA-v8gr-m533-ghj9](https://github.com/advisories/GHSA-v8gr-m533-ghj9)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "source-code/backend/requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 5,
+                  "startColumn": 1,
+                  "endLine": 5,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "source-code/backend/requirements.txt: cryptography@3.3.2"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2023-30861",
+          "ruleIndex": 14,
+          "level": "error",
+          "message": {
+            "text": "Package: flask\nInstalled Version: 2.0.1\nVulnerability CVE-2023-30861\nSeverity: HIGH\nFixed Version: 2.3.2, 2.2.5\nLink: [CVE-2023-30861](https://avd.aquasec.com/nvd/cve-2023-30861)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "source-code/backend/requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "source-code/backend/requirements.txt: flask@2.0.1"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2023-32681",
+          "ruleIndex": 15,
+          "level": "warning",
+          "message": {
+            "text": "Package: requests\nInstalled Version: 2.25.1\nVulnerability CVE-2023-32681\nSeverity: MEDIUM\nFixed Version: 2.31.0\nLink: [CVE-2023-32681](https://avd.aquasec.com/nvd/cve-2023-32681)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "source-code/backend/requirements.txt",
                   "uriBaseId": "ROOTPATH"
                 },
                 "region": {
@@ -577,41 +1102,14 @@
                 }
               },
               "message": {
-                "text": "requirements.txt: Django@3.1.14"
-              }
-            }
-          ]
-        },
-        {
-          "ruleId": "CVE-2023-32681",
-          "ruleIndex": 6,
-          "level": "warning",
-          "message": {
-            "text": "Package: requests\nInstalled Version: 2.25.1\nVulnerability CVE-2023-32681\nSeverity: MEDIUM\nFixed Version: 2.31.0\nLink: [CVE-2023-32681](https://avd.aquasec.com/nvd/cve-2023-32681)"
-          },
-          "locations": [
-            {
-              "physicalLocation": {
-                "artifactLocation": {
-                  "uri": "requirements.txt",
-                  "uriBaseId": "ROOTPATH"
-                },
-                "region": {
-                  "startLine": 1,
-                  "startColumn": 1,
-                  "endLine": 1,
-                  "endColumn": 1
-                }
-              },
-              "message": {
-                "text": "requirements.txt: requests@2.25.1"
+                "text": "source-code/backend/requirements.txt: requests@2.25.1"
               }
             }
           ]
         },
         {
           "ruleId": "CVE-2024-35195",
-          "ruleIndex": 7,
+          "ruleIndex": 16,
           "level": "warning",
           "message": {
             "text": "Package: requests\nInstalled Version: 2.25.1\nVulnerability CVE-2024-35195\nSeverity: MEDIUM\nFixed Version: 2.32.0\nLink: [CVE-2024-35195](https://avd.aquasec.com/nvd/cve-2024-35195)"
@@ -620,25 +1118,25 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "requirements.txt",
+                  "uri": "source-code/backend/requirements.txt",
                   "uriBaseId": "ROOTPATH"
                 },
                 "region": {
-                  "startLine": 1,
+                  "startLine": 2,
                   "startColumn": 1,
-                  "endLine": 1,
+                  "endLine": 2,
                   "endColumn": 1
                 }
               },
               "message": {
-                "text": "requirements.txt: requests@2.25.1"
+                "text": "source-code/backend/requirements.txt: requests@2.25.1"
               }
             }
           ]
         },
         {
           "ruleId": "CVE-2024-47081",
-          "ruleIndex": 8,
+          "ruleIndex": 17,
           "level": "warning",
           "message": {
             "text": "Package: requests\nInstalled Version: 2.25.1\nVulnerability CVE-2024-47081\nSeverity: MEDIUM\nFixed Version: 2.32.4\nLink: [CVE-2024-47081](https://avd.aquasec.com/nvd/cve-2024-47081)"
@@ -647,25 +1145,25 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "requirements.txt",
+                  "uri": "source-code/backend/requirements.txt",
                   "uriBaseId": "ROOTPATH"
                 },
                 "region": {
-                  "startLine": 1,
+                  "startLine": 2,
                   "startColumn": 1,
-                  "endLine": 1,
+                  "endLine": 2,
                   "endColumn": 1
                 }
               },
               "message": {
-                "text": "requirements.txt: requests@2.25.1"
+                "text": "source-code/backend/requirements.txt: requests@2.25.1"
               }
             }
           ]
         },
         {
           "ruleId": "CVE-2021-33503",
-          "ruleIndex": 9,
+          "ruleIndex": 18,
           "level": "error",
           "message": {
             "text": "Package: urllib3\nInstalled Version: 1.26.4\nVulnerability CVE-2021-33503\nSeverity: HIGH\nFixed Version: 1.26.5\nLink: [CVE-2021-33503](https://avd.aquasec.com/nvd/cve-2021-33503)"
@@ -674,25 +1172,25 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "requirements.txt",
+                  "uri": "source-code/backend/requirements.txt",
                   "uriBaseId": "ROOTPATH"
                 },
                 "region": {
-                  "startLine": 3,
+                  "startLine": 4,
                   "startColumn": 1,
-                  "endLine": 3,
+                  "endLine": 4,
                   "endColumn": 1
                 }
               },
               "message": {
-                "text": "requirements.txt: urllib3@1.26.4"
+                "text": "source-code/backend/requirements.txt: urllib3@1.26.4"
               }
             }
           ]
         },
         {
           "ruleId": "CVE-2023-43804",
-          "ruleIndex": 10,
+          "ruleIndex": 19,
           "level": "error",
           "message": {
             "text": "Package: urllib3\nInstalled Version: 1.26.4\nVulnerability CVE-2023-43804\nSeverity: HIGH\nFixed Version: 2.0.6, 1.26.17\nLink: [CVE-2023-43804](https://avd.aquasec.com/nvd/cve-2023-43804)"
@@ -701,25 +1199,25 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "requirements.txt",
+                  "uri": "source-code/backend/requirements.txt",
                   "uriBaseId": "ROOTPATH"
                 },
                 "region": {
-                  "startLine": 3,
+                  "startLine": 4,
                   "startColumn": 1,
-                  "endLine": 3,
+                  "endLine": 4,
                   "endColumn": 1
                 }
               },
               "message": {
-                "text": "requirements.txt: urllib3@1.26.4"
+                "text": "source-code/backend/requirements.txt: urllib3@1.26.4"
               }
             }
           ]
         },
         {
           "ruleId": "CVE-2023-45803",
-          "ruleIndex": 11,
+          "ruleIndex": 20,
           "level": "warning",
           "message": {
             "text": "Package: urllib3\nInstalled Version: 1.26.4\nVulnerability CVE-2023-45803\nSeverity: MEDIUM\nFixed Version: 2.0.7, 1.26.18\nLink: [CVE-2023-45803](https://avd.aquasec.com/nvd/cve-2023-45803)"
@@ -728,25 +1226,25 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "requirements.txt",
+                  "uri": "source-code/backend/requirements.txt",
                   "uriBaseId": "ROOTPATH"
                 },
                 "region": {
-                  "startLine": 3,
+                  "startLine": 4,
                   "startColumn": 1,
-                  "endLine": 3,
+                  "endLine": 4,
                   "endColumn": 1
                 }
               },
               "message": {
-                "text": "requirements.txt: urllib3@1.26.4"
+                "text": "source-code/backend/requirements.txt: urllib3@1.26.4"
               }
             }
           ]
         },
         {
           "ruleId": "CVE-2024-37891",
-          "ruleIndex": 12,
+          "ruleIndex": 21,
           "level": "warning",
           "message": {
             "text": "Package: urllib3\nInstalled Version: 1.26.4\nVulnerability CVE-2024-37891\nSeverity: MEDIUM\nFixed Version: 1.26.19, 2.2.2\nLink: [CVE-2024-37891](https://avd.aquasec.com/nvd/cve-2024-37891)"
@@ -755,25 +1253,25 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "requirements.txt",
+                  "uri": "source-code/backend/requirements.txt",
                   "uriBaseId": "ROOTPATH"
                 },
                 "region": {
-                  "startLine": 3,
+                  "startLine": 4,
                   "startColumn": 1,
-                  "endLine": 3,
+                  "endLine": 4,
                   "endColumn": 1
                 }
               },
               "message": {
-                "text": "requirements.txt: urllib3@1.26.4"
+                "text": "source-code/backend/requirements.txt: urllib3@1.26.4"
               }
             }
           ]
         },
         {
           "ruleId": "CVE-2025-50181",
-          "ruleIndex": 13,
+          "ruleIndex": 22,
           "level": "warning",
           "message": {
             "text": "Package: urllib3\nInstalled Version: 1.26.4\nVulnerability CVE-2025-50181\nSeverity: MEDIUM\nFixed Version: 2.5.0\nLink: [CVE-2025-50181](https://avd.aquasec.com/nvd/cve-2025-50181)"
@@ -782,18 +1280,18 @@
             {
               "physicalLocation": {
                 "artifactLocation": {
-                  "uri": "requirements.txt",
+                  "uri": "source-code/backend/requirements.txt",
                   "uriBaseId": "ROOTPATH"
                 },
                 "region": {
-                  "startLine": 3,
+                  "startLine": 4,
                   "startColumn": 1,
-                  "endLine": 3,
+                  "endLine": 4,
                   "endColumn": 1
                 }
               },
               "message": {
-                "text": "requirements.txt: urllib3@1.26.4"
+                "text": "source-code/backend/requirements.txt: urllib3@1.26.4"
               }
             }
           ]
