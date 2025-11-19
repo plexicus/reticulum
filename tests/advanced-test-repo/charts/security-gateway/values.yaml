@@ -1,0 +1,15 @@
+image:
+  pullPolicy: IfNotPresent
+  repository: traefik
+  tag: v3.0
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 200m
+    memory: 256Mi
+service:
+  port: 80
+  targetPort: 80
+  type: LoadBalancer

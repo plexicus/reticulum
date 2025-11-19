@@ -37,11 +37,6 @@ jobs:
         uv pip install -e ".[dev]"
       timeout-minutes: 15
 
-    - name: Generate test repository
-      run: |
-        source .venv/bin/activate
-        python scripts/create-test-repo.py
-      timeout-minutes: 5
 
     - name: Verify Docker availability
       run: |

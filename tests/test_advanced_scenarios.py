@@ -24,7 +24,7 @@ class TestAdvancedScenarios:
         if not test_repo_path.exists():
             pytest.skip(
                 "Advanced test repository not found. "
-                "Generate it with: python scripts/create-test-repo.py"
+                "The test repository should be available as static test data in tests/advanced-test-repo/"
             )
         return test_repo_path
     

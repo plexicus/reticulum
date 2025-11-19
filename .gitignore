@@ -182,8 +182,7 @@ test_*.json
 *_implementation.json
 platform_results.json
 
-# Advanced test repository (should be cloned/generated, not committed)
-tests/advanced-test-repo/
+# Advanced test repository (now committed as static test data)
 
 # Coverage reports
 htmlcov/

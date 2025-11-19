@@ -1,0 +1,15 @@
+image:
+  pullPolicy: IfNotPresent
+  repository: haproxy
+  tag: '2.8'
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+service:
+  port: 80
+  targetPort: 80
+  type: LoadBalancer

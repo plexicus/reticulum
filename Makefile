@@ -89,9 +89,6 @@ dev-setup: ## Set up development environment
 	@echo "📦 Installing dependencies..."
 	@uv pip install -e ".[dev]"
 	@echo "✅ Development environment ready"
-	@echo "🔧 Generating test repository..."
-	@$(PYTHON_EXEC) scripts/create-test-repo.py
-	@echo "✅ Test repository generated"
 
 # CI/CD helpers
 ci-test: ## Run tests for CI environment

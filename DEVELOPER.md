@@ -22,8 +22,6 @@ uv venv
 source .venv/bin/activate
 uv pip install -e ".[dev]"
 
-# Generate test repository
-python scripts/create-test-repo.py
 ```
 
 ### Daily Development Workflow
@@ -208,25 +206,18 @@ chore: bump version to v0.5.1
 
 ### Test Repository Setup
 
-The advanced test scenarios require a dynamically generated test repository:
+The advanced test scenarios use a static test repository that is committed to version control:
 
 ```bash
-# Generate the advanced test repository
-python scripts/create-test-repo.py
-
-# This creates: tests/advanced-test-repo/ with:
+# The test repository is available at: tests/advanced-test-repo/
+# It contains:
 # - Multiple Helm charts with different exposure levels
 # - Dockerfiles for various services
 # - Sample source code files
 # - NetworkPolicy templates for testing network security analysis
 ```
 
-**Note**: The `tests/advanced-test-repo/` directory is intentionally excluded from git tracking to avoid committing large test data. You must generate it locally to run advanced tests.
-
-**When to regenerate**:
-- After cloning the repository for the first time
-- If you modify the test repository generation script
-- If advanced tests fail due to missing test data
+**Note**: The `tests/advanced-test-repo/` directory is now committed as static test data and should be available automatically.
 
 ### Code Quality Standards
 
@@ -291,9 +282,6 @@ pytest --cov=src/reticulum --cov-report=html
 If advanced tests are skipped with "Advanced test repository not found":
 
 ```bash
-# Generate the test repository
-python scripts/create-test-repo.py
-
 # Run advanced tests
 make advanced-tests
 
@@ -301,7 +289,7 @@ make advanced-tests
 make test-all
 ```
 
-**Note**: The test repository is regenerated automatically in CI/CD environments but must be generated manually for local development.
+**Note**: The test repository is now committed as static test data and should be available automatically.
 
 #### Environment Detection Issues
 
@@ -347,7 +335,7 @@ make release-sync
 - `scripts/release.sh` - Automated release management
 - `scripts/dev-check.sh` - Development quality checks
 - `scripts/run-advanced-tests.sh` - Advanced test scenarios
-- `scripts/create-test-repo.py` - Dynamic test repository generation
+- `tests/advanced-test-repo/` - Static test repository (committed to version control)
 
 ## CI/CD Pipeline
 

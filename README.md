@@ -247,9 +247,6 @@ Copyright (c) 2025 Plexicus, LLC
 If advanced tests are skipped with "Advanced test repository not found":
 
 ```bash
-# Generate the test repository
-python scripts/create-test-repo.py
-
 # Run advanced tests
 make advanced-tests
 
@@ -257,7 +254,7 @@ make advanced-tests
 make test-all
 ```
 
-**Note**: The test repository is regenerated automatically in CI/CD environments but must be generated manually for local development.
+**Note**: The test repository is now committed as static test data and should be available automatically.
 
 ---
 

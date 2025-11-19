@@ -62,8 +62,7 @@ fi
 # Check if advanced test repository exists
 if [[ ! -d "$ADVANCED_TEST_DIR" ]]; then
     log_error "Advanced test repository not found at $ADVANCED_TEST_DIR"
-    log_info "Generate it with: python scripts/create-test-repo.py"
-    log_info "Or run: make dev-setup (automatically generates test repository)"
+    log_info "The test repository should be available as static test data in tests/advanced-test-repo/"
     exit 1
 fi
 

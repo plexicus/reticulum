@@ -1,0 +1,16 @@
+multipleServices:
+  admin:
+    service:
+      port: 8443
+      type: LoadBalancer
+  api:
+    service:
+      port: 8080
+      type: NodePort
+  web:
+    service:
+      port: 80
+      type: ClusterIP
+securityContext:
+  privileged: false
+  runAsNonRoot: true

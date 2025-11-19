@@ -1,0 +1,36 @@
+# Advanced Test Repository
+
+This repository is committed as static test data for testing the Reticulum scanner.
+It contains various Helm charts, Dockerfiles, and source code to test different
+exposure scenarios and edge cases.
+
+## Structure
+
+- `charts/` - Helm charts with various exposure levels
+- `dockerfiles/` - Sample Dockerfiles for different services
+- `source-code/` - Sample source code files
+
+## Test Scenarios
+
+### High Exposure Services
+- `frontend-web` - External ingress
+- `api-gateway` - LoadBalancer service
+- `monitoring-stack` - NodePort service
+- `security-gateway` - LoadBalancer service
+- `load-balancer` - LoadBalancer service
+
+### Medium Exposure Services
+- `backend-service` - Internal ClusterIP
+- `database-primary` - Internal ClusterIP
+
+### Low Exposure Services
+- `worker-service` - Internal ClusterIP
+- `cache-service` - Internal ClusterIP
+
+### Edge Cases
+- `edge-cases` - Multiple service types in one chart
+
+## Usage
+
+This repository is committed as static test data and should be available automatically for testing.
+It is now part of the version-controlled test suite.

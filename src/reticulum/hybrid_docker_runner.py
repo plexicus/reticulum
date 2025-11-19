@@ -176,3 +176,12 @@ class HybridDockerRunner:
             "docker" if using Docker, "sarif" if using SARIF files
         """
         return "sarif" if self.use_sarif_files else "docker"
+
+    def cleanup(self):
+        """
+        Clean up any resources used by the hybrid runner.
+
+        This method is called by the security scanner during cleanup.
+        """
+        # Clean up the underlying Docker runner
+        self.docker_runner.cleanup()

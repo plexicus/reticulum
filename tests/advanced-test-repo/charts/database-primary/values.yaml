@@ -1,0 +1,18 @@
+image:
+  pullPolicy: IfNotPresent
+  repository: postgres
+  tag: '15'
+persistence:
+  enabled: true
+  size: 10Gi
+resources:
+  limits:
+    cpu: '1'
+    memory: 1Gi
+  requests:
+    cpu: 500m
+    memory: 512Mi
+service:
+  port: 5432
+  targetPort: 5432
+  type: ClusterIP

@@ -1,0 +1,23 @@
+image:
+  pullPolicy: IfNotPresent
+  repository: nginx
+  tag: latest
+ingress:
+  className: nginx
+  enabled: true
+  hosts:
+  - host: frontend.example.com
+    paths:
+    - path: /
+      pathType: Prefix
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+service:
+  port: 80
+  targetPort: 80
+  type: ClusterIP

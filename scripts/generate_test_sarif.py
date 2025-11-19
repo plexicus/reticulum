@@ -20,10 +20,10 @@ def generate_trivy_sarif():
     """Generate Trivy SARIF file from test repository."""
     print("🔍 Generating Trivy SARIF file...")
 
-    # Create test repository
+    # Create test repository (exactly matching test fixture)
     test_repo_dir = tempfile.mkdtemp(prefix="reticulum-test-")
 
-    # Create vulnerable_app.py
+    # Create vulnerable_app.py with security issues (exactly matching test fixture)
     vulnerable_app_content = '''import subprocess
 import pickle
 import os
@@ -73,14 +73,63 @@ def eval_injection_vulnerable(user_input):
     with open(os.path.join(test_repo_dir, "vulnerable_app.py"), "w") as f:
         f.write(vulnerable_app_content)
 
-    # Create requirements.txt with vulnerable dependencies
-    requirements_content = """requests==2.25.1
+    # Create requirements.txt with vulnerable dependencies (exactly matching test fixture)
+    requirements_content = '''requests==2.25.1
 Django==3.1.14
 urllib3==1.26.4
-"""
+'''
 
     with open(os.path.join(test_repo_dir, "requirements.txt"), "w") as f:
         f.write(requirements_content)
+
+    # Create insecure_config.py (exactly matching test fixture)
+    insecure_config_content = '''# Insecure configuration
+DEBUG = True
+SECRET_KEY = "weaksecret"
+ALLOWED_HOSTS = ['*']
+'''
+
+    with open(os.path.join(test_repo_dir, "insecure_config.py"), "w") as f:
+        f.write(insecure_config_content)
+
+    # Create web_app.py with XSS vulnerabilities (exactly matching test fixture)
+    web_app_content = '''from flask import Flask, request, render_template_string
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    # VULNERABLE: XSS in Flask template
+    user_input = request.args.get("name", "World")
+    template = f"<h1>Hello, {user_input}!</h1>"
+    return render_template_string(template)
+
+@app.route("/search")
+def search():
+    # VULNERABLE: XSS in search results
+    query = request.args.get("q", "")
+    results = f"<p>Search results for: {query}</p>"
+    return results
+
+@app.route("/profile")
+def profile():
+    # VULNERABLE: XSS in user profile
+    username = request.args.get("username", "guest")
+    bio = request.args.get("bio", "No bio")
+    profile_html = f"""
+    <div class=\"profile\">
+        <h2>{username}</h2>
+        <p>{bio}</p>
+    </div>
+    """
+    return profile_html
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)
+'''
+
+    with open(os.path.join(test_repo_dir, "web_app.py"), "w") as f:
+        f.write(web_app_content)
 
     # Run Trivy scan
     runner = DockerRunner()
