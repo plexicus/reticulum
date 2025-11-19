@@ -9,7 +9,7 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/plexicus/reticulum)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
-**Latest Release: v0.6.10**
+**Latest Release: v0.6.11**
 
 
 **Reticulum** is a tool to combat cloud-native application alert fatigue. For every vulnerability detected, it tracks the container and examines the Helm chart configuration in Kubernetes to determine its exposure, helping to know what is truly critical.

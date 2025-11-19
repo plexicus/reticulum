@@ -1,3 +1,9 @@
+## v0.6.11 (2025-11-19)
+
+### Fix
+
+- correct CHANGELOG structure for v0.6.10 release
+
 ## v0.6.10 (2025-11-19)
 
 ### Added
