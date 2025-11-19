@@ -75,7 +75,15 @@ jobs:
         ls tests/advanced-test-repo/charts/ | wc -l
         echo "📁 Dockerfiles count:"
         ls tests/advanced-test-repo/dockerfiles/ | wc -l
-    
+
+    - name: Verify Docker availability
+      run: |
+        echo "🔍 Testing Docker availability..."
+        docker --version
+        docker info
+        echo "✅ Docker is available"
+      timeout-minutes: 2
+
     - name: Run basic tests
       run: |
         source .venv/bin/activate
