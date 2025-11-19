@@ -1,3 +1,5 @@
+## [Unreleased]
+
 ## v0.6.11 (2025-11-19)
 
 ### Fix
@@ -245,6 +247,5 @@
 ### Fix
 
 - resolve linting and formatting issues
-- install project in CI to make tests work
-## [Unreleased]\n
+- install project in CI to make tests work\n
 
