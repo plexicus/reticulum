@@ -82,7 +82,12 @@ jobs:
         docker --version
         docker info
         echo "✅ Docker is available"
-      timeout-minutes: 2
+
+        echo "📥 Pulling required Docker images..."
+        docker pull aquasec/trivy:latest
+        docker pull returntocorp/semgrep:latest
+        echo "✅ Docker images pulled successfully"
+      timeout-minutes: 5
 
     - name: Run basic tests
       run: |

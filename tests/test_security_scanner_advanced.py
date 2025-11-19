@@ -15,10 +15,6 @@ from src.reticulum.config import SecurityScannerConfig
 class TestSecurityScannerAdvanced:
     """Advanced tests for security scanner with realistic vulnerability scenarios."""
 
-    def _is_ci_environment(self):
-        """Check if running in CI environment."""
-        return os.environ.get('CI') == 'true' or os.environ.get('GITHUB_ACTIONS') == 'true'
-
     @pytest.fixture
     def test_repo_path(self):
         """Create a temporary test repository with vulnerabilities."""
@@ -213,15 +209,6 @@ if __name__ == "__main__":
     @pytest.mark.integration
     def test_trivy_scan_vulnerable_dependencies(self, scanner, test_repo_path):
         """Test Trivy SCA scan on repository with vulnerable dependencies."""
-        # Skip if Docker is not available in CI environment
-        if self._is_ci_environment():
-            import subprocess
-            try:
-                # Test if Docker is actually available
-                subprocess.run(["docker", "--version"], capture_output=True, check=True)
-            except (subprocess.CalledProcessError, FileNotFoundError):
-                pytest.skip("Docker not available in CI environment")
-
         with tempfile.NamedTemporaryFile(suffix='.sarif', delete=False) as temp_file:
             output_file = temp_file.name
 
@@ -279,15 +266,6 @@ if __name__ == "__main__":
     @pytest.mark.integration
     def test_semgrep_scan_sast_vulnerabilities(self, scanner, test_repo_path):
         """Test Semgrep SAST scan on repository with code vulnerabilities."""
-        # Skip if Docker is not available in CI environment
-        if self._is_ci_environment():
-            import subprocess
-            try:
-                # Test if Docker is actually available
-                subprocess.run(["docker", "--version"], capture_output=True, check=True)
-            except (subprocess.CalledProcessError, FileNotFoundError):
-                pytest.skip("Docker not available in CI environment")
-
         with tempfile.NamedTemporaryFile(suffix='.sarif', delete=False) as temp_file:
             output_file = temp_file.name
 
