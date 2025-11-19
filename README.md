@@ -6,6 +6,7 @@
 
 [![PyPI version](https://badge.fury.io/py/reticulum.svg)](https://badge.fury.io/py/reticulum)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/plexicus/reticulum)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
 **Latest Release: v0.6.9**
