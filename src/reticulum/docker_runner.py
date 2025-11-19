@@ -76,35 +76,32 @@ class DockerRunner:
                     cmd,
                     capture_output=True,
                     text=True,
-                    check=True,
+                    check=False,  # Don't raise exception on non-zero exit codes
                     timeout=self.timeout,
                 )
 
-                return {
-                    "success": True,
-                    "stdout": result.stdout,
-                    "stderr": result.stderr,
-                    "returncode": result.returncode,
-                }
+                # Handle specific exit codes for security tools
+                # Trivy: exit code 1 means vulnerabilities found (success)
+                # Semgrep: exit code 2 means issues found (success)
+                # Other non-zero codes indicate actual failures
+                if result.returncode in [0, 1, 2]:
+                    return {
+                        "success": True,
+                        "stdout": result.stdout,
+                        "stderr": result.stderr,
+                        "returncode": result.returncode,
+                    }
+                else:
+                    # This is an actual failure
+                    stderr_output = result.stderr if result.stderr else ""
+                    last_error = f"{description} failed with exit code {result.returncode}"
+                    if stderr_output:
+                        last_error += f"\nStderr: {stderr_output[:200]}"
+                    print(f"❌ {last_error}")
 
             except subprocess.TimeoutExpired:
                 last_error = f"{description} timed out after {self.timeout} seconds"
                 print(f"⏰ {last_error}")
-
-            except subprocess.CalledProcessError as e:
-                # Get detailed error information including stderr
-                stderr_output = e.stderr if e.stderr else ""
-                last_error = f"{description} failed with exit code {e.returncode}"
-
-                # Include stderr in error message for better debugging
-                if stderr_output:
-                    last_error += f"\nStderr: {stderr_output[:200]}"  # Limit length for readability
-
-                print(f"❌ {last_error}")
-
-                # Don't retry on certain exit codes that indicate permanent failures
-                if e.returncode in [125, 126, 127]:  # Docker command errors
-                    break
 
             except Exception as e:
                 last_error = f"{description} failed: {str(e)}"
