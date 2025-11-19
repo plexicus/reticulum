@@ -1,0 +1,810 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "fullName": "Trivy Vulnerability Scanner",
+          "informationUri": "https://github.com/aquasecurity/trivy",
+          "name": "Trivy",
+          "rules": [
+            {
+              "id": "CVE-2025-64459",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "django: Django SQL injection"
+              },
+              "fullDescription": {
+                "text": "An issue was discovered in 5.1 before 5.1.14, 4.2 before 4.2.26, and 5.2 before 5.2.8.\nThe methods `QuerySet.filter()`, `QuerySet.exclude()`, and `QuerySet.get()`, and the class `Q()`, are subject to SQL injection when using a suitably crafted dictionary, with dictionary expansion, as the `_connector` argument.\nEarlier, unsupported Django series (such as 5.0.x, 4.1.x, and 3.2.x) were not evaluated and may also be affected.\nDjango would like to thank cyberstan for reporting this issue."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2025-64459",
+              "help": {
+                "text": "Vulnerability CVE-2025-64459\nSeverity: CRITICAL\nPackage: Django\nFixed Version: 5.2.8, 5.1.14, 4.2.26\nLink: [CVE-2025-64459](https://avd.aquasec.com/nvd/cve-2025-64459)\nAn issue was discovered in 5.1 before 5.1.14, 4.2 before 4.2.26, and 5.2 before 5.2.8.\nThe methods `QuerySet.filter()`, `QuerySet.exclude()`, and `QuerySet.get()`, and the class `Q()`, are subject to SQL injection when using a suitably crafted dictionary, with dictionary expansion, as the `_connector` argument.\nEarlier, unsupported Django series (such as 5.0.x, 4.1.x, and 3.2.x) were not evaluated and may also be affected.\nDjango would like to thank cyberstan for reporting this issue.",
+                "markdown": "**Vulnerability CVE-2025-64459**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|CRITICAL|Django|5.2.8, 5.1.14, 4.2.26|[CVE-2025-64459](https://avd.aquasec.com/nvd/cve-2025-64459)|\n\nAn issue was discovered in 5.1 before 5.1.14, 4.2 before 4.2.26, and 5.2 before 5.2.8.\nThe methods `QuerySet.filter()`, `QuerySet.exclude()`, and `QuerySet.get()`, and the class `Q()`, are subject to SQL injection when using a suitably crafted dictionary, with dictionary expansion, as the `_connector` argument.\nEarlier, unsupported Django series (such as 5.0.x, 4.1.x, and 3.2.x) were not evaluated and may also be affected.\nDjango would like to thank cyberstan for reporting this issue."
+              },
+              "properties": {
+                "cvssv3_baseScore": 9.1,
+                "cvssv3_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:N",
+                "precision": "very-high",
+                "security-severity": "9.1",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "CRITICAL"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2022-36359",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "An issue was discovered in the HTTP FileResponse class in Django 3.2 b ..."
+              },
+              "fullDescription": {
+                "text": "An issue was discovered in the HTTP FileResponse class in Django 3.2 before 3.2.15 and 4.0 before 4.0.7. An application is vulnerable to a reflected file download (RFD) attack that sets the Content-Disposition header of a FileResponse when the filename is derived from user-supplied input."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2022-36359",
+              "help": {
+                "text": "Vulnerability CVE-2022-36359\nSeverity: HIGH\nPackage: Django\nFixed Version: 3.2.15, 4.0.7\nLink: [CVE-2022-36359](https://avd.aquasec.com/nvd/cve-2022-36359)\nAn issue was discovered in the HTTP FileResponse class in Django 3.2 before 3.2.15 and 4.0 before 4.0.7. An application is vulnerable to a reflected file download (RFD) attack that sets the Content-Disposition header of a FileResponse when the filename is derived from user-supplied input.",
+                "markdown": "**Vulnerability CVE-2022-36359**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|HIGH|Django|3.2.15, 4.0.7|[CVE-2022-36359](https://avd.aquasec.com/nvd/cve-2022-36359)|\n\nAn issue was discovered in the HTTP FileResponse class in Django 3.2 before 3.2.15 and 4.0 before 4.0.7. An application is vulnerable to a reflected file download (RFD) attack that sets the Content-Disposition header of a FileResponse when the filename is derived from user-supplied input."
+              },
+              "properties": {
+                "cvssv3_baseScore": 8.8,
+                "cvssv3_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:R/S:U/C:H/I:H/A:H",
+                "precision": "very-high",
+                "security-severity": "8.8",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "HIGH"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2025-57833",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "django: Django SQL injection in FilteredRelation column aliases"
+              },
+              "fullDescription": {
+                "text": "An issue was discovered in Django 4.2 before 4.2.24, 5.1 before 5.1.12, and 5.2 before 5.2.6. FilteredRelation is subject to SQL injection in column aliases, using a suitably crafted dictionary, with dictionary expansion, as the **kwargs passed QuerySet.annotate() or QuerySet.alias()."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2025-57833",
+              "help": {
+                "text": "Vulnerability CVE-2025-57833\nSeverity: HIGH\nPackage: Django\nFixed Version: 4.2.24, 5.1.12, 5.2.6\nLink: [CVE-2025-57833](https://avd.aquasec.com/nvd/cve-2025-57833)\nAn issue was discovered in Django 4.2 before 4.2.24, 5.1 before 5.1.12, and 5.2 before 5.2.6. FilteredRelation is subject to SQL injection in column aliases, using a suitably crafted dictionary, with dictionary expansion, as the **kwargs passed QuerySet.annotate() or QuerySet.alias().",
+                "markdown": "**Vulnerability CVE-2025-57833**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|HIGH|Django|4.2.24, 5.1.12, 5.2.6|[CVE-2025-57833](https://avd.aquasec.com/nvd/cve-2025-57833)|\n\nAn issue was discovered in Django 4.2 before 4.2.24, 5.1 before 5.1.12, and 5.2 before 5.2.6. FilteredRelation is subject to SQL injection in column aliases, using a suitably crafted dictionary, with dictionary expansion, as the **kwargs passed QuerySet.annotate() or QuerySet.alias()."
+              },
+              "properties": {
+                "cvssv3_baseScore": 7.1,
+                "cvssv3_vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:C/C:H/I:L/A:N",
+                "precision": "very-high",
+                "security-severity": "7.1",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "HIGH"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2025-64458",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "Django: Denial-of-service vulnerability in Django on Windows"
+              },
+              "fullDescription": {
+                "text": "An issue was discovered in 5.1 before 5.1.14, 4.2 before 4.2.26, and 5.2 before 5.2.8.\nNFKC normalization in Python is slow on Windows. As a consequence, `django.http.HttpResponseRedirect`, `django.http.HttpResponsePermanentRedirect`, and the shortcut `django.shortcuts.redirect`  were subject to a potential  denial-of-service attack via certain inputs with a very large number of Unicode characters.\nEarlier, unsupported Django series (such as 5.0.x, 4.1.x, and 3.2.x) were not evaluated and may also be affected.\nDjango would like to thank Seokchan Yoon for reporting this issue."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2025-64458",
+              "help": {
+                "text": "Vulnerability CVE-2025-64458\nSeverity: HIGH\nPackage: Django\nFixed Version: 5.2.8, 5.1.14, 4.2.26\nLink: [CVE-2025-64458](https://avd.aquasec.com/nvd/cve-2025-64458)\nAn issue was discovered in 5.1 before 5.1.14, 4.2 before 4.2.26, and 5.2 before 5.2.8.\nNFKC normalization in Python is slow on Windows. As a consequence, `django.http.HttpResponseRedirect`, `django.http.HttpResponsePermanentRedirect`, and the shortcut `django.shortcuts.redirect`  were subject to a potential  denial-of-service attack via certain inputs with a very large number of Unicode characters.\nEarlier, unsupported Django series (such as 5.0.x, 4.1.x, and 3.2.x) were not evaluated and may also be affected.\nDjango would like to thank Seokchan Yoon for reporting this issue.",
+                "markdown": "**Vulnerability CVE-2025-64458**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|HIGH|Django|5.2.8, 5.1.14, 4.2.26|[CVE-2025-64458](https://avd.aquasec.com/nvd/cve-2025-64458)|\n\nAn issue was discovered in 5.1 before 5.1.14, 4.2 before 4.2.26, and 5.2 before 5.2.8.\nNFKC normalization in Python is slow on Windows. As a consequence, `django.http.HttpResponseRedirect`, `django.http.HttpResponsePermanentRedirect`, and the shortcut `django.shortcuts.redirect`  were subject to a potential  denial-of-service attack via certain inputs with a very large number of Unicode characters.\nEarlier, unsupported Django series (such as 5.0.x, 4.1.x, and 3.2.x) were not evaluated and may also be affected.\nDjango would like to thank Seokchan Yoon for reporting this issue."
+              },
+              "properties": {
+                "cvssv3_baseScore": 7.5,
+                "cvssv3_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                "precision": "very-high",
+                "security-severity": "7.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "HIGH"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2024-45231",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "python-django: Potential user email enumeration via response status on password reset"
+              },
+              "fullDescription": {
+                "text": "An issue was discovered in Django v5.1.1, v5.0.9, and v4.2.16. The django.contrib.auth.forms.PasswordResetForm class, when used in a view implementing password reset flows, allows remote attackers to enumerate user e-mail addresses by sending password reset requests and observing the outcome (only when e-mail sending is consistently failing)."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2024-45231",
+              "help": {
+                "text": "Vulnerability CVE-2024-45231\nSeverity: MEDIUM\nPackage: Django\nFixed Version: 5.1.1, 5.0.9, 4.2.16\nLink: [CVE-2024-45231](https://avd.aquasec.com/nvd/cve-2024-45231)\nAn issue was discovered in Django v5.1.1, v5.0.9, and v4.2.16. The django.contrib.auth.forms.PasswordResetForm class, when used in a view implementing password reset flows, allows remote attackers to enumerate user e-mail addresses by sending password reset requests and observing the outcome (only when e-mail sending is consistently failing).",
+                "markdown": "**Vulnerability CVE-2024-45231**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|Django|5.1.1, 5.0.9, 4.2.16|[CVE-2024-45231](https://avd.aquasec.com/nvd/cve-2024-45231)|\n\nAn issue was discovered in Django v5.1.1, v5.0.9, and v4.2.16. The django.contrib.auth.forms.PasswordResetForm class, when used in a view implementing password reset flows, allows remote attackers to enumerate user e-mail addresses by sending password reset requests and observing the outcome (only when e-mail sending is consistently failing)."
+              },
+              "properties": {
+                "cvssv3_baseScore": 3.7,
+                "cvssv3_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:U/C:L/I:N/A:N",
+                "precision": "very-high",
+                "security-severity": "3.7",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2025-48432",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "django: Django Path Injection Vulnerability"
+              },
+              "fullDescription": {
+                "text": "An issue was discovered in Django 5.2 before 5.2.3, 5.1 before 5.1.11, and 4.2 before 4.2.23. Internal HTTP response logging does not escape request.path, which allows remote attackers to potentially manipulate log output via crafted URLs. This may lead to log injection or forgery when logs are viewed in terminals or processed by external systems."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2025-48432",
+              "help": {
+                "text": "Vulnerability CVE-2025-48432\nSeverity: MEDIUM\nPackage: Django\nFixed Version: 5.2.2, 5.1.10, 4.2.22\nLink: [CVE-2025-48432](https://avd.aquasec.com/nvd/cve-2025-48432)\nAn issue was discovered in Django 5.2 before 5.2.3, 5.1 before 5.1.11, and 4.2 before 4.2.23. Internal HTTP response logging does not escape request.path, which allows remote attackers to potentially manipulate log output via crafted URLs. This may lead to log injection or forgery when logs are viewed in terminals or processed by external systems.",
+                "markdown": "**Vulnerability CVE-2025-48432**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|Django|5.2.2, 5.1.10, 4.2.22|[CVE-2025-48432](https://avd.aquasec.com/nvd/cve-2025-48432)|\n\nAn issue was discovered in Django 5.2 before 5.2.3, 5.1 before 5.1.11, and 4.2 before 4.2.23. Internal HTTP response logging does not escape request.path, which allows remote attackers to potentially manipulate log output via crafted URLs. This may lead to log injection or forgery when logs are viewed in terminals or processed by external systems."
+              },
+              "properties": {
+                "cvssv3_baseScore": 4,
+                "cvssv3_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:N/S:C/C:N/I:L/A:N",
+                "precision": "very-high",
+                "security-severity": "4.0",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2023-32681",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "python-requests: Unintended leak of Proxy-Authorization header"
+              },
+              "fullDescription": {
+                "text": "Requests is a HTTP library. Since Requests 2.3.0, Requests has been leaking Proxy-Authorization headers to destination servers when redirected to an HTTPS endpoint. This is a product of how we use `rebuild_proxies` to reattach the `Proxy-Authorization` header to requests. For HTTP connections sent through the tunnel, the proxy will identify the header in the request itself and remove it prior to forwarding to the destination server. However when sent over HTTPS, the `Proxy-Authorization` header must be sent in the CONNECT request as the proxy has no visibility into the tunneled request. This results in Requests forwarding proxy credentials to the destination server unintentionally, allowing a malicious actor to potentially exfiltrate sensitive information. This issue has been patched in version 2.31.0."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2023-32681",
+              "help": {
+                "text": "Vulnerability CVE-2023-32681\nSeverity: MEDIUM\nPackage: requests\nFixed Version: 2.31.0\nLink: [CVE-2023-32681](https://avd.aquasec.com/nvd/cve-2023-32681)\nRequests is a HTTP library. Since Requests 2.3.0, Requests has been leaking Proxy-Authorization headers to destination servers when redirected to an HTTPS endpoint. This is a product of how we use `rebuild_proxies` to reattach the `Proxy-Authorization` header to requests. For HTTP connections sent through the tunnel, the proxy will identify the header in the request itself and remove it prior to forwarding to the destination server. However when sent over HTTPS, the `Proxy-Authorization` header must be sent in the CONNECT request as the proxy has no visibility into the tunneled request. This results in Requests forwarding proxy credentials to the destination server unintentionally, allowing a malicious actor to potentially exfiltrate sensitive information. This issue has been patched in version 2.31.0.",
+                "markdown": "**Vulnerability CVE-2023-32681**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|requests|2.31.0|[CVE-2023-32681](https://avd.aquasec.com/nvd/cve-2023-32681)|\n\nRequests is a HTTP library. Since Requests 2.3.0, Requests has been leaking Proxy-Authorization headers to destination servers when redirected to an HTTPS endpoint. This is a product of how we use `rebuild_proxies` to reattach the `Proxy-Authorization` header to requests. For HTTP connections sent through the tunnel, the proxy will identify the header in the request itself and remove it prior to forwarding to the destination server. However when sent over HTTPS, the `Proxy-Authorization` header must be sent in the CONNECT request as the proxy has no visibility into the tunneled request. This results in Requests forwarding proxy credentials to the destination server unintentionally, allowing a malicious actor to potentially exfiltrate sensitive information. This issue has been patched in version 2.31.0."
+              },
+              "properties": {
+                "cvssv3_baseScore": 6.1,
+                "cvssv3_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:C/C:H/I:N/A:N",
+                "precision": "very-high",
+                "security-severity": "6.1",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2024-35195",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "requests: subsequent requests to the same host ignore cert verification"
+              },
+              "fullDescription": {
+                "text": "Requests is a HTTP library. Prior to 2.32.0, when making requests through a Requests `Session`, if the first request is made with `verify=False` to disable cert verification, all subsequent requests to the same host will continue to ignore cert verification regardless of changes to the value of `verify`. This behavior will continue for the lifecycle of the connection in the connection pool. This vulnerability is fixed in 2.32.0."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2024-35195",
+              "help": {
+                "text": "Vulnerability CVE-2024-35195\nSeverity: MEDIUM\nPackage: requests\nFixed Version: 2.32.0\nLink: [CVE-2024-35195](https://avd.aquasec.com/nvd/cve-2024-35195)\nRequests is a HTTP library. Prior to 2.32.0, when making requests through a Requests `Session`, if the first request is made with `verify=False` to disable cert verification, all subsequent requests to the same host will continue to ignore cert verification regardless of changes to the value of `verify`. This behavior will continue for the lifecycle of the connection in the connection pool. This vulnerability is fixed in 2.32.0.",
+                "markdown": "**Vulnerability CVE-2024-35195**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|requests|2.32.0|[CVE-2024-35195](https://avd.aquasec.com/nvd/cve-2024-35195)|\n\nRequests is a HTTP library. Prior to 2.32.0, when making requests through a Requests `Session`, if the first request is made with `verify=False` to disable cert verification, all subsequent requests to the same host will continue to ignore cert verification regardless of changes to the value of `verify`. This behavior will continue for the lifecycle of the connection in the connection pool. This vulnerability is fixed in 2.32.0."
+              },
+              "properties": {
+                "cvssv3_baseScore": 5.6,
+                "cvssv3_vector": "CVSS:3.1/AV:L/AC:H/PR:H/UI:R/S:U/C:H/I:H/A:N",
+                "precision": "very-high",
+                "security-severity": "5.6",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2024-47081",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "requests: Requests vulnerable to .netrc credentials leak via malicious URLs"
+              },
+              "fullDescription": {
+                "text": "Requests is a HTTP library. Due to a URL parsing issue, Requests releases prior to 2.32.4 may leak .netrc credentials to third parties for specific maliciously-crafted URLs. Users should upgrade to version 2.32.4 to receive a fix. For older versions of Requests, use of the .netrc file can be disabled with `trust_env=False` on one's Requests Session."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2024-47081",
+              "help": {
+                "text": "Vulnerability CVE-2024-47081\nSeverity: MEDIUM\nPackage: requests\nFixed Version: 2.32.4\nLink: [CVE-2024-47081](https://avd.aquasec.com/nvd/cve-2024-47081)\nRequests is a HTTP library. Due to a URL parsing issue, Requests releases prior to 2.32.4 may leak .netrc credentials to third parties for specific maliciously-crafted URLs. Users should upgrade to version 2.32.4 to receive a fix. For older versions of Requests, use of the .netrc file can be disabled with `trust_env=False` on one's Requests Session.",
+                "markdown": "**Vulnerability CVE-2024-47081**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|requests|2.32.4|[CVE-2024-47081](https://avd.aquasec.com/nvd/cve-2024-47081)|\n\nRequests is a HTTP library. Due to a URL parsing issue, Requests releases prior to 2.32.4 may leak .netrc credentials to third parties for specific maliciously-crafted URLs. Users should upgrade to version 2.32.4 to receive a fix. For older versions of Requests, use of the .netrc file can be disabled with `trust_env=False` on one's Requests Session."
+              },
+              "properties": {
+                "cvssv3_baseScore": 5.3,
+                "cvssv3_vector": "CVSS:3.1/AV:N/AC:H/PR:N/UI:R/S:U/C:H/I:N/A:N",
+                "precision": "very-high",
+                "security-severity": "5.3",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2021-33503",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "python-urllib3: ReDoS in the parsing of authority part of URL"
+              },
+              "fullDescription": {
+                "text": "An issue was discovered in urllib3 before 1.26.5. When provided with a URL containing many @ characters in the authority component, the authority regular expression exhibits catastrophic backtracking, causing a denial of service if a URL were passed as a parameter or redirected to via an HTTP redirect."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2021-33503",
+              "help": {
+                "text": "Vulnerability CVE-2021-33503\nSeverity: HIGH\nPackage: urllib3\nFixed Version: 1.26.5\nLink: [CVE-2021-33503](https://avd.aquasec.com/nvd/cve-2021-33503)\nAn issue was discovered in urllib3 before 1.26.5. When provided with a URL containing many @ characters in the authority component, the authority regular expression exhibits catastrophic backtracking, causing a denial of service if a URL were passed as a parameter or redirected to via an HTTP redirect.",
+                "markdown": "**Vulnerability CVE-2021-33503**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|HIGH|urllib3|1.26.5|[CVE-2021-33503](https://avd.aquasec.com/nvd/cve-2021-33503)|\n\nAn issue was discovered in urllib3 before 1.26.5. When provided with a URL containing many @ characters in the authority component, the authority regular expression exhibits catastrophic backtracking, causing a denial of service if a URL were passed as a parameter or redirected to via an HTTP redirect."
+              },
+              "properties": {
+                "cvssv3_baseScore": 7.5,
+                "cvssv3_vector": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H",
+                "precision": "very-high",
+                "security-severity": "7.5",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "HIGH"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2023-43804",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "python-urllib3: Cookie request header isn't stripped during cross-origin redirects"
+              },
+              "fullDescription": {
+                "text": "urllib3 is a user-friendly HTTP client library for Python. urllib3 doesn't treat the `Cookie` HTTP header special or provide any helpers for managing cookies over HTTP, that is the responsibility of the user. However, it is possible for a user to specify a `Cookie` header and unknowingly leak information via HTTP redirects to a different origin if that user doesn't disable redirects explicitly. This issue has been patched in urllib3 version 1.26.17 or 2.0.5."
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2023-43804",
+              "help": {
+                "text": "Vulnerability CVE-2023-43804\nSeverity: HIGH\nPackage: urllib3\nFixed Version: 2.0.6, 1.26.17\nLink: [CVE-2023-43804](https://avd.aquasec.com/nvd/cve-2023-43804)\nurllib3 is a user-friendly HTTP client library for Python. urllib3 doesn't treat the `Cookie` HTTP header special or provide any helpers for managing cookies over HTTP, that is the responsibility of the user. However, it is possible for a user to specify a `Cookie` header and unknowingly leak information via HTTP redirects to a different origin if that user doesn't disable redirects explicitly. This issue has been patched in urllib3 version 1.26.17 or 2.0.5.",
+                "markdown": "**Vulnerability CVE-2023-43804**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|HIGH|urllib3|2.0.6, 1.26.17|[CVE-2023-43804](https://avd.aquasec.com/nvd/cve-2023-43804)|\n\nurllib3 is a user-friendly HTTP client library for Python. urllib3 doesn't treat the `Cookie` HTTP header special or provide any helpers for managing cookies over HTTP, that is the responsibility of the user. However, it is possible for a user to specify a `Cookie` header and unknowingly leak information via HTTP redirects to a different origin if that user doesn't disable redirects explicitly. This issue has been patched in urllib3 version 1.26.17 or 2.0.5."
+              },
+              "properties": {
+                "cvssv3_baseScore": 5.9,
+                "cvssv3_vector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:H/I:H/A:N",
+                "precision": "very-high",
+                "security-severity": "5.9",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "HIGH"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2023-45803",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "urllib3: Request body not stripped after redirect from 303 status changes request method to GET"
+              },
+              "fullDescription": {
+                "text": "urllib3 is a user-friendly HTTP client library for Python. urllib3 previously wouldn't remove the HTTP request body when an HTTP redirect response using status 301, 302, or 303 after the request had its method changed from one that could accept a request body (like `POST`) to `GET` as is required by HTTP RFCs. Although this behavior is not specified in the section for redirects, it can be inferred by piecing together information from different sections and we have observed the behavior in other major HTTP client implementations like curl and web browsers. Because the vulnerability requires a previously trusted service to become compromised in order to have an impact on confidentiality we believe the exploitability of this vulnerability is low. Additionally, many users aren't putting sensitive data in HTTP request bodies, if this is the case then this vulnerability isn't exploitable. Both of the following conditions must be true to be affected by this vulnerability: 1. Using urllib3 and submitting sensitive information in the HTTP request body (such as form data or JSON) and 2. The origin service is compromised and starts redirecting using 301, 302, or 303 to a malicious peer or the redirected-to service becomes compromised. This issue has been addressed in versions 1.26.18 and 2.0.7 and users are advised to update to resolve this issue. Users unable to update should disable redirects for services that aren't expecting to respond with redirects with `redirects=False` and disable automatic redirects with `redirects=False` and handle 301, 302, and 303 redirects manually by stripping the HTTP request body."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2023-45803",
+              "help": {
+                "text": "Vulnerability CVE-2023-45803\nSeverity: MEDIUM\nPackage: urllib3\nFixed Version: 2.0.7, 1.26.18\nLink: [CVE-2023-45803](https://avd.aquasec.com/nvd/cve-2023-45803)\nurllib3 is a user-friendly HTTP client library for Python. urllib3 previously wouldn't remove the HTTP request body when an HTTP redirect response using status 301, 302, or 303 after the request had its method changed from one that could accept a request body (like `POST`) to `GET` as is required by HTTP RFCs. Although this behavior is not specified in the section for redirects, it can be inferred by piecing together information from different sections and we have observed the behavior in other major HTTP client implementations like curl and web browsers. Because the vulnerability requires a previously trusted service to become compromised in order to have an impact on confidentiality we believe the exploitability of this vulnerability is low. Additionally, many users aren't putting sensitive data in HTTP request bodies, if this is the case then this vulnerability isn't exploitable. Both of the following conditions must be true to be affected by this vulnerability: 1. Using urllib3 and submitting sensitive information in the HTTP request body (such as form data or JSON) and 2. The origin service is compromised and starts redirecting using 301, 302, or 303 to a malicious peer or the redirected-to service becomes compromised. This issue has been addressed in versions 1.26.18 and 2.0.7 and users are advised to update to resolve this issue. Users unable to update should disable redirects for services that aren't expecting to respond with redirects with `redirects=False` and disable automatic redirects with `redirects=False` and handle 301, 302, and 303 redirects manually by stripping the HTTP request body.",
+                "markdown": "**Vulnerability CVE-2023-45803**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|urllib3|2.0.7, 1.26.18|[CVE-2023-45803](https://avd.aquasec.com/nvd/cve-2023-45803)|\n\nurllib3 is a user-friendly HTTP client library for Python. urllib3 previously wouldn't remove the HTTP request body when an HTTP redirect response using status 301, 302, or 303 after the request had its method changed from one that could accept a request body (like `POST`) to `GET` as is required by HTTP RFCs. Although this behavior is not specified in the section for redirects, it can be inferred by piecing together information from different sections and we have observed the behavior in other major HTTP client implementations like curl and web browsers. Because the vulnerability requires a previously trusted service to become compromised in order to have an impact on confidentiality we believe the exploitability of this vulnerability is low. Additionally, many users aren't putting sensitive data in HTTP request bodies, if this is the case then this vulnerability isn't exploitable. Both of the following conditions must be true to be affected by this vulnerability: 1. Using urllib3 and submitting sensitive information in the HTTP request body (such as form data or JSON) and 2. The origin service is compromised and starts redirecting using 301, 302, or 303 to a malicious peer or the redirected-to service becomes compromised. This issue has been addressed in versions 1.26.18 and 2.0.7 and users are advised to update to resolve this issue. Users unable to update should disable redirects for services that aren't expecting to respond with redirects with `redirects=False` and disable automatic redirects with `redirects=False` and handle 301, 302, and 303 redirects manually by stripping the HTTP request body."
+              },
+              "properties": {
+                "cvssv3_baseScore": 4.2,
+                "cvssv3_vector": "CVSS:3.1/AV:A/AC:H/PR:H/UI:N/S:U/C:H/I:N/A:N",
+                "precision": "very-high",
+                "security-severity": "4.2",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2024-37891",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "urllib3: proxy-authorization request header is not stripped during cross-origin redirects"
+              },
+              "fullDescription": {
+                "text": " urllib3 is a user-friendly HTTP client library for Python. When using urllib3's proxy support with `ProxyManager`, the `Proxy-Authorization` header is only sent to the configured proxy, as expected. However, when sending HTTP requests *without* using urllib3's proxy support, it's possible to accidentally configure the `Proxy-Authorization` header even though it won't have any effect as the request is not using a forwarding proxy or a tunneling proxy. In those cases, urllib3 doesn't treat the `Proxy-Authorization` HTTP header as one carrying authentication material and thus doesn't strip the header on cross-origin redirects. Because this is a highly unlikely scenario, we believe the severity of this vulnerability is low for almost all users. Out of an abundance of caution urllib3 will automatically strip the `Proxy-Authorization` header during cross-origin redirects to avoid the small chance that users are doing this on accident. Users should use urllib3's proxy support or disable automatic redirects to achieve safe processing of the `Proxy-Authorization` header, but we still decided to strip the header by default in order to further protect users who aren't using the correct approach. We believe the number of usages affected by this advisory is low. It requires all of the following to be true to be exploited: 1. Setting the `Proxy-Authorization` header without using urllib3's built-in proxy support. 2. Not disabling HTTP redirects. 3. Either not using an HTTPS origin server or for the proxy or target origin to redirect to a malicious origin. Users are advised to update to either version 1.26.19 or version 2.2.2. Users unable to upgrade may use the `Proxy-Authorization` header with urllib3's `ProxyManager`, disable HTTP redirects using `redirects=False` when sending requests, or not user the `Proxy-Authorization` header as mitigations."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2024-37891",
+              "help": {
+                "text": "Vulnerability CVE-2024-37891\nSeverity: MEDIUM\nPackage: urllib3\nFixed Version: 1.26.19, 2.2.2\nLink: [CVE-2024-37891](https://avd.aquasec.com/nvd/cve-2024-37891)\n urllib3 is a user-friendly HTTP client library for Python. When using urllib3's proxy support with `ProxyManager`, the `Proxy-Authorization` header is only sent to the configured proxy, as expected. However, when sending HTTP requests *without* using urllib3's proxy support, it's possible to accidentally configure the `Proxy-Authorization` header even though it won't have any effect as the request is not using a forwarding proxy or a tunneling proxy. In those cases, urllib3 doesn't treat the `Proxy-Authorization` HTTP header as one carrying authentication material and thus doesn't strip the header on cross-origin redirects. Because this is a highly unlikely scenario, we believe the severity of this vulnerability is low for almost all users. Out of an abundance of caution urllib3 will automatically strip the `Proxy-Authorization` header during cross-origin redirects to avoid the small chance that users are doing this on accident. Users should use urllib3's proxy support or disable automatic redirects to achieve safe processing of the `Proxy-Authorization` header, but we still decided to strip the header by default in order to further protect users who aren't using the correct approach. We believe the number of usages affected by this advisory is low. It requires all of the following to be true to be exploited: 1. Setting the `Proxy-Authorization` header without using urllib3's built-in proxy support. 2. Not disabling HTTP redirects. 3. Either not using an HTTPS origin server or for the proxy or target origin to redirect to a malicious origin. Users are advised to update to either version 1.26.19 or version 2.2.2. Users unable to upgrade may use the `Proxy-Authorization` header with urllib3's `ProxyManager`, disable HTTP redirects using `redirects=False` when sending requests, or not user the `Proxy-Authorization` header as mitigations.",
+                "markdown": "**Vulnerability CVE-2024-37891**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|urllib3|1.26.19, 2.2.2|[CVE-2024-37891](https://avd.aquasec.com/nvd/cve-2024-37891)|\n\n urllib3 is a user-friendly HTTP client library for Python. When using urllib3's proxy support with `ProxyManager`, the `Proxy-Authorization` header is only sent to the configured proxy, as expected. However, when sending HTTP requests *without* using urllib3's proxy support, it's possible to accidentally configure the `Proxy-Authorization` header even though it won't have any effect as the request is not using a forwarding proxy or a tunneling proxy. In those cases, urllib3 doesn't treat the `Proxy-Authorization` HTTP header as one carrying authentication material and thus doesn't strip the header on cross-origin redirects. Because this is a highly unlikely scenario, we believe the severity of this vulnerability is low for almost all users. Out of an abundance of caution urllib3 will automatically strip the `Proxy-Authorization` header during cross-origin redirects to avoid the small chance that users are doing this on accident. Users should use urllib3's proxy support or disable automatic redirects to achieve safe processing of the `Proxy-Authorization` header, but we still decided to strip the header by default in order to further protect users who aren't using the correct approach. We believe the number of usages affected by this advisory is low. It requires all of the following to be true to be exploited: 1. Setting the `Proxy-Authorization` header without using urllib3's built-in proxy support. 2. Not disabling HTTP redirects. 3. Either not using an HTTPS origin server or for the proxy or target origin to redirect to a malicious origin. Users are advised to update to either version 1.26.19 or version 2.2.2. Users unable to upgrade may use the `Proxy-Authorization` header with urllib3's `ProxyManager`, disable HTTP redirects using `redirects=False` when sending requests, or not user the `Proxy-Authorization` header as mitigations."
+              },
+              "properties": {
+                "cvssv3_baseScore": 4.4,
+                "cvssv3_vector": "CVSS:3.1/AV:N/AC:H/PR:H/UI:N/S:U/C:H/I:N/A:N",
+                "precision": "very-high",
+                "security-severity": "4.4",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            },
+            {
+              "id": "CVE-2025-50181",
+              "name": "LanguageSpecificPackageVulnerability",
+              "shortDescription": {
+                "text": "urllib3: urllib3 redirects are not disabled when retries are disabled on PoolManager instantiation"
+              },
+              "fullDescription": {
+                "text": "urllib3 is a user-friendly HTTP client library for Python. Prior to 2.5.0, it is possible to disable redirects for all requests by instantiating a PoolManager and specifying retries in a way that disable redirects. By default, requests and botocore users are not affected. An application attempting to mitigate SSRF or open redirect vulnerabilities by disabling redirects at the PoolManager level will remain vulnerable. This issue has been patched in version 2.5.0."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "helpUri": "https://avd.aquasec.com/nvd/cve-2025-50181",
+              "help": {
+                "text": "Vulnerability CVE-2025-50181\nSeverity: MEDIUM\nPackage: urllib3\nFixed Version: 2.5.0\nLink: [CVE-2025-50181](https://avd.aquasec.com/nvd/cve-2025-50181)\nurllib3 is a user-friendly HTTP client library for Python. Prior to 2.5.0, it is possible to disable redirects for all requests by instantiating a PoolManager and specifying retries in a way that disable redirects. By default, requests and botocore users are not affected. An application attempting to mitigate SSRF or open redirect vulnerabilities by disabling redirects at the PoolManager level will remain vulnerable. This issue has been patched in version 2.5.0.",
+                "markdown": "**Vulnerability CVE-2025-50181**\n| Severity | Package | Fixed Version | Link |\n| --- | --- | --- | --- |\n|MEDIUM|urllib3|2.5.0|[CVE-2025-50181](https://avd.aquasec.com/nvd/cve-2025-50181)|\n\nurllib3 is a user-friendly HTTP client library for Python. Prior to 2.5.0, it is possible to disable redirects for all requests by instantiating a PoolManager and specifying retries in a way that disable redirects. By default, requests and botocore users are not affected. An application attempting to mitigate SSRF or open redirect vulnerabilities by disabling redirects at the PoolManager level will remain vulnerable. This issue has been patched in version 2.5.0."
+              },
+              "properties": {
+                "cvssv3_baseScore": 5.3,
+                "cvssv3_vector": "CVSS:3.1/AV:N/AC:H/PR:L/UI:N/S:U/C:H/I:N/A:N",
+                "precision": "very-high",
+                "security-severity": "5.3",
+                "tags": [
+                  "vulnerability",
+                  "security",
+                  "MEDIUM"
+                ]
+              }
+            }
+          ],
+          "version": "0.67.2"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "CVE-2025-64459",
+          "ruleIndex": 0,
+          "level": "error",
+          "message": {
+            "text": "Package: Django\nInstalled Version: 3.1.14\nVulnerability CVE-2025-64459\nSeverity: CRITICAL\nFixed Version: 5.2.8, 5.1.14, 4.2.26\nLink: [CVE-2025-64459](https://avd.aquasec.com/nvd/cve-2025-64459)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 2,
+                  "startColumn": 1,
+                  "endLine": 2,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "requirements.txt: Django@3.1.14"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2022-36359",
+          "ruleIndex": 1,
+          "level": "error",
+          "message": {
+            "text": "Package: Django\nInstalled Version: 3.1.14\nVulnerability CVE-2022-36359\nSeverity: HIGH\nFixed Version: 3.2.15, 4.0.7\nLink: [CVE-2022-36359](https://avd.aquasec.com/nvd/cve-2022-36359)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 2,
+                  "startColumn": 1,
+                  "endLine": 2,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "requirements.txt: Django@3.1.14"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2025-57833",
+          "ruleIndex": 2,
+          "level": "error",
+          "message": {
+            "text": "Package: Django\nInstalled Version: 3.1.14\nVulnerability CVE-2025-57833\nSeverity: HIGH\nFixed Version: 4.2.24, 5.1.12, 5.2.6\nLink: [CVE-2025-57833](https://avd.aquasec.com/nvd/cve-2025-57833)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 2,
+                  "startColumn": 1,
+                  "endLine": 2,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "requirements.txt: Django@3.1.14"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2025-64458",
+          "ruleIndex": 3,
+          "level": "error",
+          "message": {
+            "text": "Package: Django\nInstalled Version: 3.1.14\nVulnerability CVE-2025-64458\nSeverity: HIGH\nFixed Version: 5.2.8, 5.1.14, 4.2.26\nLink: [CVE-2025-64458](https://avd.aquasec.com/nvd/cve-2025-64458)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 2,
+                  "startColumn": 1,
+                  "endLine": 2,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "requirements.txt: Django@3.1.14"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2024-45231",
+          "ruleIndex": 4,
+          "level": "warning",
+          "message": {
+            "text": "Package: Django\nInstalled Version: 3.1.14\nVulnerability CVE-2024-45231\nSeverity: MEDIUM\nFixed Version: 5.1.1, 5.0.9, 4.2.16\nLink: [CVE-2024-45231](https://avd.aquasec.com/nvd/cve-2024-45231)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 2,
+                  "startColumn": 1,
+                  "endLine": 2,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "requirements.txt: Django@3.1.14"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2025-48432",
+          "ruleIndex": 5,
+          "level": "warning",
+          "message": {
+            "text": "Package: Django\nInstalled Version: 3.1.14\nVulnerability CVE-2025-48432\nSeverity: MEDIUM\nFixed Version: 5.2.2, 5.1.10, 4.2.22\nLink: [CVE-2025-48432](https://avd.aquasec.com/nvd/cve-2025-48432)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 2,
+                  "startColumn": 1,
+                  "endLine": 2,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "requirements.txt: Django@3.1.14"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2023-32681",
+          "ruleIndex": 6,
+          "level": "warning",
+          "message": {
+            "text": "Package: requests\nInstalled Version: 2.25.1\nVulnerability CVE-2023-32681\nSeverity: MEDIUM\nFixed Version: 2.31.0\nLink: [CVE-2023-32681](https://avd.aquasec.com/nvd/cve-2023-32681)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "requirements.txt: requests@2.25.1"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2024-35195",
+          "ruleIndex": 7,
+          "level": "warning",
+          "message": {
+            "text": "Package: requests\nInstalled Version: 2.25.1\nVulnerability CVE-2024-35195\nSeverity: MEDIUM\nFixed Version: 2.32.0\nLink: [CVE-2024-35195](https://avd.aquasec.com/nvd/cve-2024-35195)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "requirements.txt: requests@2.25.1"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2024-47081",
+          "ruleIndex": 8,
+          "level": "warning",
+          "message": {
+            "text": "Package: requests\nInstalled Version: 2.25.1\nVulnerability CVE-2024-47081\nSeverity: MEDIUM\nFixed Version: 2.32.4\nLink: [CVE-2024-47081](https://avd.aquasec.com/nvd/cve-2024-47081)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 1,
+                  "startColumn": 1,
+                  "endLine": 1,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "requirements.txt: requests@2.25.1"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2021-33503",
+          "ruleIndex": 9,
+          "level": "error",
+          "message": {
+            "text": "Package: urllib3\nInstalled Version: 1.26.4\nVulnerability CVE-2021-33503\nSeverity: HIGH\nFixed Version: 1.26.5\nLink: [CVE-2021-33503](https://avd.aquasec.com/nvd/cve-2021-33503)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 3,
+                  "startColumn": 1,
+                  "endLine": 3,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "requirements.txt: urllib3@1.26.4"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2023-43804",
+          "ruleIndex": 10,
+          "level": "error",
+          "message": {
+            "text": "Package: urllib3\nInstalled Version: 1.26.4\nVulnerability CVE-2023-43804\nSeverity: HIGH\nFixed Version: 2.0.6, 1.26.17\nLink: [CVE-2023-43804](https://avd.aquasec.com/nvd/cve-2023-43804)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 3,
+                  "startColumn": 1,
+                  "endLine": 3,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "requirements.txt: urllib3@1.26.4"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2023-45803",
+          "ruleIndex": 11,
+          "level": "warning",
+          "message": {
+            "text": "Package: urllib3\nInstalled Version: 1.26.4\nVulnerability CVE-2023-45803\nSeverity: MEDIUM\nFixed Version: 2.0.7, 1.26.18\nLink: [CVE-2023-45803](https://avd.aquasec.com/nvd/cve-2023-45803)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 3,
+                  "startColumn": 1,
+                  "endLine": 3,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "requirements.txt: urllib3@1.26.4"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2024-37891",
+          "ruleIndex": 12,
+          "level": "warning",
+          "message": {
+            "text": "Package: urllib3\nInstalled Version: 1.26.4\nVulnerability CVE-2024-37891\nSeverity: MEDIUM\nFixed Version: 1.26.19, 2.2.2\nLink: [CVE-2024-37891](https://avd.aquasec.com/nvd/cve-2024-37891)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 3,
+                  "startColumn": 1,
+                  "endLine": 3,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "requirements.txt: urllib3@1.26.4"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2025-50181",
+          "ruleIndex": 13,
+          "level": "warning",
+          "message": {
+            "text": "Package: urllib3\nInstalled Version: 1.26.4\nVulnerability CVE-2025-50181\nSeverity: MEDIUM\nFixed Version: 2.5.0\nLink: [CVE-2025-50181](https://avd.aquasec.com/nvd/cve-2025-50181)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "requirements.txt",
+                  "uriBaseId": "ROOTPATH"
+                },
+                "region": {
+                  "startLine": 3,
+                  "startColumn": 1,
+                  "endLine": 3,
+                  "endColumn": 1
+                }
+              },
+              "message": {
+                "text": "requirements.txt: urllib3@1.26.4"
+              }
+            }
+          ]
+        }
+      ],
+      "columnKind": "utf16CodeUnits",
+      "originalUriBaseIds": {
+        "ROOTPATH": {
+          "uri": "file:///repo/"
+        }
+      }
+    }
+  ]
+}

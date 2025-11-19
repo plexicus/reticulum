@@ -13,7 +13,7 @@ import time
 from typing import Dict, Any, Optional, List
 from datetime import datetime
 
-from .docker_runner import DockerRunner
+from .hybrid_docker_runner import HybridDockerRunner
 from .findings_mapper import FindingsMapper
 from .enhanced_prioritizer import EnhancedPrioritizer
 from .main import ExposureScanner
@@ -39,12 +39,13 @@ class SecurityScanner:
 
         # Initialize components with configuration
         docker_config = self.config.get_docker_config()
-        self.docker_runner = DockerRunner(
-            timeout=docker_config.get("timeout"),
-            max_retries=docker_config.get("max_retries"),
-            memory_limit=docker_config.get("memory_limit"),
-            cpu_limit=docker_config.get("cpu_limit"),
-        )
+        self.docker_runner = HybridDockerRunner()
+
+        # Configure the underlying Docker runner with settings
+        self.docker_runner.docker_runner.timeout = docker_config.get("timeout")
+        self.docker_runner.docker_runner.max_retries = docker_config.get("max_retries")
+        self.docker_runner.docker_runner.memory_limit = docker_config.get("memory_limit")
+        self.docker_runner.docker_runner.cpu_limit = docker_config.get("cpu_limit")
 
         # Update Docker runner with tool-specific configurations
         self._configure_tools()
