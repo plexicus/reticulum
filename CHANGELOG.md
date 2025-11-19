@@ -1,5 +1,8 @@
 ## v0.6.10 (2025-11-19)
 
+### Added
+- **Added**: New file: `assets/images/reticulum-logo.png`
+
 ## v0.6.9 (2025-11-18)
 
 ### Feat
@@ -237,8 +240,5 @@
 
 - resolve linting and formatting issues
 - install project in CI to make tests work
-## [Unreleased]
-
-### Added
-- **Added**: New file: `assets/images/reticulum-logo.png`\n
+## [Unreleased]\n
 
