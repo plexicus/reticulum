@@ -22,39 +22,43 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
       with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-      timeout-minutes: 10
-    
-    - name: Load cached venv
-      id: cached-poetry-dependencies
-      uses: actions/cache@v3
-      with:
-        path: .venv
-        key: venv-${{ runner.os }}-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('**/poetry.lock') }}
-    
+        version: "latest"
+        enable-cache: true
+
+    - name: Create virtual environment
+      run: uv venv
+
     - name: Install dependencies
-      run: poetry install --no-interaction
+      run: |
+        source .venv/bin/activate
+        uv pip install -e ".[dev]"
       timeout-minutes: 15
 
     - name: Generate test repository
-      run: poetry run python scripts/create-test-repo.py
+      run: |
+        source .venv/bin/activate
+        python scripts/create-test-repo.py
       timeout-minutes: 5
 
     - name: Run tests
-      run: poetry run pytest
+      run: |
+        source .venv/bin/activate
+        pytest
       timeout-minutes: 10
-    
+
     - name: Lint with ruff
-      run: poetry run ruff check src/
+      run: |
+        source .venv/bin/activate
+        ruff check src/
       timeout-minutes: 5
-    
+
     - name: Format check with black
-      run: poetry run black --check src/
+      run: |
+        source .venv/bin/activate
+        black --check src/
       timeout-minutes: 5
 
   create-release:
@@ -130,20 +134,16 @@ jobs:
       with:
         python-version: "3.9"
     
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
       with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-      timeout-minutes: 10
-    
-    - name: Install dependencies
-      run: poetry install --no-interaction
-      timeout-minutes: 15
-    
+        version: "latest"
+
+    - name: Install build tools
+      run: uv pip install --system build
+
     - name: Build package
-      run: poetry build
+      run: python -m build
       timeout-minutes: 10
     
     - name: Publish to PyPI

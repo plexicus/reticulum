@@ -1,11 +1,11 @@
-[tool.poetry]
+[project]
 name = "reticulum"
 version = "0.6.11"
 description = "Exposure Scanner for Cloud Infrastructure Security Analysis"
-authors = ["Jose Palanco <jose.palanco@plexicus.ai>"]
-license = "MIT"
+authors = [{name = "Jose Palanco", email = "jose.palanco@plexicus.ai"}]
+license = {text = "MIT"}
 readme = "README.md"
-packages = [{include = "reticulum", from = "src"}]
+requires-python = ">=3.9"
 keywords = ["security", "kubernetes", "helm", "devsecops", "cloud", "exposure", "analysis"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -23,28 +23,30 @@ classifiers = [
     "Topic :: System :: Systems Administration",
 ]
 
-[tool.poetry.dependencies]
-python = "^3.9"
-pyyaml = "^6.0"
-docker = "^6.1"
+dependencies = [
+    "pyyaml>=6.0",
+    "docker>=6.1",
+]
 
-[tool.poetry.group.dev.dependencies]
-pytest = "^7.0"
-pytest-cov = "^4.1"
-ruff = "^0.1.0"
-black = "^24.3.0"
-commitizen = "^4.10.0"
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.1",
+    "ruff>=0.1.0",
+    "black>=24.3.0",
+    "commitizen>=4.10.0",
+]
 
-[tool.poetry.scripts]
+[project.scripts]
 reticulum = "reticulum.cli:main"
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.poetry.urls]
-"Homepage" = "https://github.com/plexicus/reticulum"
-"Repository" = "https://github.com/plexicus/reticulum"
+[project.urls]
+Homepage = "https://github.com/plexicus/reticulum"
+Repository = "https://github.com/plexicus/reticulum"
 
 [tool.commitizen]
 name = "cz_conventional_commits"

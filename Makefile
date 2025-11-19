@@ -1,18 +1,16 @@
 # Makefile for Reticulum project
 # Provides convenient targets for development and release
-# Supports multiple environment managers: Poetry (preferred), pip+virtualenv, uv
+# Uses uv for dependency management
 
 .PHONY: help check test lint format clean release-strict advanced-tests test-all dev-setup ci-test ci-lint ci-format-check
 
-# Environment detection
-PYTHON_RUN := $(shell if command -v poetry >/dev/null 2>&1; then echo "poetry run"; elif [ -d ".venv" ]; then echo ".venv/bin/python -m"; else echo "python -m"; fi)
-PYTHON_EXEC := $(shell if command -v poetry >/dev/null 2>&1; then echo "poetry run python"; elif [ -d ".venv" ]; then echo ".venv/bin/python"; else echo "python"; fi)
+# uv only - no environment detection needed
+PYTHON_RUN := .venv/bin/python -m
+PYTHON_EXEC := .venv/bin/python
 
 help: ## Show this help message
 	@echo "Reticulum - Development and Release Management"
 	@echo "=============================================="
-	@echo ""
-	@echo "Environment: $(PYTHON_RUN)"
 	@echo ""
 	@echo "Available targets:"
 	@echo ""
@@ -81,20 +79,19 @@ test-all: ## Run all tests including advanced scenarios
 
 # Development helpers
 dev-setup: ## Set up development environment
-	@echo "🔧 Setting up development environment..."
-	@if command -v poetry >/dev/null 2>&1; then \
-		poetry install; \
-		@echo "✅ Development environment ready (Poetry)"; \
-	elif command -v uv >/dev/null 2>&1; then \
-		uv pip install -e .; \
-		@echo "✅ Development environment ready (uv)"; \
-	else \
-		python -m venv .venv && .venv/bin/python -m pip install -e .; \
-		@echo "✅ Development environment ready (pip+virtualenv)"; \
+	@echo "🔧 Setting up development environment with uv..."
+	@if ! command -v uv >/dev/null 2>&1; then \
+		echo "❌ uv not found. Installing uv..."; \
+		curl -LsSf https://astral.sh/uv/install.sh | sh; \
 	fi
-	@echo "🔧 Generating advanced test repository..."
+	@echo "📦 Creating virtual environment..."
+	@uv venv
+	@echo "📦 Installing dependencies..."
+	@uv pip install -e ".[dev]"
+	@echo "✅ Development environment ready"
+	@echo "🔧 Generating test repository..."
 	@$(PYTHON_EXEC) scripts/create-test-repo.py
-	@echo "✅ Advanced test repository generated"
+	@echo "✅ Test repository generated"
 
 # CI/CD helpers
 ci-test: ## Run tests for CI environment

@@ -4,51 +4,36 @@ This guide provides comprehensive instructions for developers working on the Ret
 
 ## Quick Start
 
-### Initial Setup (Multiple Options)
+### Initial Setup
 
-Reticulum supports multiple Python environment managers:
-
-**Option 1: Poetry (Recommended)**
+**Install uv:**
 ```bash
-# Install Poetry if not available
-curl -sSL https://install.python-poetry.org | python3 -
-
-# Install dependencies
-poetry install
-
-# Set up development environment
-make dev-setup
-```
-
-**Option 2: Virtual Environment + pip**
-```bash
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate
-
-# Install dependencies
-pip install -e .
-
-# Install development dependencies
-pip install -r requirements-dev.txt
-```
-
-**Option 3: uv (Fast Alternative)**
-```bash
-# Install uv if not available
 curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Install dependencies
-uv pip install -e .
-
-# Install development dependencies
-uv pip install -r requirements-dev.txt
 ```
 
-**Environment Detection**: The Makefile and scripts automatically detect your environment and use the appropriate commands.
+**Set up development environment:**
+```bash
+# Clone repository
+git clone https://github.com/plexicus/reticulum.git
+cd reticulum
+
+# Create virtual environment and install dependencies
+uv venv
+source .venv/bin/activate
+uv pip install -e ".[dev]"
+
+# Generate test repository
+python scripts/create-test-repo.py
+```
 
 ### Daily Development Workflow
 
+**Always activate the virtual environment first:**
+```bash
+source .venv/bin/activate
+```
+
+**Then run development commands:**
 ```bash
 # Run development quality checks (recommended before commits)
 make dev-check
@@ -190,48 +175,17 @@ The release script (`scripts/release.sh`) performs:
 If the automated release fails, you can manually:
 
 ```bash
-# 1. Set version in pyproject.toml
-poetry version 0.5.1
+# 1. Activate virtual environment
+source .venv/bin/activate
 
-# 2. Synchronize all version files
-make release-sync
+# 2. Bump version with commitizen
+python -m commitizen bump --increment PATCH
 
 # 3. Create and push tag
 git tag v0.5.1
 git push origin v0.5.1
 ```
 
-## Environment-Agnostic Development
-
-### Supported Environment Managers
-
-Reticulum now supports multiple Python environment managers with automatic detection:
-
-- **Poetry** (Recommended): Modern dependency management with lock files
-- **Virtual Environment + pip**: Standard Python approach
-- **uv**: Fast emerging package manager
-- **System Python**: Direct execution (not recommended for development)
-
-### Environment Detection
-
-The Makefile and scripts automatically detect your environment:
-
-```bash
-# Check detected environment
-make help  # Shows current environment
-
-# All commands work with any environment
-make dev-check    # Uses detected environment
-make test         # Uses detected environment
-make advanced-tests  # Uses detected environment
-```
-
-### Requirements Files
-
-For users who prefer pip-based installation:
-
-- `requirements.txt` - Production dependencies only
-- `requirements-dev.txt` - All development dependencies
 
 ## Development Best Practices
 
@@ -304,7 +258,6 @@ git stash
 make release-sync
 
 # Verify synchronization
-poetry version
 grep -r "__version__" src/
 ```
 
@@ -316,22 +269,21 @@ grep -r "__version__" src/
 # - pytest-cov for coverage
 # - Additional test dependencies
 
-# Add missing dependencies and update lock file
-poetry add --group dev pytest-cov
-poetry lock
+# Add missing dependencies
+uv pip install pytest-cov
 ```
 
 #### Tests Fail After Changes
 
 ```bash
 # Run specific failing test
-make test  # Uses detected environment
+make test
 
 # Run with detailed output
-$(python -m) pytest -xvs  # Stop on first failure, verbose, no capture
+pytest -xvs  # Stop on first failure, verbose, no capture
 
 # Check coverage
-$(python -m) pytest --cov=src/reticulum --cov-report=html
+pytest --cov=src/reticulum --cov-report=html
 ```
 
 #### Advanced Tests Skipped Due to Missing Test Repository
@@ -364,7 +316,7 @@ PYTHON_RUN="python -m" make test  # Use system Python
 PYTHON_RUN=".venv/bin/python -m" make test  # Use virtual environment
 
 # Install missing dependencies
-make dev-setup  # Auto-detects and installs
+make dev-setup  # Uses uv to install dependencies
 ```
 
 ### Debugging Release Script
@@ -377,7 +329,7 @@ bash -x scripts/release.sh minor
 
 # Check individual steps manually
 make dev-check
-poetry version minor
+python -m commitizen bump --increment MINOR
 make release-sync
 ```
 
@@ -385,7 +337,7 @@ make release-sync
 
 ### Key Files for Version Management
 
-- `pyproject.toml` - Primary version source for Poetry
+- `pyproject.toml` - Primary version source
 - `src/reticulum/__init__.py` - Python package version
 - `src/reticulum/cli.py` - CLI version display
 - `README.md` - Documentation version references

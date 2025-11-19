@@ -46,19 +46,25 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
       with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-    
+        version: "latest"
+        enable-cache: true
+
+    - name: Create virtual environment
+      run: uv venv
+
     - name: Install dependencies
-      run: poetry install --no-interaction
+      run: |
+        source .venv/bin/activate
+        uv pip install -e ".[dev]"
       timeout-minutes: 5
 
     - name: Generate test repository
-      run: poetry run python scripts/create-test-repo.py
+      run: |
+        source .venv/bin/activate
+        python scripts/create-test-repo.py
       timeout-minutes: 5
 
     - name: Verify advanced test repository
@@ -71,11 +77,15 @@ jobs:
         ls tests/advanced-test-repo/dockerfiles/ | wc -l
     
     - name: Run basic tests
-      run: poetry run pytest tests/test_exposure_scanner.py -v
+      run: |
+        source .venv/bin/activate
+        pytest tests/test_exposure_scanner.py -v
       timeout-minutes: 10
     
     - name: Run advanced test scenarios
-      run: poetry run pytest tests/test_advanced_scenarios.py -v
+      run: |
+        source .venv/bin/activate
+        pytest tests/test_advanced_scenarios.py -v
       timeout-minutes: 15
     
     - name: Run advanced test script
@@ -87,7 +97,8 @@ jobs:
     
     - name: Generate test coverage report
       run: |
-        poetry run pytest tests/ --cov=src/reticulum --cov-report=xml --cov-report=html
+        source .venv/bin/activate
+        pytest tests/ --cov=src/reticulum --cov-report=xml --cov-report=html
       timeout-minutes: 10
     
     - name: Upload coverage reports
@@ -141,27 +152,32 @@ jobs:
       with:
         python-version: "3.11"
     
-    - name: Install Poetry
-      uses: snok/install-poetry@v1
+    - name: Install uv
+      uses: astral-sh/setup-uv@v3
       with:
-        version: latest
-        virtualenvs-create: true
-        virtualenvs-in-project: true
-    
+        version: "latest"
+        enable-cache: true
+
+    - name: Create virtual environment
+      run: uv venv
+
     - name: Install dependencies
-      run: poetry install --no-interaction
+      run: |
+        source .venv/bin/activate
+        uv pip install -e ".[dev]"
       timeout-minutes: 5
     
     - name: Run performance benchmarks
       run: |
+        source .venv/bin/activate
         echo "⚡ Running performance benchmarks..."
-        poetry run pytest tests/test_advanced_scenarios.py::TestAdvancedScenarios::test_performance_benchmarks -v
-        
+        pytest tests/test_advanced_scenarios.py::TestAdvancedScenarios::test_performance_benchmarks -v
+
         # Run multiple scans to measure consistency
         echo "🔄 Running multiple scans for performance analysis..."
         for i in {1..5}; do
           echo "Scan $i:"
-          time poetry run python -m reticulum tests/advanced-test-repo --json > /dev/null
+          time python -m reticulum tests/advanced-test-repo --json > /dev/null
         done
       timeout-minutes: 15
     

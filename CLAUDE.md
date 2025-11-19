@@ -155,7 +155,7 @@ git push origin main vX.Y.Z
 
 **GitHub Actions will automatically**:
 - Run comprehensive tests across Python versions
-- Build the package with Poetry
+- Build the package with standard Python build tools
 - Publish to PyPI
 - Create GitHub Release with changelog
 
@@ -203,7 +203,6 @@ make release-sync
 **Use the `/testing` command for comprehensive testing** instead of this documentation. The testing command provides:
 
 - Interactive test category selection
-- Environment-agnostic execution (Poetry, virtualenv, uv, or system Python)
 - Detailed result summaries and performance metrics
 - Auto-fix capabilities for code quality issues
 - Comprehensive test result archiving

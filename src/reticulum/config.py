@@ -102,7 +102,7 @@ class SecurityScannerConfig:
             value = os.getenv(env_var)
             if value is not None:
                 try:
-                    if converter == bool:
+                    if converter is bool:
                         value = value.lower() in ("true", "1", "yes", "on")
                     else:
                         value = converter(value)

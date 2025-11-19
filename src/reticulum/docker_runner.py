@@ -239,6 +239,7 @@ class DockerRunner:
             "-v",
             f"{os.path.dirname(output_file)}:/output",
             self.semgrep_image,
+            "semgrep",
             "scan",
             "--config",
             self.semgrep_config,

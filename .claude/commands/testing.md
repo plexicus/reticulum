@@ -18,18 +18,19 @@ if [ ! -f "pyproject.toml" ]; then
     exit 1
 fi
 
-# Check if Poetry is available
-if ! command -v poetry >/dev/null 2>&1; then
-    echo "❌ Poetry not found. Please install Poetry first."
+# Check if uv is available
+if ! command -v uv >/dev/null 2>&1; then
+    echo "❌ uv not found. Please install uv first:"
+    echo "   curl -LsSf https://astral.sh/uv/install.sh | sh"
     exit 1
 fi
 
 # Check if dependencies are installed
-if [ ! -d ".venv" ] && [ ! -f "poetry.lock" ]; then
-    echo "⚠️  Dependencies may not be installed. Run 'poetry install' if needed."
+if [ ! -d ".venv" ]; then
+    echo "⚠️  Dependencies may not be installed. Run 'make dev-setup' if needed."
 fi
 
-echo "✅ Project environment validated"
+echo "✅ Project environment validated (uv-only)"
 echo "📁 Project root: $PROJECT_ROOT"
 echo ""
 ```
@@ -201,7 +202,7 @@ case $TEST_CATEGORY in
         if [ -n "$markers" ]; then
             echo ""
             echo "Running tests with markers: $markers"
-            poetry run pytest tests/test_advanced_scenarios.py -m "$markers" -v
+            .venv/bin/python -m pytest tests/test_advanced_scenarios.py -m "$markers" -v
             TEST_RESULT=$?
         else
             echo "❌ No markers selected. Running all advanced tests."
@@ -298,7 +299,7 @@ else
     echo "🔧 Troubleshooting Steps:"
     echo "   1. Check test logs in $RESULTS_DIR/"
     echo "   2. Run individual test files to isolate issues"
-    echo "   3. Verify dependencies: poetry install"
+    echo "   3. Verify dependencies: make dev-setup"
     echo "   4. Check for environment issues"
 fi
 

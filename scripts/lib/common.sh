@@ -46,9 +46,6 @@ check_project_root() {
 check_python_env_available() {
     local env=$(detect_python_env)
     case $env in
-        "poetry")
-            print_status "INFO" "Using Poetry environment"
-            ;;
         "venv")
             print_status "INFO" "Using virtual environment (.venv)"
             ;;
@@ -58,21 +55,18 @@ check_python_env_available() {
         "system")
             print_status "WARN" "Using system Python (no environment detected)"
             print_status "INFO" "Consider setting up a Python environment for better dependency management:"
-            print_status "INFO" "  - Poetry (recommended): curl -sSL https://install.python-poetry.org | python3 -"
+            print_status "INFO" "  - uv (recommended): curl -LsSf https://astral.sh/uv/install.sh | sh"
             print_status "INFO" "  - Virtual environment: python -m venv .venv && source .venv/bin/activate"
-            print_status "INFO" "  - uv: curl -LsSf https://astral.sh/uv/install.sh | sh"
             ;;
     esac
 }
 
 # Detect available Python environment manager
 detect_python_env() {
-    if command -v poetry >/dev/null 2>&1; then
-        echo "poetry"
+    if command -v uv >/dev/null 2>&1; then
+        echo "uv"
     elif [ -d ".venv" ]; then
         echo "venv"
-    elif command -v uv >/dev/null 2>&1; then
-        echo "uv"
     else
         echo "system"
     fi
@@ -82,9 +76,6 @@ detect_python_env() {
 get_python_cmd() {
     local env=$(detect_python_env)
     case $env in
-        "poetry")
-            echo "poetry run"
-            ;;
         "venv")
             echo ".venv/bin/python -m"
             ;;
@@ -101,9 +92,6 @@ get_python_cmd() {
 get_python_exec() {
     local env=$(detect_python_env)
     case $env in
-        "poetry")
-            echo "poetry run python"
-            ;;
         "venv")
             echo ".venv/bin/python"
             ;;
@@ -120,9 +108,6 @@ get_python_exec() {
 check_python_env() {
     local env=$(detect_python_env)
     case $env in
-        "poetry")
-            print_status "INFO" "Using Poetry environment"
-            ;;
         "venv")
             print_status "INFO" "Using virtual environment (.venv)"
             ;;
@@ -132,9 +117,8 @@ check_python_env() {
         "system")
             print_status "WARN" "Using system Python (no environment detected)"
             print_status "INFO" "Consider setting up a Python environment:"
-            print_status "INFO" "  - Poetry (recommended): curl -sSL https://install.python-poetry.org | python3 -"
+            print_status "INFO" "  - uv (recommended): curl -LsSf https://astral.sh/uv/install.sh | sh"
             print_status "INFO" "  - Virtual environment: python -m venv .venv && source .venv/bin/activate"
-            print_status "INFO" "  - uv: curl -LsSf https://astral.sh/uv/install.sh | sh"
             ;;
     esac
 }
@@ -312,12 +296,9 @@ run_quality_checks() {
     print_status "INFO" "Checking Python environment..."
     check_python_env
 
-    # Install dependencies if using Poetry
+    # Check if dependencies are available
     local env=$(detect_python_env)
-    if [ "$env" = "poetry" ]; then
-        print_status "INFO" "Installing dependencies with Poetry..."
-        poetry install --no-interaction
-    elif [ "$env" = "system" ]; then
+    if [ "$env" = "system" ]; then
         print_status "WARN" "Using system Python - ensure dependencies are installed"
     fi
 

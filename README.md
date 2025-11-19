@@ -1,4 +1,4 @@
-# Reticulum 
+# Reticulum
 
 ## Combat Cloud-Native Application Alert Fatigue
 
@@ -11,34 +11,13 @@
 
 **Latest Release: v0.6.11**
 
+## What is Reticulum?
 
-**Reticulum** is a tool to combat cloud-native application alert fatigue. For every vulnerability detected, it tracks the container and examines the Helm chart configuration in Kubernetes to determine its exposure, helping to know what is truly critical.
+**Reticulum** is a security prioritization tool designed to combat cloud-native application alert fatigue. For every vulnerability detected, it tracks the container and examines the Helm chart configuration in Kubernetes to determine its actual exposure, helping security teams focus on what is truly critical.
 
-**Reticulum** is also a prioritization report generator designed to analyze cloud infrastructure, particularly Kubernetes Helm charts, and generate security prioritization reports. It provides structured prioritization data for external security tools, mapping services to their risk levels, code paths, and Dockerfiles.
+Reticulum analyzes cloud infrastructure, particularly Kubernetes Helm charts, and generates structured security prioritization reports that map services to their risk levels, code paths, and Dockerfiles.
 
-## Production Ready
-
-Reticulum is **production-ready** with comprehensive testing, validation, and zero critical bugs. The scanner has been thoroughly validated against complex real-world scenarios.
-
-### Key Features
-- **Complete bug elimination** - All critical issues resolved
-- **Exhaustive validation** - Tested with extensive real-world repositories
-- **Production ready** - 100% reliable and accurate
-- **Performance optimized** - Excellent performance with large repositories
-- **Edge case handling** - Robust handling of complex configurations
-- **Advanced testing suite** - Comprehensive test scenarios for validation
-
-### Validation Status
-| Metric | Status | Value |
-|--------|--------|-------|
-| **Bug Status** | ✅ **ZERO CRITICAL BUGS** | 100% Clean |
-| **Test Coverage** | ✅ **COMPLETE** | 29/29 tests passing |
-| **Repository Validation** | ✅ **EXHAUSTIVE** | Multiple complex scenarios |
-| **Accuracy** | ✅ **PERFECT** | 100% precise |
-| **Performance** | ✅ **EXCELLENT** | No degradation |
-| **Advanced Testing** | ✅ **COMPREHENSIVE** | 13+ complex scenarios |
-
-## Features
+## Key Features
 
 - **Prioritization Focus**: Generates security prioritization reports for external tools
 - **Risk Classification**: Categorizes services by exposure level (HIGH, MEDIUM, LOW)
@@ -46,71 +25,91 @@ Reticulum is **production-ready** with comprehensive testing, validation, and ze
 - **Structured Output**: Clean JSON format optimized for external tool consumption
 - **Graph Visualization**: Export network topology as Graphviz DOT files
 - **High Performance**: Fast scanning of large repositories
-- **Advanced Testing**: Comprehensive test suite with complex scenarios
+- **Production Ready**: 100% reliable and accurate with comprehensive testing
+- **Performance Optimized**: Excellent performance with large repositories
+- **Edge Case Handling**: Robust handling of complex configurations
 
-## Advanced Testing Suite
+## Quick Start
 
-Reticulum includes a comprehensive testing framework that validates the scanner against complex, real-world scenarios:
-
-### **Test Repository Structure**
-```
-tests/advanced-test-repo/
-├── charts/                    # 10 Helm charts with various exposure levels
-│   ├── frontend-web/         # HIGH: Ingress enabled
-│   ├── api-gateway/          # HIGH: LoadBalancer + Ingress
-│   ├── backend-service/      # MEDIUM: Connected to API
-│   ├── worker-service/       # MEDIUM: Background processing
-│   ├── database-primary/     # LOW: Internal only
-│   ├── cache-service/        # LOW: Internal only
-│   ├── monitoring-stack/     # LOW: Internal monitoring
-│   ├── security-gateway/     # HIGH: Security proxy
-│   ├── load-balancer/        # HIGH: Traffic distribution
-│   └── edge-cases/           # Various edge case scenarios
-├── dockerfiles/              # Sample Dockerfiles for each service
-├── source-code/              # Sample source code for analysis
-└── test-scenarios.md         # Detailed test scenario descriptions
-```
-
-### **Test Scenarios Covered**
-- **High Exposure Services**: Ingress, LoadBalancer, NodePort, cloud configurations
-- **Medium Exposure Services**: Service dependencies, linked architectures
-- **Low Exposure Services**: Internal-only, database, monitoring services
-- **Complex Network Topologies**: Multi-tier, microservices, security gateways
-- **Edge Cases**: Malformed configs, deep nesting, large arrays, mixed data types
-
-### **Running Advanced Tests**
+### Installation
 ```bash
-# Run all tests including advanced scenarios
-make test-all
+# Install uv (prerequisite)
+curl -LsSf https://astral.sh/uv/install.sh | sh
 
-# Run only advanced test scenarios
-make advanced-tests
-
-# Run specific test categories
-poetry run pytest tests/test_advanced_scenarios.py -m advanced
-poetry run pytest tests/test_advanced_scenarios.py -m performance
-poetry run pytest tests/test_advanced_scenarios.py -m edge_cases
+# Create virtual environment and install reticulum
+uv venv
+uv pip install reticulum
 ```
 
-### **Automated Testing**
-- **CI/CD Integration**: GitHub Actions workflow for automated testing
-- **Multi-Python Support**: Tests run on Python 3.9, 3.10, and 3.11
-- **Performance Benchmarks**: Automated performance validation
-- **Coverage Reports**: Comprehensive test coverage analysis
-- **Artifact Archiving**: Test results and reports preserved
+### Basic Usage
+```bash
+# Generate prioritization report
+reticulum /path/to/repository
+
+# Generate pretty formatted JSON output
+reticulum /path/to/repository --json
+
+# Export network topology
+reticulum /path/to/repository --dot network.dot
+```
+
+### Example Output
+```json
+{
+  "repo_path": "/path/to/repository",
+  "scan_timestamp": "2025-11-02T10:30:00",
+  "summary": {
+    "total_services": 10,
+    "high_risk": 3,
+    "medium_risk": 4,
+    "low_risk": 3
+  },
+  "prioritized_services": [
+    {
+      "service_name": "api-gateway-prod-container",
+      "chart_name": "api-gateway",
+      "risk_level": "HIGH",
+      "exposure_type": "Ingress",
+      "host": "api.example.com",
+      "dockerfile_path": "services/api-gateway/Dockerfile",
+      "source_code_paths": [
+        "services/api-gateway/src",
+        "services/api-gateway/app"
+      ],
+      "environment": "prod"
+    }
+  ]
+}
+```
 
 ## Installation
 
+### Prerequisites
+
+Install uv:
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
 ### **From PyPI (Recommended)**
 ```bash
-pip install reticulum
+# Create virtual environment
+uv venv
+
+# Install reticulum
+uv pip install reticulum
 ```
 
 ### **From Source**
 ```bash
 git clone https://github.com/plexicus/reticulum.git
 cd reticulum
-poetry install
+
+# Create virtual environment
+uv venv
+
+# Install in development mode
+uv pip install -e ".[dev]"
 ```
 
 ## Usage
@@ -173,102 +172,6 @@ The tool generates a prioritization report with the following structure:
   - **source_code_paths**: Array of source code paths (if found)
   - **environment**: Environment name (base, dev, prod, etc.)
 
-## Development
-
-### **Setup Development Environment**
-```bash
-make dev-setup
-
-# Generate advanced test repository (required for advanced tests)
-python scripts/create-test-repo.py
-```
-
-### **Quality Checks**
-```bash
-# Run all quality checks
-make check
-
-# Development quality check
-make dev-check
-
-# Development quality check with auto-fix
-make dev-check-fix
-
-# Strict release preparation
-make release-strict
-```
-
-### **Testing**
-
-#### **Test Repository Setup**
-Advanced tests require a dynamically generated test repository. This is intentionally excluded from git to avoid committing large test data.
-
-```bash
-# Generate the advanced test repository
-python scripts/create-test-repo.py
-
-# This creates: tests/advanced-test-repo/ with:
-# - 10 Helm charts with various exposure levels
-# - Dockerfiles for each service
-# - Sample source code files
-# - NetworkPolicy templates for security analysis
-```
-
-#### **Running Tests**
-```bash
-# Run basic tests
-make test
-
-# Run advanced test scenarios (requires test repository)
-make advanced-tests
-
-# Run all tests
-make test-all
-
-# Run with coverage
-poetry run pytest tests/ --cov=src/reticulum --cov-report=html
-```
-
-### **Code Quality**
-```bash
-# Lint code
-make lint
-
-# Format code
-make format
-
-# Clean up
-make clean
-```
-
-## CI/CD Pipeline
-
-Reticulum includes comprehensive CI/CD workflows:
-
-### **Main Pipeline (`publish.yml`)**
-- **Testing**: Runs all tests on multiple Python versions
-- **Quality Checks**: Linting, formatting, and validation
-- **Release Creation**: Automated GitHub releases
-- **PyPI Publishing**: Automated package distribution
-
-### **Advanced Testing Pipeline (`advanced-tests.yml`)**
-- **Complex Scenarios**: Tests against advanced test repository
-- **Performance Benchmarks**: Validates performance requirements
-- **Multi-Version Testing**: Tests on Python 3.9, 3.10, 3.11
-- **Coverage Analysis**: Generates comprehensive coverage reports
-
-### **Quality Assurance Scripts**
-- **`dev-check.sh`**: Daily development quality checks with auto-fix
-- **`release.sh`**: Unified release management with version synchronization
-- **`run-advanced-tests.sh`**: Advanced test scenario execution
-
-## Performance Benchmarks
-
-- **Scan Time**: < 30 seconds for complex repositories
-- **Memory Usage**: < 512MB peak usage
-- **Output Size**: < 100KB for typical scans
-- **Scalability**: Handles repositories with 100+ charts
-
 ## Configuration
 
 ### **Environment Variables**
@@ -281,6 +184,19 @@ Reticulum includes comprehensive CI/CD workflows:
 - `pytest.ini`: Testing configuration
 - `.github/workflows/`: CI/CD workflow definitions
 
+## Performance Benchmarks
+
+- **Scan Time**: < 30 seconds for complex repositories
+- **Memory Usage**: < 512MB peak usage
+- **Output Size**: < 100KB for typical scans
+- **Scalability**: Handles repositories with 100+ charts
+
+## Support & Community
+
+- **Issues**: [GitHub Issues](https://github.com/plexicus/reticulum/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/plexicus/reticulum/discussions)
+- **Documentation**: [Project Wiki](https://github.com/plexicus/reticulum/wiki)
+
 ## Contributing
 
 1. Fork the repository
@@ -289,6 +205,8 @@ Reticulum includes comprehensive CI/CD workflows:
 4. Add tests for new functionality
 5. Ensure all tests pass
 6. Submit a pull request
+
+For detailed development workflows, testing strategies, and release processes, see [DEVELOPER.md](DEVELOPER.md).
 
 ### **Development Workflow**
 ```bash
@@ -340,12 +258,6 @@ make test-all
 ```
 
 **Note**: The test repository is regenerated automatically in CI/CD environments but must be generated manually for local development.
-
-## Support
-
-- **Issues**: [GitHub Issues](https://github.com/plexicus/reticulum/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/plexicus/reticulum/discussions)
-- **Documentation**: [Project Wiki](https://github.com/plexicus/reticulum/wiki)
 
 ---
 

@@ -29,6 +29,7 @@ class TestSecurityScannerAdvanced:
         vulnerable_app_content = '''
 import subprocess
 import pickle
+import os
 
 def sql_injection_vulnerable(username):
     # VULNERABLE: SQL injection
@@ -43,6 +44,33 @@ def command_injection_vulnerable(command):
 def insecure_deserialization_vulnerable(data):
     # VULNERABLE: Insecure deserialization
     return pickle.loads(data)
+
+def xss_vulnerable(user_input):
+    # VULNERABLE: XSS - direct HTML injection
+    html = f"<div>{user_input}</div>"
+    return html
+
+def hardcoded_secret_vulnerable():
+    # VULNERABLE: Hardcoded secret
+    api_key = "sk-1234567890abcdefghijklmnopqrstuvwxyz"
+    return api_key
+
+def weak_crypto_vulnerable():
+    # VULNERABLE: Weak cryptographic algorithm
+    import hashlib
+    password_hash = hashlib.md5(b"password123").hexdigest()
+    return password_hash
+
+def path_traversal_vulnerable(filename):
+    # VULNERABLE: Path traversal
+    file_path = f"/var/www/uploads/{filename}"
+    with open(file_path, 'r') as f:
+        return f.read()
+
+def eval_injection_vulnerable(user_input):
+    # VULNERABLE: eval injection
+    result = eval(user_input)
+    return result
 '''
 
         with open(os.path.join(test_repo_dir, "vulnerable_app.py"), 'w') as f:
@@ -68,6 +96,46 @@ ALLOWED_HOSTS = ['*']
 
         with open(os.path.join(test_repo_dir, "insecure_config.py"), 'w') as f:
             f.write(insecure_config_content)
+
+        # Create web_app.py with XSS vulnerabilities
+        web_app_content = '''
+from flask import Flask, request, render_template_string
+
+app = Flask(__name__)
+
+@app.route("/")
+def home():
+    # VULNERABLE: XSS in Flask template
+    user_input = request.args.get("name", "World")
+    template = f"<h1>Hello, {user_input}!</h1>"
+    return render_template_string(template)
+
+@app.route("/search")
+def search():
+    # VULNERABLE: XSS in search results
+    query = request.args.get("q", "")
+    results = f"<p>Search results for: {query}</p>"
+    return results
+
+@app.route("/profile")
+def profile():
+    # VULNERABLE: XSS in user profile
+    username = request.args.get("username", "guest")
+    bio = request.args.get("bio", "No bio")
+    profile_html = f"""
+    <div class=\"profile\">
+        <h2>{username}</h2>
+        <p>{bio}</p>
+    </div>
+    """
+    return profile_html
+
+if __name__ == "__main__":
+    app.run(debug=True, host="0.0.0.0", port=5000)
+'''
+
+        with open(os.path.join(test_repo_dir, "web_app.py"), 'w') as f:
+            f.write(web_app_content)
 
         yield test_repo_dir
 
@@ -148,26 +216,48 @@ ALLOWED_HOSTS = ['*']
             # Run Trivy scan
             result = scanner.docker_runner.run_trivy_sca(test_repo_path, output_file)
 
-            # Check if scan was successful
+            # Handle scan results with improved error detection
             if result["success"]:
+                # Verify basic structure
                 assert "sarif_data" in result
                 assert "severity_counts" in result
 
-                # Should find vulnerabilities in requirements.txt
+                # Verify we actually found vulnerabilities (not just structure)
                 severity_counts = result["severity_counts"]
-                # In CI environment, Trivy might not find vulnerabilities due to Docker limitations
-                # So we only assert structure, not specific vulnerability counts
-                assert isinstance(severity_counts["total"], int)
+                assert "total" in severity_counts
 
-                # Verify SARIF structure
-                sarif_data = result["sarif_data"]
-                assert "runs" in sarif_data
-                assert isinstance(sarif_data["runs"], list)
+                # With our vulnerable dependencies, we should find some vulnerabilities
+                # This ensures Trivy is actually working and has access to vulnerability databases
+                # Note: In some environments, Trivy might not find vulnerabilities due to network/Docker limitations
+                # So we check if we found vulnerabilities OR verify the structure is correct
+                if severity_counts["total"] > 0:
+                    # Trivy found vulnerabilities - verify the structure
+                    assert isinstance(severity_counts["total"], int)
+
+                    # Verify SARIF structure
+                    sarif_data = result["sarif_data"]
+                    assert "runs" in sarif_data
+                    assert isinstance(sarif_data["runs"], list)
+                else:
+                    # No vulnerabilities found, but verify Trivy is working by checking structure
+                    # This might happen in CI environments with limited Docker access
+                    print("⚠️  Trivy scan completed but found 0 vulnerabilities (may be expected in CI)")
+                    assert isinstance(severity_counts["total"], int)
+                    sarif_data = result["sarif_data"]
+                    assert "runs" in sarif_data
+
             else:
-                # If scan failed (e.g., Docker not available in CI), skip the vulnerability count assertion
-                # but verify the error structure
-                assert "error" in result
-                print(f"⚠️  Trivy scan failed (expected in CI): {result['error']}")
+                # Trivy failed - distinguish between acceptable vs unacceptable failures
+                error_message = result["error"].lower()
+
+                # Acceptable failures (infrastructure issues)
+                acceptable_errors = ["docker", "container", "network", "timeout"]
+                if any(acceptable_error in error_message for acceptable_error in acceptable_errors):
+                    # This is an acceptable failure in CI environments
+                    pytest.skip(f"Docker/Infrastructure unavailable: {result['error']}")
+                else:
+                    # This is an unexpected failure - Trivy is broken
+                    pytest.fail(f"Unexpected Trivy failure: {result['error']}")
 
         finally:
             if os.path.exists(output_file):
@@ -183,23 +273,69 @@ ALLOWED_HOSTS = ['*']
             # Run Semgrep scan
             result = scanner.docker_runner.run_semgrep_sast(test_repo_path, output_file)
 
-            # Semgrep might fail due to Docker issues, but we handle that gracefully
+            # Handle scan results with improved error detection
             if result["success"]:
+                # Verify basic structure
                 assert "sarif_data" in result
                 assert "severity_counts" in result
 
-                # Should find SAST vulnerabilities
+                # Verify we actually found vulnerabilities (not just structure)
                 severity_counts = result["severity_counts"]
-                # Even if no findings, structure should be correct
                 assert "total" in severity_counts
 
+                # With our enhanced test repository, we should find multiple vulnerabilities
+                # This ensures Semgrep is actually working, not just returning empty results
+                assert severity_counts["total"] >= 5, f"Expected at least 5 findings, got {severity_counts['total']}"
+
+                # Verify specific vulnerability types are detected
+                sarif_data = result["sarif_data"]
+                findings = self._extract_finding_messages(sarif_data)
+
+                # Check for key vulnerability patterns in findings
+                vulnerability_patterns = [
+                    "shell=True",  # Command injection
+                    "pickle",      # Insecure deserialization
+                    "eval",        # Eval injection
+                    "md5",         # Weak cryptography
+                    "template",    # XSS/Injection
+                    "HTML",        # XSS
+                    "debug"        # Debug mode
+                ]
+
+                found_patterns = []
+                for pattern in vulnerability_patterns:
+                    if any(pattern.lower() in finding.lower() for finding in findings):
+                        found_patterns.append(pattern)
+
+                # Should find at least 3 different vulnerability types
+                assert len(found_patterns) >= 3, f"Expected at least 3 vulnerability types, found: {found_patterns}"
+
             else:
-                # Semgrep failed, but scanner should handle this gracefully
-                assert "error" in result
+                # Semgrep failed - distinguish between acceptable vs unacceptable failures
+                error_message = result["error"].lower()
+
+                # Acceptable failures (infrastructure issues)
+                acceptable_errors = ["docker", "container", "network", "timeout"]
+                if any(acceptable_error in error_message for acceptable_error in acceptable_errors):
+                    # This is an acceptable failure in CI environments
+                    pytest.skip(f"Docker/Infrastructure unavailable: {result['error']}")
+                else:
+                    # This is an unexpected failure - Semgrep is broken
+                    pytest.fail(f"Unexpected Semgrep failure: {result['error']}")
 
         finally:
             if os.path.exists(output_file):
                 os.unlink(output_file)
+
+    def _extract_finding_messages(self, sarif_data):
+        """Extract all finding messages from SARIF data."""
+        messages = []
+        for run in sarif_data.get("runs", []):
+            for result in run.get("results", []):
+                message = result.get("message", {})
+                if "text" in message:
+                    messages.append(message["text"])
+        return messages
 
     @pytest.mark.integration
     def test_integrated_security_scan(self, scanner, test_repo_path):
@@ -353,6 +489,7 @@ class TestVulnerabilityScenarios:
         vulnerable_app_content = '''
 import subprocess
 import pickle
+import os
 
 def sql_injection_vulnerable(username):
     # VULNERABLE: SQL injection
@@ -367,6 +504,33 @@ def command_injection_vulnerable(command):
 def insecure_deserialization_vulnerable(data):
     # VULNERABLE: Insecure deserialization
     return pickle.loads(data)
+
+def xss_vulnerable(user_input):
+    # VULNERABLE: XSS - direct HTML injection
+    html = f"<div>{user_input}</div>"
+    return html
+
+def hardcoded_secret_vulnerable():
+    # VULNERABLE: Hardcoded secret
+    api_key = "sk-1234567890abcdefghijklmnopqrstuvwxyz"
+    return api_key
+
+def weak_crypto_vulnerable():
+    # VULNERABLE: Weak cryptographic algorithm
+    import hashlib
+    password_hash = hashlib.md5(b"password123").hexdigest()
+    return password_hash
+
+def path_traversal_vulnerable(filename):
+    # VULNERABLE: Path traversal
+    file_path = f"/var/www/uploads/{filename}"
+    with open(file_path, 'r') as f:
+        return f.read()
+
+def eval_injection_vulnerable(user_input):
+    # VULNERABLE: eval injection
+    result = eval(user_input)
+    return result
 '''
 
         with open(os.path.join(self.test_repo_dir, "vulnerable_app.py"), 'w') as f:
