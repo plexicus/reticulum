@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "reticulum"
-version = "0.6.9"
+version = "0.6.10"
 description = "Exposure Scanner for Cloud Infrastructure Security Analysis"
 authors = ["Jose Palanco <jose.palanco@plexicus.ai>"]
 license = "MIT"
@@ -48,7 +48,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.6.9"
+version = "0.6.10"
 version_files = [
     "pyproject.toml:version",
     "src/reticulum/__init__.py:__version__",
