@@ -92,7 +92,14 @@ class DockerRunner:
                 print(f"⏰ {last_error}")
 
             except subprocess.CalledProcessError as e:
+                # Get detailed error information including stderr
+                stderr_output = e.stderr if e.stderr else ""
                 last_error = f"{description} failed with exit code {e.returncode}"
+
+                # Include stderr in error message for better debugging
+                if stderr_output:
+                    last_error += f"\nStderr: {stderr_output[:200]}"  # Limit length for readability
+
                 print(f"❌ {last_error}")
 
                 # Don't retry on certain exit codes that indicate permanent failures

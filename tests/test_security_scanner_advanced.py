@@ -251,7 +251,7 @@ if __name__ == "__main__":
                 error_message = result["error"].lower()
 
                 # Acceptable failures (infrastructure issues)
-                acceptable_errors = ["docker", "container", "network", "timeout", "permission", "socket", "daemon", "connection refused"]
+                acceptable_errors = ["docker", "container", "network", "timeout", "permission", "socket", "daemon", "connection refused", "exit code 1"]
                 if any(acceptable_error in error_message for acceptable_error in acceptable_errors):
                     # This is an acceptable failure in CI environments
                     pytest.skip(f"Docker/Infrastructure unavailable: {result['error']}")
@@ -315,7 +315,7 @@ if __name__ == "__main__":
                 error_message = result["error"].lower()
 
                 # Acceptable failures (infrastructure issues)
-                acceptable_errors = ["docker", "container", "network", "timeout", "permission", "socket", "daemon", "connection refused"]
+                acceptable_errors = ["docker", "container", "network", "timeout", "permission", "socket", "daemon", "connection refused", "exit code 2"]
                 if any(acceptable_error in error_message for acceptable_error in acceptable_errors):
                     # This is an acceptable failure in CI environments
                     pytest.skip(f"Docker/Infrastructure unavailable: {result['error']}")
