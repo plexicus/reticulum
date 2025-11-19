@@ -38,18 +38,15 @@ jobs:
       timeout-minutes: 15
 
 
-    - name: Verify Docker availability
+    - name: Verify SARIF files availability
       run: |
-        echo "🔍 Testing Docker availability..."
-        docker --version
-        docker info
-        echo "✅ Docker is available"
-
-        echo "📥 Pulling required Docker images..."
-        docker pull aquasec/trivy:latest
-        docker pull returntocorp/semgrep:latest
-        echo "✅ Docker images pulled successfully"
-      timeout-minutes: 5
+        echo "🔍 Verifying SARIF files availability..."
+        ls -la tests/test_data/
+        echo "📊 Trivy SARIF findings:"
+        python -c "import json; data = json.load(open('tests/test_data/trivy_results.sarif')); print(f'Total findings: {sum(len(run.get(\"results\", [])) for run in data.get(\"runs\", []))}')"
+        echo "📊 Semgrep SARIF findings:"
+        python -c "import json; data = json.load(open('tests/test_data/semgrep_results.sarif')); print(f'Total findings: {sum(len(run.get(\"results\", [])) for run in data.get(\"runs\", []))}')"
+        echo "✅ SARIF files available for CI testing"
 
     - name: Run tests
       run: |

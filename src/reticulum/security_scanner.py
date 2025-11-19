@@ -44,7 +44,9 @@ class SecurityScanner:
         # Configure the underlying Docker runner with settings
         self.docker_runner.docker_runner.timeout = docker_config.get("timeout")
         self.docker_runner.docker_runner.max_retries = docker_config.get("max_retries")
-        self.docker_runner.docker_runner.memory_limit = docker_config.get("memory_limit")
+        self.docker_runner.docker_runner.memory_limit = docker_config.get(
+            "memory_limit"
+        )
         self.docker_runner.docker_runner.cpu_limit = docker_config.get("cpu_limit")
 
         # Update Docker runner with tool-specific configurations

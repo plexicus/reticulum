@@ -105,7 +105,9 @@ class HybridDockerRunner:
         else:
             return self.docker_runner.run_semgrep_sast(repo_path, output_file)
 
-    def _run_from_sarif_file(self, sarif_file: str, output_file: str, tool_name: str) -> Dict[str, Any]:
+    def _run_from_sarif_file(
+        self, sarif_file: str, output_file: str, tool_name: str
+    ) -> Dict[str, Any]:
         """
         Run security scan using pre-generated SARIF file.
 
@@ -132,7 +134,9 @@ class HybridDockerRunner:
             if tool_name == "Trivy":
                 severity_counts = self.docker_runner._count_trivy_severities(sarif_data)
             else:
-                severity_counts = self.docker_runner._count_semgrep_severities(sarif_data)
+                severity_counts = self.docker_runner._count_semgrep_severities(
+                    sarif_data
+                )
 
             print(
                 f"✅ {tool_name} scan completed (from SARIF): {severity_counts['total']} findings"

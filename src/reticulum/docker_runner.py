@@ -94,7 +94,9 @@ class DockerRunner:
                 else:
                     # This is an actual failure
                     stderr_output = result.stderr if result.stderr else ""
-                    last_error = f"{description} failed with exit code {result.returncode}"
+                    last_error = (
+                        f"{description} failed with exit code {result.returncode}"
+                    )
                     if stderr_output:
                         last_error += f"\nStderr: {stderr_output[:200]}"
                     print(f"❌ {last_error}")
