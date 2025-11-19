@@ -35,7 +35,7 @@ Parse command line arguments:
 
 ```bash
 COMMIT_MESSAGE=""
-PUSH_REMOTE=false
+PUSH_REMOTE=true
 
 # Parse arguments
 while [[ $# -gt 0 ]]; do
