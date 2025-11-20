@@ -1,6 +1,6 @@
 image:
   pullPolicy: IfNotPresent
-  repository: nginx
+  repository: mycompany/frontend-app
   tag: latest
 ingress:
   className: nginx

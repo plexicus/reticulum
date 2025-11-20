@@ -8,6 +8,9 @@ based on Dockerfile paths and source code paths.
 from pathlib import Path
 from typing import Dict, Any, List
 
+from .build_context_analyzer import BuildContextAnalyzer
+from .path_resolution_engine import PathResolutionEngine
+
 
 class FindingsMapper:
     """Maps security findings to services based on exposure analysis."""
@@ -16,6 +19,14 @@ class FindingsMapper:
         self.prioritization_report = prioritization_report
         self.repo_path = Path(repo_path)
         self.services_by_path = self._build_service_path_mapping()
+
+        # Build enhanced service mapping table
+        self.service_mapping_table = self._build_service_mapping_table()
+
+        # Initialize path resolution engine
+        self.path_resolution_engine = PathResolutionEngine(
+            self.service_mapping_table, self.repo_path
+        )
 
     def _build_service_path_mapping(self) -> Dict[str, List[Dict[str, Any]]]:
         """Build mapping of source paths to services."""
@@ -52,6 +63,30 @@ class FindingsMapper:
 
         return path_mapping
 
+    def _build_service_mapping_table(self) -> Dict[str, Any]:
+        """Build comprehensive service mapping table with build context analysis."""
+        build_context_analyzer = BuildContextAnalyzer()
+
+        # Convert prioritized services to container structure expected by build context analyzer
+        containers = []
+        for service in self.prioritization_report.get("prioritized_services", []):
+            container = {
+                "name": service.get("service_name", ""),
+                "chart": service.get("chart_name", ""),
+                "dockerfile_path": service.get("dockerfile_path", ""),
+                "exposure_level": service.get("risk_level", "LOW"),
+                "source_code_paths": service.get("source_code_paths", []),
+            }
+            containers.append(container)
+
+        exposure_results = {
+            "containers": containers
+        }
+
+        return build_context_analyzer.build_service_mapping_table(
+            exposure_results, self.repo_path
+        )
+
     def map_trivy_findings(self, trivy_results: Dict[str, Any]) -> Dict[str, Any]:
         """Map Trivy SCA findings to services."""
         mapped_findings = {
@@ -75,8 +110,8 @@ class FindingsMapper:
                     mapped_findings["summary"]["unmapped_findings"] += 1
                     continue
 
-                # Find services that match this file path
-                matching_services = self._find_matching_services(file_path)
+                # Find services that match this file path using enhanced resolution
+                matching_services = self.path_resolution_engine.resolve_finding_to_services(file_path)
                 if not matching_services:
                     mapped_findings["unmapped_findings"].append(result)
                     mapped_findings["summary"]["unmapped_findings"] += 1
@@ -121,8 +156,8 @@ class FindingsMapper:
                     mapped_findings["summary"]["unmapped_findings"] += 1
                     continue
 
-                # Find services that match this file path
-                matching_services = self._find_matching_services(file_path)
+                # Find services that match this file path using enhanced resolution
+                matching_services = self.path_resolution_engine.resolve_finding_to_services(file_path)
                 if not matching_services:
                     mapped_findings["unmapped_findings"].append(result)
                     mapped_findings["summary"]["unmapped_findings"] += 1
@@ -157,6 +192,14 @@ class FindingsMapper:
         # Remove file:// prefix if present
         if file_path.startswith("file://"):
             file_path = file_path[7:]
+
+        # Handle Docker container paths (e.g., /repo/...)
+        if file_path.startswith("/repo/"):
+            file_path = file_path[5:]  # Remove /repo/ prefix
+
+        # Remove leading slash if present
+        if file_path.startswith("/"):
+            file_path = file_path[1:]
 
         # Make path relative to repository
         if file_path.startswith(str(self.repo_path)):

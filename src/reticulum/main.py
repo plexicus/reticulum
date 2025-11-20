@@ -132,11 +132,17 @@ class ExposureScanner:
                 container["dockerfile_path"] = str(
                     dockerfile_path.relative_to(repo_path)
                 )
-                container["source_code_path"] = (
-                    self.dockerfile_analyzer.parse_dockerfile_for_source_paths(
-                        dockerfile_path, repo_path
-                    )
+
+                # Use enhanced Dockerfile analysis with build context
+                dockerfile_analysis = self.dockerfile_analyzer.analyze_dockerfile_with_build_context(
+                    dockerfile_path, repo_path, chart_name
                 )
+
+                # Store both basic and enhanced source paths
+                container["source_code_path"] = dockerfile_analysis["basic_source_paths"]
+                container["source_code_paths"] = dockerfile_analysis["combined_source_paths"]
+                container["build_context"] = dockerfile_analysis["build_context_analysis"]["build_context"]
+                container["build_context_analysis"] = dockerfile_analysis["build_context_analysis"]
 
     def _build_summary(self):
         """Build scan summary."""

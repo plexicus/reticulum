@@ -1,0 +1,17 @@
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Copy requirements and install dependencies
+COPY ../source-code/worker/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source code
+COPY ../source-code/worker/ ./
+
+# Expose port
+EXPOSE 8000
+
+# Start worker
+CMD ["python", "worker.py"]

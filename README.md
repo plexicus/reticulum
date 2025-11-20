@@ -44,13 +44,16 @@ uv pip install reticulum
 ### Basic Usage
 ```bash
 # Generate prioritization report
-reticulum /path/to/repository
+reticulum scan /path/to/repository
 
 # Generate pretty formatted JSON output
-reticulum /path/to/repository --json
+reticulum scan /path/to/repository --json
 
 # Export network topology
-reticulum /path/to/repository --dot network.dot
+reticulum scan /path/to/repository --dot network.dot
+
+# Run comprehensive security scan
+reticulum security-scan /path/to/repository
 ```
 
 ### Example Output
@@ -114,16 +117,70 @@ uv pip install -e ".[dev]"
 
 ## Usage
 
-### **Generate Prioritization Report**
-```bash
-# Generate prioritization report (compact JSON)
-reticulum /path/to/repository
+### **Available Commands**
 
-# Generate pretty formatted prioritization report
-reticulum /path/to/repository --json
+Reticulum provides two main commands:
+
+- **`scan`** - Exposure analysis and prioritization
+- **`security-scan`** - Integrated security scanning with Trivy and Semgrep
+
+### **Exposure Analysis (`scan` command)**
+
+Analyze Helm charts and generate exposure-based prioritization reports.
+
+```bash
+# Basic exposure analysis
+reticulum scan /path/to/repository
+
+# Pretty formatted JSON output
+reticulum scan /path/to/repository --json
 
 # Export network topology as Graphviz DOT file
-reticulum /path/to/repository --dot network.dot
+reticulum scan /path/to/repository --dot network.dot
+```
+
+**Options for `scan` command:**
+- `--json` - Pretty print JSON output (always formatted like jq)
+- `--dot FILE` - Export network topology as Graphviz DOT file
+
+### **Security Scanning (`security-scan` command)**
+
+Run comprehensive security scan with Trivy SCA, Semgrep SAST, and exposure analysis.
+
+```bash
+# Run complete security scan
+reticulum security-scan /path/to/repository
+
+# Save enhanced SARIF report to file
+reticulum security-scan /path/to/repository --output results.sarif
+```
+
+**Options for `security-scan` command:**
+- `--output, -o FILE` - Save enhanced SARIF report to file
+
+### **Global Options**
+- `--version` - Show program's version number
+- `--help` - Show help message for any command
+
+### **Practical Examples**
+
+```bash
+# Get help for specific commands
+reticulum --help
+reticulum scan --help
+reticulum security-scan --help
+
+# Check version
+reticulum --version
+
+# Scan a repository and save DOT file for visualization
+reticulum scan /path/to/kubernetes-repo --dot topology.dot
+
+# Run security scan and save SARIF report for CI/CD integration
+reticulum security-scan /path/to/kubernetes-repo --output security-results.sarif
+
+# Pipe scan results to jq for further processing
+reticulum scan /path/to/repo --json | jq '.prioritized_services[] | select(.risk_level == "HIGH")'
 ```
 
 ### **Output Format**

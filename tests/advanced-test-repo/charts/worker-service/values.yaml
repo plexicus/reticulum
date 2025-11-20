@@ -1,7 +1,7 @@
 image:
   pullPolicy: IfNotPresent
-  repository: redis
-  tag: '7.2'
+  repository: mycompany/worker-app
+  tag: latest
 resources:
   limits:
     cpu: 200m

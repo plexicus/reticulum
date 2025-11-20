@@ -9,6 +9,8 @@ from typing import Dict, List, Any
 import yaml
 
 from .network_policy_analyzer import NetworkPolicyAnalyzer
+from .service_chart_registry import ServiceChartRegistry
+from .chart_resolver import ChartResolver
 
 
 class ExposureAnalyzer:
@@ -17,6 +19,10 @@ class ExposureAnalyzer:
     def __init__(self):
         self.chart_containers = {}
         self.network_policy_analyzer = NetworkPolicyAnalyzer()
+
+        # Unified Strategy components
+        self.service_chart_registry = ServiceChartRegistry()
+        self.chart_resolver = ChartResolver()
 
         # Define exposure patterns using regex for flexibility
         self.exposure_patterns = {
@@ -294,80 +300,6 @@ class ExposureAnalyzer:
                 containers.append(container_info)
 
         return containers
-
-    def _analyze_egress_capabilities(
-        self, chart_name: str, values: Dict[str, Any], chart_dir: Path
-    ) -> Dict[str, Any]:
-        """
-        Analyze egress capabilities for the service.
-
-        Args:
-            chart_name: Name of the chart
-            values: Values from values.yaml
-            chart_dir: Path to chart directory
-
-        Returns:
-            Egress analysis results
-        """
-        egress_analysis = {
-            "egress_risk_level": "LOW",
-            "has_internet_egress": False,
-            "network_policies_analyzed": 0,
-            "egress_rules_count": 0,
-            "internet_cidrs_found": [],
-            "recommendations": [],
-        }
-
-        # Analyze NetworkPolicy resources for this chart
-        repo_path = chart_dir.parent
-        network_policy_analysis = self.network_policy_analyzer.analyze_network_policies(
-            str(repo_path)
-        )
-
-        # Update analysis with network policy findings
-        egress_analysis["network_policies_analyzed"] = network_policy_analysis[
-            "total_policies"
-        ]
-        egress_analysis["has_internet_egress"] = (
-            network_policy_analysis["policies_with_internet_egress"] > 0
-        )
-
-        # Find policies that might affect this specific chart
-        chart_policies = []
-        for policy in network_policy_analysis["policies_analyzed"]:
-            # Check if this policy applies to the current chart
-            policy_file = policy.get("policy_file", "")
-            if chart_name.lower() in policy_file.lower() or "templates" in policy_file:
-                chart_policies.append(policy)
-                egress_analysis["egress_rules_count"] += len(
-                    policy.get("egress_rules", [])
-                )
-                egress_analysis["internet_cidrs_found"].extend(
-                    policy.get("internet_cidrs_found", [])
-                )
-
-        # Determine egress risk level based on findings
-        if egress_analysis["has_internet_egress"]:
-            egress_analysis["egress_risk_level"] = "HIGH"
-            egress_analysis["recommendations"].append(
-                "Internet egress detected. Consider restricting egress to specific CIDR blocks."
-            )
-        elif egress_analysis["egress_rules_count"] > 5:
-            egress_analysis["egress_risk_level"] = "MEDIUM"
-            egress_analysis["recommendations"].append(
-                "Complex egress rules detected. Review for unnecessary external access."
-            )
-        else:
-            egress_analysis["egress_risk_level"] = "LOW"
-
-        # Add recommendation if no NetworkPolicies found
-        if egress_analysis["network_policies_analyzed"] == 0:
-            egress_analysis["recommendations"].append(
-                "No NetworkPolicy resources found. Consider implementing network policies "
-                "to restrict pod-to-pod and external communication."
-            )
-
-        return egress_analysis
 
     def _create_container_info(
         self,
@@ -850,76 +782,208 @@ class ExposureAnalyzer:
 
         return containers
 
-    def _analyze_egress_capabilities(
-        self, chart_name: str, values: Dict[str, Any], chart_dir: Path
+    # Unified Strategy Integration Methods
+
+    def enhance_with_service_mappings(
+        self, exposure_results: Dict[str, Any], repo_root: Path
     ) -> Dict[str, Any]:
         """
-        Analyze egress capabilities for the service.
+        Enhance exposure analysis results with service-to-chart mappings.
 
         Args:
-            chart_name: Name of the chart
-            values: Values from values.yaml
-            chart_dir: Path to chart directory
+            exposure_results: Original exposure analysis results
+            repo_root: Repository root path
 
         Returns:
-            Egress analysis results
+            Enhanced exposure results with service mappings
         """
-        egress_analysis = {
-            "egress_risk_level": "LOW",
-            "has_internet_egress": False,
-            "network_policies_analyzed": 0,
-            "egress_rules_count": 0,
-            "internet_cidrs_found": [],
-            "recommendations": [],
+        enhanced_results = exposure_results.copy()
+
+        # Add service mapping information to each container
+        for chart_info in enhanced_results.get("charts", []):
+            chart_name = chart_info.get("name", "")
+            if chart_name:
+                # Find services mapped to this chart
+                service_tokens = self.service_chart_registry.get_services_for_chart(chart_name)
+
+                # Add service mapping information to each container in this chart
+                for container in chart_info.get("containers", []):
+                    container["service_mappings"] = {
+                        "chart_name": chart_name,
+                        "service_tokens": service_tokens,
+                        "mapping_count": len(service_tokens),
+                        "mapping_details": [
+                            {
+                                "service_token": token,
+                                "mapping": self.service_chart_registry.get_mapping_details(token)
+                            }
+                            for token in service_tokens
+                        ]
+                    }
+
+        # Add overall service-chart mapping statistics
+        enhanced_results["service_chart_mappings"] = {
+            "registry_statistics": self.service_chart_registry.get_registry_statistics(),
+            "mapping_coverage": self._calculate_mapping_coverage(enhanced_results)
         }
 
-        # Analyze NetworkPolicy resources for this chart
-        repo_path = chart_dir.parent
-        network_policy_analysis = self.network_policy_analyzer.analyze_network_policies(
-            str(repo_path)
+        return enhanced_results
+
+    def _calculate_mapping_coverage(self, exposure_results: Dict[str, Any]) -> Dict[str, Any]:
+        """Calculate service-to-chart mapping coverage statistics."""
+        total_charts = len(exposure_results.get("charts", []))
+
+        # Count charts with service mappings
+        charts_with_mappings = 0
+        total_service_mappings = 0
+
+        for chart_info in exposure_results.get("charts", []):
+            chart_name = chart_info.get("name", "")
+            if chart_name:
+                service_tokens = self.service_chart_registry.get_services_for_chart(chart_name)
+                if service_tokens:
+                    charts_with_mappings += 1
+                    total_service_mappings += len(service_tokens)
+
+        mapping_rate = charts_with_mappings / total_charts if total_charts > 0 else 0
+        avg_mappings_per_chart = total_service_mappings / charts_with_mappings if charts_with_mappings > 0 else 0
+
+        return {
+            "total_charts": total_charts,
+            "charts_with_mappings": charts_with_mappings,
+            "mapping_rate": mapping_rate,
+            "total_service_mappings": total_service_mappings,
+            "avg_mappings_per_chart": avg_mappings_per_chart
+        }
+
+    def get_services_for_chart(self, chart_name: str) -> List[str]:
+        """
+        Get all service tokens mapped to a chart.
+
+        Args:
+            chart_name: Chart name
+
+        Returns:
+            List of service tokens
+        """
+        return self.service_chart_registry.get_services_for_chart(chart_name)
+
+    def get_chart_for_service(self, service_token: str) -> Optional[str]:
+        """
+        Get the primary chart name for a service.
+
+        Args:
+            service_token: Service token
+
+        Returns:
+            Chart name, or None if not found
+        """
+        return self.service_chart_registry.get_chart_for_service(service_token)
+
+    def register_service_chart_mapping(
+        self,
+        service_token: str,
+        chart_name: str,
+        confidence: float = 1.0,
+        mapping_type: str = "convention",
+        source: str = "auto"
+    ) -> None:
+        """
+        Register a service-to-chart mapping.
+
+        Args:
+            service_token: Service token
+            chart_name: Helm chart name
+            confidence: Confidence level (0.0 to 1.0)
+            mapping_type: Type of mapping ('convention', 'heuristic', 'manual')
+            source: Source of the mapping
+        """
+        self.service_chart_registry.register_mapping(
+            service_token, chart_name, confidence, mapping_type, source
         )
 
-        # Update analysis with network policy findings
-        egress_analysis["network_policies_analyzed"] = network_policy_analysis[
-            "total_policies"
-        ]
-        egress_analysis["has_internet_egress"] = (
-            network_policy_analysis["policies_with_internet_egress"] > 0
-        )
+    def analyze_exposure_with_service_context(
+        self, chart_dir: Path, repo_path: Path, service_tokens: List[str] = None
+    ) -> Dict[str, Any]:
+        """
+        Analyze chart exposure with service context.
 
-        # Find policies that might affect this specific chart
-        chart_policies = []
-        for policy in network_policy_analysis["policies_analyzed"]:
-            # Check if this policy applies to the current chart
-            policy_file = policy.get("policy_file", "")
-            if chart_name.lower() in policy_file.lower() or "templates" in policy_file:
-                chart_policies.append(policy)
-                egress_analysis["egress_rules_count"] += len(
-                    policy.get("egress_rules", [])
-                )
-                egress_analysis["internet_cidrs_found"].extend(
-                    policy.get("internet_cidrs_found", [])
-                )
+        Args:
+            chart_dir: Chart directory
+            repo_path: Repository root path
+            service_tokens: Optional list of service tokens to analyze
 
-        # Determine egress risk level based on findings
-        if egress_analysis["has_internet_egress"]:
-            egress_analysis["egress_risk_level"] = "HIGH"
-            egress_analysis["recommendations"].append(
-                "Internet egress detected. Consider restricting egress to specific CIDR blocks."
+        Returns:
+            Enhanced exposure analysis with service context
+        """
+        # Perform standard exposure analysis
+        chart_analysis = self.analyze_chart(chart_dir, repo_path)
+
+        # Add service context
+        chart_name = chart_dir.name
+
+        if service_tokens is None:
+            # Get all services mapped to this chart
+            service_tokens = self.service_chart_registry.get_services_for_chart(chart_name)
+
+        # Add service context to analysis
+        chart_analysis["service_context"] = {
+            "chart_name": chart_name,
+            "service_tokens": service_tokens,
+            "mapping_count": len(service_tokens),
+            "mapping_confidence": self._calculate_mapping_confidence(service_tokens)
+        }
+
+        # Enhance each container with service information
+        for container in chart_analysis.get("containers", []):
+            container["affected_services"] = service_tokens
+
+            # Add service-specific exposure analysis
+            container["service_exposure_analysis"] = self._analyze_service_exposure_context(
+                container, service_tokens
             )
-        elif egress_analysis["egress_rules_count"] > 5:
-            egress_analysis["egress_risk_level"] = "MEDIUM"
-            egress_analysis["recommendations"].append(
-                "Complex egress rules detected. Review for unnecessary external access."
-            )
+
+        return chart_analysis
+
+    def _calculate_mapping_confidence(self, service_tokens: List[str]) -> float:
+        """Calculate average mapping confidence for service tokens."""
+        if not service_tokens:
+            return 0.0
+
+        total_confidence = 0.0
+        valid_mappings = 0
+
+        for token in service_tokens:
+            mapping = self.service_chart_registry.get_mapping_details(token)
+            if mapping:
+                total_confidence += mapping.confidence
+                valid_mappings += 1
+
+        return total_confidence / valid_mappings if valid_mappings > 0 else 0.0
+
+    def _analyze_service_exposure_context(
+        self, container: Dict[str, Any], service_tokens: List[str]
+    ) -> Dict[str, Any]:
+        """Analyze exposure context for specific services."""
+        exposure_context = {
+            "total_affected_services": len(service_tokens),
+            "high_risk_services": [],
+            "medium_risk_services": [],
+            "low_risk_services": [],
+            "risk_assessment": "unknown"
+        }
+
+        # Analyze exposure level for each service
+        exposure_level = container.get("exposure_level", "LOW")
+
+        if exposure_level == "HIGH":
+            exposure_context["high_risk_services"] = service_tokens
+            exposure_context["risk_assessment"] = "high"
+        elif exposure_level == "MEDIUM":
+            exposure_context["medium_risk_services"] = service_tokens
+            exposure_context["risk_assessment"] = "medium"
         else:
-            egress_analysis["egress_risk_level"] = "LOW"
+            exposure_context["low_risk_services"] = service_tokens
+            exposure_context["risk_assessment"] = "low"
 
-        # Add recommendation if no NetworkPolicies found
-        if egress_analysis["network_policies_analyzed"] == 0:
-            egress_analysis["recommendations"].append(
-                "No NetworkPolicy resources found. Consider implementing network policies "
-                "to restrict pod-to-pod and external communication."
-            )
-
-        return egress_analysis
+        return exposure_context

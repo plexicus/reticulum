@@ -3,8 +3,8 @@ database:
   port: 5432
 image:
   pullPolicy: IfNotPresent
-  repository: python
-  tag: '3.11'
+  repository: mycompany/backend-app
+  tag: latest
 resources:
   limits:
     cpu: 500m

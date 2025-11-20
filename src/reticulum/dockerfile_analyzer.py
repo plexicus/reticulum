@@ -5,8 +5,10 @@ Handles Dockerfile parsing and source code path extraction.
 """
 
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Dict, Any
 import re
+
+from .build_context_analyzer import BuildContextAnalyzer
 
 
 class DockerfileAnalyzer:
@@ -60,7 +62,75 @@ class DockerfileAnalyzer:
         if dockerfile:
             return dockerfile
 
+        # Strategy 8: Look for Dockerfiles in common dockerfiles directory
+        dockerfile_patterns = [
+            f"{chart_name}.Dockerfile",
+            f"{chart_name.replace('-service', '')}.Dockerfile",
+            f"{chart_name.replace('-web', '')}.Dockerfile",
+            f"{chart_name.replace('-gateway', '')}.Dockerfile",
+        ]
+
+        dockerfiles_dir = repo_path / "dockerfiles"
+        if dockerfiles_dir.exists():
+            for pattern in dockerfile_patterns:
+                dockerfile = dockerfiles_dir / pattern
+                if dockerfile.exists():
+                    return dockerfile
+
         return None
+
+    def analyze_dockerfile_with_build_context(
+        self, dockerfile_path: Path, repo_root: Path, chart_name: str = ""
+    ) -> Dict[str, Any]:
+        """
+        Enhanced Dockerfile analysis with build context awareness.
+
+        Args:
+            dockerfile_path: Path to the Dockerfile
+            repo_root: Root path of the repository
+            chart_name: Name of the Helm chart (for context inference)
+
+        Returns:
+            Comprehensive Dockerfile analysis with build context
+        """
+        build_context_analyzer = BuildContextAnalyzer()
+
+        # Get basic source paths (legacy method)
+        basic_source_paths = self.parse_dockerfile_for_source_paths(dockerfile_path, repo_root)
+
+        # Get enhanced build context analysis
+        build_context_analysis = build_context_analyzer.analyze_dockerfile_build_context(
+            dockerfile_path, repo_root, chart_name
+        )
+
+        # Combine results
+        analysis = {
+            "dockerfile_path": str(dockerfile_path.relative_to(repo_root)),
+            "basic_source_paths": basic_source_paths,
+            "build_context_analysis": build_context_analysis,
+            "combined_source_paths": self._combine_source_paths(
+                basic_source_paths, build_context_analysis["source_paths"]
+            ),
+        }
+
+        return analysis
+
+    def _combine_source_paths(
+        self, basic_paths: List[str], context_paths: List[str]
+    ) -> List[str]:
+        """Combine source paths from basic analysis and build context analysis."""
+        combined = set(basic_paths + context_paths)
+
+        # Consolidate paths
+        consolidated = []
+        for path in sorted(combined):
+            # Don't add if a parent directory already exists
+            if not any(path.startswith(existing + "/") for existing in consolidated):
+                # Remove any existing child directories
+                consolidated = [p for p in consolidated if not path.startswith(p + "/")]
+                consolidated.append(path)
+
+        return sorted(consolidated)
 
     def parse_dockerfile_for_source_paths(
         self, dockerfile_path: Path, repo_root: Path
