@@ -1,4 +1,22 @@
-## [Unreleased]
+## v0.7.0 (2025-11-20)
+
+### Feat
+
+- implement unified strategy with enhanced service mapping and build context analysis
+- transition to static test repository
+- implement hybrid Docker runner approach for CI reliability
+
+### Fix
+
+- resolve critical testing issues and improve code quality
+- resolve CI test failures with static test repository
+- handle Trivy exit code 1 and Semgrep exit code 2 as successful scans
+- improve Docker error handling and test skip logic for CI
+- ensure Docker works in GitHub Actions CI without skipping tests
+- enable Docker in GitHub Actions and improve security scanner tests
+- make common.sh executable (755 permissions)
+- correct pytest.ini section header for marker registration
+- correct [Unreleased] section placement in CHANGELOG
 
 ## v0.6.11 (2025-11-19)
 

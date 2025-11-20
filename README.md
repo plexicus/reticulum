@@ -9,7 +9,7 @@
 [![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/plexicus/reticulum)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 
-**Latest Release: v0.6.11**
+**Latest Release: v0.7.0**
 
 ## What is Reticulum?
 
