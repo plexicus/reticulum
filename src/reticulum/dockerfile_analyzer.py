@@ -68,6 +68,12 @@ class DockerfileAnalyzer:
             f"{chart_name.replace('-service', '')}.Dockerfile",
             f"{chart_name.replace('-web', '')}.Dockerfile",
             f"{chart_name.replace('-gateway', '')}.Dockerfile",
+            f"{chart_name.replace('-stack', '')}.Dockerfile",
+            f"Dockerfile.{chart_name}",
+            f"Dockerfile.{chart_name.replace('-service', '')}",
+            f"Dockerfile.{chart_name.replace('-web', '')}",
+            f"Dockerfile.{chart_name.replace('-gateway', '')}",
+            f"Dockerfile.{chart_name.replace('-stack', '')}",
         ]
 
         dockerfiles_dir = repo_path / "dockerfiles"

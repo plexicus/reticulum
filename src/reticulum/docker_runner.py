@@ -320,8 +320,18 @@ class DockerRunner:
         counts = {"error": 0, "warning": 0, "info": 0, "total": 0}
 
         for run in sarif_data.get("runs", []):
+            # Build rule ID to severity mapping from rule metadata
+            rule_severity_map = {}
+            for rule in run.get("tool", {}).get("driver", {}).get("rules", []):
+                rule_id = rule.get("id")
+                # Semgrep stores severity in defaultConfiguration.level, not in individual findings
+                severity = rule.get("defaultConfiguration", {}).get("level", "warning")
+                rule_severity_map[rule_id] = severity
+
+            # Count findings by mapped severity
             for result in run.get("results", []):
-                severity = result.get("level", "warning").lower()
+                rule_id = result.get("ruleId")
+                severity = rule_severity_map.get(rule_id, "warning").lower()
                 if severity in counts:
                     counts[severity] += 1
                 counts["total"] += 1

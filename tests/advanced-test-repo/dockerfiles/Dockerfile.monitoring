@@ -1,0 +1,29 @@
+# Monitoring Stack Custom Image
+# Combines Grafana with pre-configured dashboards and monitoring configuration
+
+FROM grafana/grafana:10.0.0
+
+# Set working directory
+WORKDIR /etc/grafana
+
+# Copy custom dashboard configuration
+COPY ../source-code/monitoring/dashboard.json /etc/grafana/dashboards/
+COPY ../source-code/monitoring/monitoring_config.py /etc/grafana/provisioning/
+
+# Create necessary directories
+RUN mkdir -p /etc/grafana/dashboards /etc/grafana/provisioning
+
+# Set environment variables
+ENV GF_SECURITY_ADMIN_PASSWORD=admin
+ENV GF_USERS_ALLOW_SIGN_UP=false
+ENV GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-simple-json-datasource
+
+# Expose Grafana port
+EXPOSE 3000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Default command
+CMD ["grafana-server", "--config=/etc/grafana/grafana.ini"]

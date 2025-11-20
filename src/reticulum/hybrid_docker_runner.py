@@ -33,8 +33,18 @@ class HybridDockerRunner:
         """
         self.docker_runner = DockerRunner()
 
+        # Check for environment variable overrides first
+        force_docker = os.environ.get("RETICULUM_FORCE_DOCKER")
+        force_sarif = os.environ.get("RETICULUM_FORCE_SARIF")
+
+        if force_docker and force_docker.lower() in ["true", "1", "yes"]:
+            print("🔧 Environment override: Forcing Docker usage")
+            self.use_sarif_files = False
+        elif force_sarif and force_sarif.lower() in ["true", "1", "yes"]:
+            print("🔧 Environment override: Forcing SARIF file usage")
+            self.use_sarif_files = True
         # Auto-detect if not specified
-        if use_sarif_files is None:
+        elif use_sarif_files is None:
             self.use_sarif_files = self._is_ci_environment()
         else:
             self.use_sarif_files = use_sarif_files
@@ -47,8 +57,11 @@ class HybridDockerRunner:
         """
         Detect if we're running in a CI environment.
 
+        Enhanced detection that checks if Docker is actually available.
+        Only uses SARIF files in CI environments where Docker is not available.
+
         Returns:
-            True if running in CI, False otherwise
+            True if running in CI without Docker, False otherwise
         """
         ci_indicators = [
             "GITHUB_ACTIONS",
@@ -63,11 +76,39 @@ class HybridDockerRunner:
             "GITLAB_CI",
         ]
 
-        for indicator in ci_indicators:
-            if os.environ.get(indicator):
+        # Check for CI environment variables
+        ci_detected = any(os.environ.get(indicator) for indicator in ci_indicators)
+
+        # If CI detected, check if Docker is actually available
+        if ci_detected:
+            docker_available = self._is_docker_available()
+            if docker_available:
+                print("✅ CI environment detected, but Docker is available - using Docker tools")
+                return False
+            else:
+                print("📄 CI environment detected, Docker not available - using SARIF files")
                 return True
 
         return False
+
+    def _is_docker_available(self) -> bool:
+        """
+        Check if Docker is actually available and working.
+
+        Returns:
+            True if Docker is available and working, False otherwise
+        """
+        try:
+            import subprocess
+            result = subprocess.run(
+                ["docker", "info"],
+                capture_output=True,
+                text=True,
+                timeout=10
+            )
+            return result.returncode == 0
+        except Exception:
+            return False
 
     def run_trivy_sca(self, repo_path: str, output_file: str) -> Dict[str, Any]:
         """

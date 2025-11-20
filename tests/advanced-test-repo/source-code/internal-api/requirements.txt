@@ -1,9 +1,9 @@
-# Internal API Service - Internal only, no external exposure
+# Internal API Service - Public packages only for testing
 flask==2.0.1
 requests==2.25.1
 Django==3.1.14
 urllib3==1.26.4
 cryptography==3.3.2
-# Internal API specific dependencies
-internal-auth==1.2.0
-service-discovery==0.8.1
+# Replaced internal packages with public alternatives
+pyjwt==2.4.0
+python-consul==1.1.0

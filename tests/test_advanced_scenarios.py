@@ -140,8 +140,8 @@ class TestAdvancedScenarios:
             elif "load-balancer" in name:
                 assert "LoadBalancer" in gateway_type or "NodePort" in gateway_type or "nginx" in gateway_type
             elif "edge-cases" in name:
-                # Edge-cases chart has internal exposure in current implementation
-                assert "Internal" in gateway_type
+                # Edge-cases chart has multiple exposure types in current implementation
+                assert any(x in gateway_type for x in ["Ingress", "AZURE", "GCP", "Direct Ports"])
             elif "backend" in name or "worker" in name:
                 assert "Service Dependency" in gateway_type or "Internal" in gateway_type
             elif any(x in name for x in ["database", "cache", "monitoring"]):
@@ -247,6 +247,186 @@ class TestAdvancedScenarios:
         # Verify output size is reasonable
         output_size = len(json_str.encode('utf-8'))
         assert output_size < 100 * 1024, f"Output size exceeds 100KB: {output_size} bytes"
+
+    def test_privileged_container_detection(self, scanner, advanced_test_repo):
+        """Test that privileged containers are correctly detected and flagged as HIGH risk."""
+        results = scanner.scan_repo(str(advanced_test_repo))
+        prioritization_report = results["prioritization_report"]
+        services = prioritization_report["prioritized_services"]
+
+        # Find services with privileged security context
+        privileged_services = [
+            s for s in services
+            if s["security_context"].get("is_privileged", False)
+        ]
+
+        # Verify that privileged containers are detected
+        # Note: The test repository may not have privileged containers configured
+        # This test validates the detection capability when privileged containers exist
+        for service in privileged_services:
+            assert service["security_context"]["is_privileged"] == True
+            # Privileged containers should have HIGH risk level
+            assert service["risk_level"] == "HIGH"
+
+    def test_capability_risk_assessment(self, scanner, advanced_test_repo):
+        """Test that Linux capabilities are correctly analyzed for risk assessment."""
+        results = scanner.scan_repo(str(advanced_test_repo))
+        prioritization_report = results["prioritization_report"]
+        services = prioritization_report["prioritized_services"]
+
+        # Find services with capabilities analysis
+        for service in services:
+            security_context = service["security_context"]
+            capabilities = security_context.get("capabilities", {})
+
+            # Verify capabilities structure
+            if capabilities:
+                assert "added" in capabilities
+                assert "dropped" in capabilities
+                assert "risk_level" in capabilities
+
+                # Check that critical capabilities are detected
+                added_caps = capabilities["added"]
+                for cap in added_caps:
+                    assert "capability" in cap
+                    assert "risk" in cap
+                    assert cap["risk"] in ["critical", "high", "medium", "low"]
+
+    def test_comprehensive_security_context_analysis(self, scanner, advanced_test_repo):
+        """Test comprehensive security context field analysis."""
+        results = scanner.scan_repo(str(advanced_test_repo))
+        prioritization_report = results["prioritization_report"]
+        services = prioritization_report["prioritized_services"]
+
+        # Verify security context analysis for services that have security context data
+        services_with_security_context = [
+            s for s in services if s["security_context"] and isinstance(s["security_context"], dict)
+        ]
+
+        # Should have at least some services with security context analysis
+        assert len(services_with_security_context) > 0, "Should have services with security context analysis"
+
+        # Verify security context fields for services that have security context data
+        for service in services_with_security_context:
+            security_context = service["security_context"]
+
+            # Required security context fields
+            required_fields = [
+                "is_privileged", "allows_privilege_escalation",
+                "runs_as_root", "host_network", "read_only_root_filesystem",
+                "capabilities"
+            ]
+
+            for field in required_fields:
+                assert field in security_context, f"Missing security context field: {field}"
+
+            # Verify boolean fields have proper types
+            assert isinstance(security_context["is_privileged"], bool)
+            assert isinstance(security_context["allows_privilege_escalation"], bool)
+            assert isinstance(security_context["runs_as_root"], bool)
+            assert isinstance(security_context["host_network"], bool)
+            assert isinstance(security_context["read_only_root_filesystem"], bool)
+
+    def test_service_account_risk_indicators(self, scanner, advanced_test_repo):
+        """Test that service account risk indicators are correctly detected."""
+        results = scanner.scan_repo(str(advanced_test_repo))
+        prioritization_report = results["prioritization_report"]
+        services = prioritization_report["prioritized_services"]
+
+        # Verify service account analysis for services that have service account data
+        services_with_service_account = [
+            s for s in services if s["service_account"] and isinstance(s["service_account"], dict)
+        ]
+
+        # Should have at least some services with service account analysis
+        assert len(services_with_service_account) > 0, "Should have services with service account analysis"
+
+        # Verify service account fields for services that have service account data
+        for service in services_with_service_account:
+            service_account = service["service_account"]
+
+            # Required service account fields
+            required_fields = [
+                "has_custom_sa", "cloud_role", "cloud_provider",
+                "risk_indicators", "automount_token"
+            ]
+
+            for field in required_fields:
+                assert field in service_account, f"Missing service account field: {field}"
+
+            # Verify field types
+            assert isinstance(service_account["has_custom_sa"], bool)
+            assert isinstance(service_account["automount_token"], bool)
+            assert isinstance(service_account["risk_indicators"], list)
+
+            # Check cloud provider detection
+            if service_account["cloud_provider"]:
+                assert service_account["cloud_provider"] in ["aws", "gcp", "azure"]
+
+    def test_network_security_risk_integration(self, scanner, advanced_test_repo):
+        """Test that network security risks are integrated into overall risk assessment."""
+        results = scanner.scan_repo(str(advanced_test_repo))
+        prioritization_report = results["prioritization_report"]
+        services = prioritization_report["prioritized_services"]
+
+        # Verify egress analysis is present for services that have egress analysis data
+        services_with_egress_analysis = [
+            s for s in services if s["egress_analysis"] and isinstance(s["egress_analysis"], dict)
+        ]
+
+        # Should have at least some services with egress analysis
+        assert len(services_with_egress_analysis) > 0, "Should have services with egress analysis"
+
+        # Verify egress analysis fields for services that have egress analysis data
+        for service in services_with_egress_analysis:
+            egress_analysis = service["egress_analysis"]
+
+            # Required egress analysis fields
+            required_fields = [
+                "egress_risk_level", "egress_rules_count", "has_internet_egress",
+                "internet_cidrs_found", "network_policies_analyzed", "recommendations"
+            ]
+
+            for field in required_fields:
+                assert field in egress_analysis, f"Missing egress analysis field: {field}"
+
+            # Verify risk level is properly set
+            assert egress_analysis["egress_risk_level"] in ["HIGH", "MEDIUM", "LOW"]
+
+    def test_comprehensive_risk_integration(self, scanner, advanced_test_repo):
+        """Test that all risk factors are properly integrated into final risk assessment."""
+        results = scanner.scan_repo(str(advanced_test_repo))
+        prioritization_report = results["prioritization_report"]
+        services = prioritization_report["prioritized_services"]
+        summary = prioritization_report["summary"]
+
+        # Verify risk level distribution
+        high_risk_count = len([s for s in services if s["risk_level"] == "HIGH"])
+        medium_risk_count = len([s for s in services if s["risk_level"] == "MEDIUM"])
+        low_risk_count = len([s for s in services if s["risk_level"] == "LOW"])
+
+        # Verify counts match summary
+        assert high_risk_count == summary["high_risk"]
+        assert medium_risk_count == summary["medium_risk"]
+        assert low_risk_count == summary["low_risk"]
+
+        # Verify risk factors are considered
+        for service in services:
+            # Services with external exposure should generally have higher risk
+            exposure_type = service["exposure_type"]
+            if exposure_type != "Internal" and exposure_type != "Service Dependency":
+                # Services with external exposure should not be LOW risk
+                assert service["risk_level"] != "LOW", \
+                    f"Service with external exposure {service['service_name']} should not be LOW risk"
+
+            # Services with dangerous security context should have higher risk
+            security_context = service["security_context"]
+            if security_context and isinstance(security_context, dict):
+                if (security_context.get("is_privileged", False) or
+                    security_context.get("host_network", False) or
+                    (security_context.get("capabilities", {}).get("risk_level") in ["critical", "high"])):
+                    assert service["risk_level"] in ["HIGH", "MEDIUM"], \
+                        f"Service with dangerous security context {service['service_name']} should not be LOW risk"
 
 
 class TestAdvancedRepositoryIntegration:

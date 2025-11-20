@@ -561,33 +561,30 @@ class SecurityScanner:
             },
         }
 
-        # Add services with security findings as results
+        # Add individual vulnerabilities as results (unaggregated)
         for service_name, service_data in trivy_mapping["services"].items():
             service_info = service_data["service_info"]
-            result = {
-                "ruleId": f"exposed-service-{service_name}",
-                "level": "warning",
-                "message": {
-                    "text": f"Service {service_name} has {len(service_data['trivy_findings'])} security findings and is {service_info.get('risk_level', 'LOW')} exposure"
-                },
-                "locations": [
-                    {
-                        "physicalLocation": {
-                            "artifactLocation": {
-                                "uri": service_info.get("dockerfile_path", "")
-                                or service_info.get("source_code_paths", [""])[0]
-                            }
-                        }
-                    }
-                ],
-                "properties": {
-                    "service_name": service_name,
-                    "exposure_level": service_info.get("risk_level", "LOW"),
-                    "trivy_findings_count": len(service_data["trivy_findings"]),
-                    "enhanced_priority": service_info.get("enhanced_risk_level", "LOW"),
-                },
-            }
-            enhanced_run["results"].append(result)
+            for finding in service_data["trivy_findings"]:
+                # Use the original finding's ruleId and message if available
+                original_rule_id = finding.get("ruleId", f"trivy-finding-{service_name}")
+                original_message = finding.get("message", {"text": "Security vulnerability found"})
+
+                result = {
+                    "ruleId": original_rule_id,
+                    "level": finding.get("level", "warning"),
+                    "message": original_message,
+                    "locations": finding.get("locations", []),
+                    "properties": {
+                        "service_name": service_name,
+                        "exposure_level": service_info.get("risk_level", "LOW"),
+                        "enhanced_priority": service_info.get("enhanced_risk_level", "LOW"),
+                        "vulnerability_id": finding.get("properties", {}).get("vulnerability_id", ""),
+                        "severity": finding.get("properties", {}).get("severity", ""),
+                        "package_name": finding.get("properties", {}).get("package_name", ""),
+                        "package_version": finding.get("properties", {}).get("package_version", ""),
+                    },
+                }
+                enhanced_run["results"].append(result)
 
         sarif_report["runs"].append(enhanced_run)
         return sarif_report
