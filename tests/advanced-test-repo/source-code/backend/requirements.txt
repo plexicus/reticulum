@@ -1,5 +1,9 @@
+# Backend Service - MEDIUM Exposure (Connected to external services)
 flask==2.0.1
 requests==2.25.1
 Django==3.1.14
 urllib3==1.26.4
 cryptography==3.3.2
+# Backend specific dependencies
+data-processing==1.8.0
+business-logic==2.3.1

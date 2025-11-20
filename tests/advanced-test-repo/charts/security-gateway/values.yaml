@@ -1,15 +1,68 @@
-image:
-  pullPolicy: IfNotPresent
-  repository: traefik
-  tag: v3.0
-resources:
-  limits:
-    cpu: 500m
-    memory: 512Mi
-  requests:
-    cpu: 200m
-    memory: 256Mi
+# Security Gateway - HIGH Exposure (Security proxy)
 service:
-  port: 80
-  targetPort: 80
-  type: LoadBalancer
+  type: "LoadBalancer"
+  port: 443
+  targetPort: 8443
+  loadBalancerIP: "192.168.1.200"
+  externalTrafficPolicy: "Local"
+
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+  hosts:
+    - host: "security.example.com"
+      paths:
+        - path: "/"
+          pathType: "Prefix"
+        - path: "/admin"
+          pathType: "Prefix"
+        - path: "/api"
+          pathType: "Prefix"
+
+# Security gateway specific configurations
+gateway:
+  type: "reverse-proxy"
+  enableWAF: true
+  enableDDoS: true
+  enableBotProtection: true
+  enableRateLimiting: true
+
+# WAF configuration
+waf:
+  enabled: true
+  rules: "OWASP_CRS"
+  enableCustomRules: true
+  enableBlocking: true
+  enableLogging: true
+
+# DDoS protection
+ddos:
+  enabled: true
+  threshold: 1000
+  enableRateLimiting: true
+  enableBlacklisting: true
+
+# Authentication and authorization
+auth:
+  enableOAuth2: true
+  enableJWT: true
+  enableAPIKeys: true
+  enableMFA: true
+
+# SSL/TLS configuration
+ssl:
+  enableTLS: true
+  enableHSTS: true
+  enableOCSP: true
+  enableCertificateTransparency: true
+
+# Logging and monitoring
+logging:
+  enableAccessLogs: true
+  enableSecurityLogs: true
+  enableAuditLogs: true
+  enableMetrics: true

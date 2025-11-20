@@ -1,6 +1,5 @@
 apiVersion: v2
-appVersion: 1.0.0
-description: API Gateway with external load balancer
 name: api-gateway
-type: application
-version: 1.0.0
+description: API Gateway with LoadBalancer and Ingress (HIGH exposure)
+version: 0.1.0
+appVersion: "1.0.0"

@@ -1,0 +1,35 @@
+# External API Service - HIGH Exposure (Ingress enabled)
+# This service is directly exposed to the internet
+
+service:
+  type: "LoadBalancer"
+  port: 8080
+  targetPort: 8080
+
+# Ingress enabled - external exposure
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: api.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+# Service dependencies - connected to backend
+dependencies:
+  backend: "backend-service"
+
+# External API specific configurations
+externalApi:
+  framework: "Flask"
+  enableRateLimiting: true
+  enableExternalAuth: true
+  enableAPIGateway: true
+
+# Security configuration for external service
+security:
+  enableCORS: true
+  enableRateLimiting: true
+  enableExternalAuth: true
+  enableAPIGateway: true

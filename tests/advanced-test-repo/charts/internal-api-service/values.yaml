@@ -1,0 +1,28 @@
+# Internal API Service - LOW Exposure (Internal only)
+# This service is not exposed externally, only accessible within the cluster
+
+service:
+  type: "ClusterIP"
+  port: 8080
+  targetPort: 8080
+
+# No ingress - internal service only
+ingress:
+  enabled: false
+
+# Service dependencies - only internal services
+dependencies:
+  backend: "backend-service"
+  database: "database-primary"
+
+# Internal API specific configurations
+internalApi:
+  framework: "Flask"
+  enableInternalAuth: true
+  serviceDiscovery: true
+
+# Security configuration for internal service
+security:
+  enableInternalAuth: true
+  enableServiceDiscovery: true
+  internalNetworkOnly: true

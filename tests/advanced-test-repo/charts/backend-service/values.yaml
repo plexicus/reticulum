@@ -1,18 +1,44 @@
-database:
-  host: database-primary
-  port: 5432
-image:
-  pullPolicy: IfNotPresent
-  repository: mycompany/backend-app
-  tag: latest
-resources:
-  limits:
-    cpu: 500m
-    memory: 512Mi
-  requests:
-    cpu: 200m
-    memory: 256Mi
+# Backend Service - MEDIUM Exposure (Connected to HIGH exposure services)
+# This service is not directly exposed but connects to external services
 service:
+  type: "ClusterIP"
   port: 8080
   targetPort: 8080
-  type: ClusterIP
+
+# No ingress - internal service only
+ingress:
+  enabled: false
+
+# Service dependencies and connections
+dependencies:
+  apiGateway: "api-gateway"
+  database: "database-primary"
+  cache: "cache-service"
+  internalApi: "internal-api-service"
+  externalApi: "external-api-service"
+
+# Backend specific configurations
+backend:
+  framework: "Spring Boot"
+  javaVersion: "17"
+  enableJPA: true
+  enableSecurity: true
+  enableActuator: true
+
+# Database configuration
+database:
+  type: "postgresql"
+  enableConnectionPool: true
+  enableMigrations: true
+
+# Cache configuration
+cache:
+  type: "redis"
+  enableClustering: true
+  enablePersistence: true
+
+# Security configuration
+security:
+  enableCORS: true
+  enableCSRF: false
+  enableOAuth2: true

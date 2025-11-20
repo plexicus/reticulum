@@ -1,6 +1,5 @@
 apiVersion: v2
-appVersion: 1.0.0
-description: Background worker service with no external access
 name: worker-service
-type: application
-version: 1.0.0
+description: Background worker service (MEDIUM exposure)
+version: 0.1.0
+appVersion: "1.0.0"
