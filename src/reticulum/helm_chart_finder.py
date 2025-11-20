@@ -6,7 +6,7 @@ and heuristic search strategies.
 """
 
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 import yaml
 
 
@@ -83,8 +83,8 @@ class HelmChartFinder:
         # Try different variations of the service token
         search_terms = [
             service_token,
-            service_token.replace('-', '_'),
-            service_token.replace('_', '-'),
+            service_token.replace("-", "_"),
+            service_token.replace("_", "-"),
             service_token.lower(),
             service_token.upper(),
         ]
@@ -120,7 +120,7 @@ class HelmChartFinder:
             True if any term is found
         """
         try:
-            content = file_path.read_text(encoding='utf-8')
+            content = file_path.read_text(encoding="utf-8")
 
             # Simple string search first (faster)
             for term in search_terms:
@@ -206,20 +206,22 @@ class HelmChartFinder:
             return None
 
         info = {
-            'name': chart_name,
-            'path': chart_path.relative_to(self.repo_root),
-            'has_values': values_path.exists()
+            "name": chart_name,
+            "path": chart_path.relative_to(self.repo_root),
+            "has_values": values_path.exists(),
         }
 
         # Parse Chart.yaml
         try:
-            chart_data = yaml.safe_load(chart_yaml_path.read_text(encoding='utf-8'))
-            info.update({
-                'api_version': chart_data.get('apiVersion'),
-                'description': chart_data.get('description'),
-                'version': chart_data.get('version'),
-                'app_version': chart_data.get('appVersion')
-            })
+            chart_data = yaml.safe_load(chart_yaml_path.read_text(encoding="utf-8"))
+            info.update(
+                {
+                    "api_version": chart_data.get("apiVersion"),
+                    "description": chart_data.get("description"),
+                    "version": chart_data.get("version"),
+                    "app_version": chart_data.get("appVersion"),
+                }
+            )
         except Exception:
             pass
 

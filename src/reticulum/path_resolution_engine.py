@@ -38,7 +38,9 @@ class PathResolutionEngine:
         matching_services = []
         resolution_details = []
 
-        for service_name, service_info in self.service_mapping_table["services"].items():
+        for service_name, service_info in self.service_mapping_table[
+            "services"
+        ].items():
             resolution = self._resolve_finding_for_service(
                 finding_file_path, service_info
             )
@@ -87,7 +89,9 @@ class PathResolutionEngine:
             return resolution
 
         # Level 3: Parent directory matching
-        parent_match = self._check_parent_directory_match(finding_file_path, service_info)
+        parent_match = self._check_parent_directory_match(
+            finding_file_path, service_info
+        )
         if parent_match["matches"]:
             resolution.update(parent_match)
             return resolution
@@ -368,14 +372,18 @@ class PathResolutionEngine:
                 "confidence": "high",
                 "service_token": service_info.get("service_name", ""),
                 "ownership_path": finding_file_path,
-                "resolution_method": "reverse_ownership_index"
+                "resolution_method": "reverse_ownership_index",
             }
 
         return matching_services
 
-    def _get_service_info_by_token(self, service_token: str) -> Optional[Dict[str, Any]]:
+    def _get_service_info_by_token(
+        self, service_token: str
+    ) -> Optional[Dict[str, Any]]:
         """Get service info by service token."""
-        for service_name, service_info in self.service_mapping_table["services"].items():
+        for service_name, service_info in self.service_mapping_table[
+            "services"
+        ].items():
             if service_name == service_token:
                 return service_info
         return None
@@ -412,16 +420,19 @@ class PathResolutionEngine:
         # Sort by confidence (reverse ownership results first)
         unique_results.sort(
             key=lambda x: (
-                0 if x.get("resolution_details", {}).get("resolution_method") == "reverse_ownership_index" else 1,
-                x.get("resolution_details", {}).get("confidence", "low")
+                (
+                    0
+                    if x.get("resolution_details", {}).get("resolution_method")
+                    == "reverse_ownership_index"
+                    else 1
+                ),
+                x.get("resolution_details", {}).get("confidence", "low"),
             )
         )
 
         return unique_results
 
-    def initialize_unified_strategy(
-        self, orchestrator
-    ) -> None:
+    def initialize_unified_strategy(self, orchestrator) -> None:
         """
         Initialize with Unified Strategy components.
 
@@ -439,9 +450,11 @@ class PathResolutionEngine:
             "ownership_index": ownership_stats,
             "service_registry": {
                 "total_services": len(self.service_registry.get_all_services()),
-                "service_tokens": [s.token for s in self.service_registry.get_all_services()]
+                "service_tokens": [
+                    s.token for s in self.service_registry.get_all_services()
+                ],
             },
-            "path_resolution_coverage": self._calculate_path_resolution_coverage()
+            "path_resolution_coverage": self._calculate_path_resolution_coverage(),
         }
 
     def _calculate_path_resolution_coverage(self) -> Dict[str, Any]:
@@ -453,16 +466,17 @@ class PathResolutionEngine:
         coverage_metrics = {
             "total_folders_owned": total_folders,
             "total_services_registered": total_services,
-            "avg_folders_per_service": total_folders / total_services if total_services > 0 else 0,
+            "avg_folders_per_service": (
+                total_folders / total_services if total_services > 0 else 0
+            ),
             "shared_folders": len(self.reverse_ownership_index.get_shared_folders()),
-            "exclusive_folders": total_folders - len(self.reverse_ownership_index.get_shared_folders())
+            "exclusive_folders": total_folders
+            - len(self.reverse_ownership_index.get_shared_folders()),
         }
 
         return coverage_metrics
 
-    def analyze_resolution_confidence(
-        self, finding_file_path: str
-    ) -> Dict[str, Any]:
+    def analyze_resolution_confidence(self, finding_file_path: str) -> Dict[str, Any]:
         """
         Analyze resolution confidence for a finding.
 
@@ -480,10 +494,14 @@ class PathResolutionEngine:
         confidence_factors = {
             "reverse_ownership_count": len(ownership_results),
             "traditional_resolution_count": len(traditional_results),
-            "overlap_count": len(set(s.get("service_name", "") for s in ownership_results)
-                               & set(s.get("service_name", "") for s in traditional_results)),
+            "overlap_count": len(
+                set(s.get("service_name", "") for s in ownership_results)
+                & set(s.get("service_name", "") for s in traditional_results)
+            ),
             "ownership_confidence": "high" if ownership_results else "low",
-            "traditional_confidence": self._assess_traditional_confidence(traditional_results)
+            "traditional_confidence": self._assess_traditional_confidence(
+                traditional_results
+            ),
         }
 
         # Calculate overall confidence
@@ -494,19 +512,28 @@ class PathResolutionEngine:
             "overall_confidence": overall_confidence,
             "recommended_approach": "hybrid" if ownership_results else "traditional",
             "resolution_summary": {
-                "total_services_found": len(ownership_results) + len(traditional_results),
-                "unique_services": len(set(s.get("service_name", "") for s in ownership_results + traditional_results))
-            }
+                "total_services_found": len(ownership_results)
+                + len(traditional_results),
+                "unique_services": len(
+                    set(
+                        s.get("service_name", "")
+                        for s in ownership_results + traditional_results
+                    )
+                ),
+            },
         }
 
-    def _assess_traditional_confidence(self, traditional_results: List[Dict[str, Any]]) -> str:
+    def _assess_traditional_confidence(
+        self, traditional_results: List[Dict[str, Any]]
+    ) -> str:
         """Assess confidence level for traditional resolution results."""
         if not traditional_results:
             return "low"
 
         # Count high confidence matches
         high_confidence_count = sum(
-            1 for result in traditional_results
+            1
+            for result in traditional_results
             if result.get("resolution_details", {}).get("confidence") == "high"
         )
 

@@ -6,13 +6,14 @@ Each service is identified by a unique token derived from its Dockerfile locatio
 """
 
 from pathlib import Path
-from typing import Dict, List, Optional, Set
+from typing import Dict, List, Optional
 from dataclasses import dataclass
 
 
 @dataclass
 class ServiceInfo:
     """Metadata for a service identified by a unique token."""
+
     token: str
     dockerfile_path: Path
     parent_directory: Path
@@ -36,7 +37,9 @@ class ServiceRegistry:
         self.services: Dict[str, ServiceInfo] = {}
         self.dockerfile_to_service: Dict[Path, str] = {}
 
-    def register_service_from_dockerfile(self, dockerfile_path: Path, repo_root: Path) -> str:
+    def register_service_from_dockerfile(
+        self, dockerfile_path: Path, repo_root: Path
+    ) -> str:
         """
         Register a service from a Dockerfile path.
 
@@ -57,7 +60,7 @@ class ServiceRegistry:
         service_info = ServiceInfo(
             token=token,
             dockerfile_path=dockerfile_path.relative_to(repo_root),
-            parent_directory=parent_dir
+            parent_directory=parent_dir,
         )
 
         # Register service
@@ -80,18 +83,26 @@ class ServiceRegistry:
 
         # Extract service name from Dockerfile name
         dockerfile_name = dockerfile_path.name
-        if dockerfile_name.lower().startswith('dockerfile'):
+        if dockerfile_name.lower().startswith("dockerfile"):
             # Handle Dockerfile.backend → backend
-            service_name = dockerfile_name.replace('dockerfile', '').strip('.-_')
+            service_name = dockerfile_name.replace("dockerfile", "").strip(".-_")
             if not service_name:
                 service_name = None
         else:
             # Handle frontend.Dockerfile → frontend
-            service_name = dockerfile_name.replace('.dockerfile', '').replace('Dockerfile.', '').strip('.-_')
+            service_name = (
+                dockerfile_name.replace(".dockerfile", "")
+                .replace("Dockerfile.", "")
+                .strip(".-_")
+            )
 
         # Clean up service name - remove Dockerfile prefix/suffix
         if service_name:
-            service_name = service_name.replace('Dockerfile.', '').replace('.Dockerfile', '').strip('.-_')
+            service_name = (
+                service_name.replace("Dockerfile.", "")
+                .replace(".Dockerfile", "")
+                .strip(".-_")
+            )
 
         # Use service name as token if available
         if service_name:
@@ -107,7 +118,11 @@ class ServiceRegistry:
 
             # Final uniqueness check - if still not unique, use full path
             if token in self.services:
-                token = str(dockerfile_path.relative_to(repo_root)).replace('/', '-').replace('.', '-')
+                token = (
+                    str(dockerfile_path.relative_to(repo_root))
+                    .replace("/", "-")
+                    .replace(".", "-")
+                )
 
         return token
 
@@ -136,7 +151,8 @@ class ServiceRegistry:
     def get_services_by_chart(self, chart_name: str) -> List[ServiceInfo]:
         """Get all services associated with a Helm chart."""
         return [
-            service for service in self.services.values()
+            service
+            for service in self.services.values()
             if service.chart_name == chart_name
         ]
 

@@ -35,7 +35,9 @@ class EnhancedExposureScanner(ExposureScanner):
 
         # Then run smart Dockerfile analysis
         repo_path_obj = Path(repo_path).resolve()
-        smart_analysis = self.smart_dockerfile_analyzer.analyze_repository(repo_path_obj)
+        smart_analysis = self.smart_dockerfile_analyzer.analyze_repository(
+            repo_path_obj
+        )
 
         # Enhance results with smart mapping
         results["smart_dockerfile_analysis"] = smart_analysis
@@ -69,7 +71,9 @@ class EnhancedExposureScanner(ExposureScanner):
             enhanced_container["smart_mapping"] = smart_info
 
             # If we found a smart mapping, update Dockerfile path
-            if smart_info.get("dockerfile_path") and not container.get("dockerfile_path"):
+            if smart_info.get("dockerfile_path") and not container.get(
+                "dockerfile_path"
+            ):
                 enhanced_container["dockerfile_path"] = smart_info["dockerfile_path"]
 
             enhanced_containers.append(enhanced_container)
@@ -92,7 +96,9 @@ class EnhancedExposureScanner(ExposureScanner):
                     "image_info": dockerfile_info.get("image", {}),
                     "confidence": dockerfile_info.get("confidence", "low"),
                     "match_type": dockerfile_info.get("match_type", "semantic"),
-                    "is_custom_image": self._is_custom_image(dockerfile_info.get("image", {})),
+                    "is_custom_image": self._is_custom_image(
+                        dockerfile_info.get("image", {})
+                    ),
                 }
 
         # Check if this chart uses standard images (no custom Dockerfile)
@@ -186,11 +192,15 @@ class EnhancedExposureScanner(ExposureScanner):
 
         summary = {
             "total_charts": smart_analysis.get("summary", {}).get("total_charts", 0),
-            "total_dockerfiles": smart_analysis.get("summary", {}).get("total_dockerfiles", 0),
+            "total_dockerfiles": smart_analysis.get("summary", {}).get(
+                "total_dockerfiles", 0
+            ),
             "mapped_dockerfiles": len(mapping.get("dockerfiles", {})),
             "unmapped_dockerfiles": len(mapping.get("unmapped_dockerfiles", [])),
             "unmapped_charts": len(mapping.get("unmapped_charts", [])),
-            "mapping_confidence": smart_analysis.get("summary", {}).get("mapping_confidence", "unknown"),
+            "mapping_confidence": smart_analysis.get("summary", {}).get(
+                "mapping_confidence", "unknown"
+            ),
             "custom_images_count": self._count_custom_images(smart_analysis),
             "standard_images_count": self._count_standard_images(smart_analysis),
         }

@@ -96,11 +96,15 @@ class DockerfileAnalyzer:
         build_context_analyzer = BuildContextAnalyzer()
 
         # Get basic source paths (legacy method)
-        basic_source_paths = self.parse_dockerfile_for_source_paths(dockerfile_path, repo_root)
+        basic_source_paths = self.parse_dockerfile_for_source_paths(
+            dockerfile_path, repo_root
+        )
 
         # Get enhanced build context analysis
-        build_context_analysis = build_context_analyzer.analyze_dockerfile_build_context(
-            dockerfile_path, repo_root, chart_name
+        build_context_analysis = (
+            build_context_analyzer.analyze_dockerfile_build_context(
+                dockerfile_path, repo_root, chart_name
+            )
         )
 
         # Combine results

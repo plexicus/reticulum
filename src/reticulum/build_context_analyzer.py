@@ -91,7 +91,9 @@ class BuildContextAnalyzer:
 
         # Strategy 4: Fall back to Dockerfile directory
         if not analysis["build_context"]:
-            analysis["build_context"] = str(dockerfile_path.parent.relative_to(repo_root))
+            analysis["build_context"] = str(
+                dockerfile_path.parent.relative_to(repo_root)
+            )
             analysis["build_context_type"] = "dockerfile_directory"
             analysis["confidence"] = "low"
             analysis["inference_methods"].append("fallback_dockerfile_dir")
@@ -117,7 +119,9 @@ class BuildContextAnalyzer:
         # Case 2: Dockerfile is in dockerfiles/ directory - find matching source
         if "dockerfiles" in str(dockerfile_dir.relative_to(repo_root)):
             # Try to find matching source code directory
-            dockerfile_name = dockerfile_path.stem  # e.g., "frontend" from "frontend.Dockerfile"
+            dockerfile_name = (
+                dockerfile_path.stem
+            )  # e.g., "frontend" from "frontend.Dockerfile"
 
             # Priority 1: Chart name based matching
             if chart_name:
@@ -126,7 +130,9 @@ class BuildContextAnalyzer:
                     return source_dir
 
             # Priority 2: Dockerfile name based matching
-            source_dir = self._find_matching_source_directory(dockerfile_name, repo_root)
+            source_dir = self._find_matching_source_directory(
+                dockerfile_name, repo_root
+            )
             if source_dir:
                 return source_dir
 
@@ -151,9 +157,9 @@ class BuildContextAnalyzer:
             # Look for COPY/ADD commands that copy entire directories
             copy_patterns = [
                 r"COPY\s+\.\s+\.",  # COPY . .
-                r"ADD\s+\.\s+\.",   # ADD . .
+                r"ADD\s+\.\s+\.",  # ADD . .
                 r"COPY\s+\.\s+/app",  # COPY . /app
-                r"ADD\s+\.\s+/app",   # ADD . /app
+                r"ADD\s+\.\s+/app",  # ADD . /app
             ]
 
             for pattern in copy_patterns:
@@ -167,7 +173,9 @@ class BuildContextAnalyzer:
 
             for source, _ in matches:
                 source = source.strip("'\"")
-                if source != "." and not source.startswith(("--", "http://", "https://")):
+                if source != "." and not source.startswith(
+                    ("--", "http://", "https://")
+                ):
                     # Check if this source exists relative to Dockerfile directory
                     potential_path = dockerfile_path.parent / source
                     if potential_path.exists():
@@ -257,7 +265,9 @@ class BuildContextAnalyzer:
                                 source_paths.append(f"{source}/")
                             else:
                                 # For files, use parent directory
-                                parent_dir = potential_path.parent.relative_to(build_context)
+                                parent_dir = potential_path.parent.relative_to(
+                                    build_context
+                                )
                                 if str(parent_dir) != ".":
                                     source_paths.append(f"{parent_dir}/")
 
@@ -289,7 +299,8 @@ class BuildContextAnalyzer:
             if not is_covered:
                 # Remove any existing paths that are children of this one
                 consolidated = [
-                    p for p in consolidated
+                    p
+                    for p in consolidated
                     if not (p.startswith(path + "/") or p == path)
                 ]
                 consolidated.append(path)
@@ -344,8 +355,12 @@ class BuildContextAnalyzer:
                         dockerfile_path, repo_root, chart_name
                     )
 
-                    service_mapping["build_context"] = build_context_analysis["build_context"]
-                    service_mapping["source_paths"] = build_context_analysis["source_paths"]
+                    service_mapping["build_context"] = build_context_analysis[
+                        "build_context"
+                    ]
+                    service_mapping["source_paths"] = build_context_analysis[
+                        "source_paths"
+                    ]
                     service_mapping["build_context_analysis"] = build_context_analysis
 
                     if build_context_analysis["build_context"]:
@@ -360,7 +375,9 @@ class BuildContextAnalyzer:
 
     # Enhanced Implicit Territory Claiming Methods
 
-    def claim_implicit_territory_intelligent(self, service_token: str, dockerfile_path: Path, repo_root: Path) -> None:
+    def claim_implicit_territory_intelligent(
+        self, service_token: str, dockerfile_path: Path, repo_root: Path
+    ) -> None:
         """
         Claim implicit territory using intelligent heuristics beyond just the Dockerfile directory.
 
@@ -371,19 +388,29 @@ class BuildContextAnalyzer:
         """
         # 1. Claim Dockerfile parent directory (standard implicit territory)
         dockerfile_dir = dockerfile_path.parent
-        self.reverse_ownership_index.claim_implicit_territory(service_token, dockerfile_dir)
+        self.reverse_ownership_index.claim_implicit_territory(
+            service_token, dockerfile_dir
+        )
 
         # 2. Claim inferred build context directory
-        build_context_analysis = self.analyze_dockerfile_build_context(dockerfile_path, repo_root)
+        build_context_analysis = self.analyze_dockerfile_build_context(
+            dockerfile_path, repo_root
+        )
         if build_context_analysis["build_context"]:
-            build_context_path = Path(repo_root) / build_context_analysis["build_context"]
+            build_context_path = (
+                Path(repo_root) / build_context_analysis["build_context"]
+            )
             if build_context_path != dockerfile_dir:
-                self.reverse_ownership_index.claim_implicit_territory(service_token, build_context_path)
+                self.reverse_ownership_index.claim_implicit_territory(
+                    service_token, build_context_path
+                )
 
         # 3. Claim common parent directories based on repository structure
         self._claim_common_parent_territories(service_token, dockerfile_path, repo_root)
 
-    def _claim_common_parent_territories(self, service_token: str, dockerfile_path: Path, repo_root: Path) -> None:
+    def _claim_common_parent_territories(
+        self, service_token: str, dockerfile_path: Path, repo_root: Path
+    ) -> None:
         """
         Claim common parent directories that might contain shared resources.
 
@@ -402,7 +429,9 @@ class BuildContextAnalyzer:
         while current_path != repo_root and depth < max_depth:
             # Check if this directory contains common shared resources
             if self._contains_shared_resources(current_path):
-                self.reverse_ownership_index.claim_implicit_territory(service_token, current_path)
+                self.reverse_ownership_index.claim_implicit_territory(
+                    service_token, current_path
+                )
 
             current_path = current_path.parent
             depth += 1
@@ -418,8 +447,16 @@ class BuildContextAnalyzer:
             True if directory contains shared resources
         """
         shared_patterns = [
-            "shared", "common", "lib", "library", "utils", "utilities",
-            "config", "configuration", "assets", "resources"
+            "shared",
+            "common",
+            "lib",
+            "library",
+            "utils",
+            "utilities",
+            "config",
+            "configuration",
+            "assets",
+            "resources",
         ]
 
         try:
@@ -430,7 +467,13 @@ class BuildContextAnalyzer:
                         return True
                 elif item.is_file():
                     # Check for common configuration files
-                    if item.name in ["package.json", "requirements.txt", "pom.xml", "build.gradle", "Makefile"]:
+                    if item.name in [
+                        "package.json",
+                        "requirements.txt",
+                        "pom.xml",
+                        "build.gradle",
+                        "Makefile",
+                    ]:
                         return True
         except (OSError, PermissionError):
             pass
@@ -454,7 +497,7 @@ class BuildContextAnalyzer:
 
         # Register services from Dockerfiles
         for dockerfile_path in dockerfiles:
-            service_token = self.service_registry.register_service_from_dockerfile(
+            self.service_registry.register_service_from_dockerfile(
                 dockerfile_path, repo_root
             )
 
@@ -485,26 +528,28 @@ class BuildContextAnalyzer:
                     {
                         "token": service.token,
                         "dockerfile": str(service.dockerfile_path),
-                        "parent_directory": str(service.parent_directory)
+                        "parent_directory": str(service.parent_directory),
                     }
                     for service in self.service_registry.get_all_services()
-                ]
+                ],
             },
             "territory_claiming": {
                 "ownership_statistics": self.reverse_ownership_index.get_index_statistics(),
                 "shared_folders": self.reverse_ownership_index.get_shared_folders(),
                 "service_coverage": {
-                    service.token: self.reverse_ownership_index.get_service_coverage(service.token)
+                    service.token: self.reverse_ownership_index.get_service_coverage(
+                        service.token
+                    )
                     for service in self.service_registry.get_all_services()
-                }
+                },
             },
             "build_context_analysis": {
                 "total_dockerfiles": len(dockerfiles),
                 "dockerfiles": [
                     self.analyze_dockerfile_build_context(df, repo_root)
                     for df in dockerfiles
-                ]
-            }
+                ],
+            },
         }
 
         return results
@@ -584,7 +629,9 @@ class BuildContextAnalyzer:
             return service_info.parent_directory
         return None
 
-    def get_affected_services_for_changes(self, changed_files: List[Path]) -> Dict[str, List[str]]:
+    def get_affected_services_for_changes(
+        self, changed_files: List[Path]
+    ) -> Dict[str, List[str]]:
         """
         Get services affected by file changes using reverse ownership index.
 

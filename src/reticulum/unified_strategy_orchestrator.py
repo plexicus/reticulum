@@ -6,7 +6,7 @@ comprehensive service identification, territory claiming, and deployment targeti
 """
 
 from pathlib import Path
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Any
 
 from .service_registry import ServiceRegistry
 from .dockerfile_parser import DockerfileParser
@@ -75,7 +75,7 @@ class UnifiedStrategyOrchestrator:
 
         # Register services
         for dockerfile_path in dockerfiles:
-            service_token = self.service_registry.register_service_from_dockerfile(
+            self.service_registry.register_service_from_dockerfile(
                 dockerfile_path, self.repo_root
             )
 
@@ -86,10 +86,10 @@ class UnifiedStrategyOrchestrator:
                 {
                     "token": service.token,
                     "dockerfile": str(service.dockerfile_path),
-                    "parent_directory": str(service.parent_directory)
+                    "parent_directory": str(service.parent_directory),
                 }
                 for service in self.service_registry.get_all_services()
-            ]
+            ],
         }
 
     def _execute_phase_2(self) -> Dict[str, Any]:
@@ -99,7 +99,9 @@ class UnifiedStrategyOrchestrator:
         for dockerfile_path in dockerfiles:
             # Convert to relative path for service registry lookup
             relative_dockerfile_path = dockerfile_path.relative_to(self.repo_root)
-            service_info = self.service_registry.get_service_by_dockerfile(relative_dockerfile_path)
+            service_info = self.service_registry.get_service_by_dockerfile(
+                relative_dockerfile_path
+            )
             if service_info:
                 service_token = service_info.token
 
@@ -120,9 +122,11 @@ class UnifiedStrategyOrchestrator:
             "ownership_statistics": self.reverse_ownership_index.get_index_statistics(),
             "shared_folders": self.reverse_ownership_index.get_shared_folders(),
             "service_coverage": {
-                service.token: self.reverse_ownership_index.get_service_coverage(service.token)
+                service.token: self.reverse_ownership_index.get_service_coverage(
+                    service.token
+                )
                 for service in self.service_registry.get_all_services()
-            }
+            },
         }
 
     def _execute_phase_3(self) -> Dict[str, Any]:
@@ -151,7 +155,9 @@ class UnifiedStrategyOrchestrator:
         return {
             "chart_mappings": chart_mappings,
             "registry_statistics": self.service_chart_registry.get_registry_statistics(),
-            "mapping_validation": self.chart_resolver.validate_service_chart_mappings(service_tokens)
+            "mapping_validation": self.chart_resolver.validate_service_chart_mappings(
+                service_tokens
+            ),
         }
 
     def _execute_phase_4(self) -> Dict[str, Any]:
@@ -162,10 +168,16 @@ class UnifiedStrategyOrchestrator:
         return {
             "readiness": "complete",
             "total_services": len(service_tokens),
-            "mapped_services": len([t for t in service_tokens if self.service_chart_registry.get_chart_for_service(t)]),
+            "mapped_services": len(
+                [
+                    t
+                    for t in service_tokens
+                    if self.service_chart_registry.get_chart_for_service(t)
+                ]
+            ),
             "reverse_ownership_ready": True,
             "chart_resolution_ready": True,
-            "deployment_targeting_ready": True
+            "deployment_targeting_ready": True,
         }
 
     def _discover_dockerfiles(self) -> List[Path]:
@@ -195,7 +207,11 @@ class UnifiedStrategyOrchestrator:
         registry_stats = phase_3["registry_statistics"]
 
         # Calculate mapping rate
-        mapping_rate = registry_stats["total_services"] / total_services if total_services > 0 else 0
+        mapping_rate = (
+            registry_stats["total_services"] / total_services
+            if total_services > 0
+            else 0
+        )
 
         return {
             "total_services": total_services,
@@ -204,7 +220,7 @@ class UnifiedStrategyOrchestrator:
             "shared_folders": ownership_stats["shared_folders"],
             "mapped_services": registry_stats["total_services"],
             "mapping_rate": mapping_rate,
-            "strategy_status": "complete"
+            "strategy_status": "complete",
         }
 
     def query_deployment_targets(self, changed_files: List[Path]) -> Dict[str, Any]:
@@ -246,15 +262,16 @@ class UnifiedStrategyOrchestrator:
                         relative_changed_files.append(file_path)
 
         # Generate deployment plan
-        deployment_plan = self.deployment_target_generator.generate_deployment_plan(relative_changed_files)
+        deployment_plan = self.deployment_target_generator.generate_deployment_plan(
+            relative_changed_files
+        )
 
         # Analyze impact
-        impact_analysis = self.deployment_target_generator.analyze_impact(relative_changed_files)
+        impact_analysis = self.deployment_target_generator.analyze_impact(
+            relative_changed_files
+        )
 
-        return {
-            "deployment_plan": deployment_plan,
-            "impact_analysis": impact_analysis
-        }
+        return {"deployment_plan": deployment_plan, "impact_analysis": impact_analysis}
 
     def get_owners_for_file(self, file_path: Path) -> List[str]:
         """
@@ -311,17 +328,24 @@ class UnifiedStrategyOrchestrator:
                     {
                         "token": service.token,
                         "dockerfile": str(service.dockerfile_path),
-                        "chart": self.service_chart_registry.get_chart_for_service(service.token)
+                        "chart": self.service_chart_registry.get_chart_for_service(
+                            service.token
+                        ),
                     }
                     for service in self.service_registry.get_all_services()
-                ]
+                ],
             },
             "ownership_index": self.reverse_ownership_index.get_index_statistics(),
             "chart_registry": self.service_chart_registry.get_registry_statistics(),
             "deployment_readiness": {
                 "can_generate_targets": True,
                 "total_charts": len(self.helm_chart_finder.find_all_charts()),
-                "mapping_coverage": len([s for s in self.service_registry.get_all_services()
-                                        if self.service_chart_registry.get_chart_for_service(s.token)])
-            }
+                "mapping_coverage": len(
+                    [
+                        s
+                        for s in self.service_registry.get_all_services()
+                        if self.service_chart_registry.get_chart_for_service(s.token)
+                    ]
+                ),
+            },
         }

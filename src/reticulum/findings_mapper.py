@@ -79,9 +79,7 @@ class FindingsMapper:
             }
             containers.append(container)
 
-        exposure_results = {
-            "containers": containers
-        }
+        exposure_results = {"containers": containers}
 
         return build_context_analyzer.build_service_mapping_table(
             exposure_results, self.repo_path
@@ -111,7 +109,9 @@ class FindingsMapper:
                     continue
 
                 # Find services that match this file path using enhanced resolution
-                matching_services = self.path_resolution_engine.resolve_finding_to_services(file_path)
+                matching_services = (
+                    self.path_resolution_engine.resolve_finding_to_services(file_path)
+                )
                 if not matching_services:
                     mapped_findings["unmapped_findings"].append(result)
                     mapped_findings["summary"]["unmapped_findings"] += 1
@@ -157,7 +157,9 @@ class FindingsMapper:
                     continue
 
                 # Find services that match this file path using enhanced resolution
-                matching_services = self.path_resolution_engine.resolve_finding_to_services(file_path)
+                matching_services = (
+                    self.path_resolution_engine.resolve_finding_to_services(file_path)
+                )
                 if not matching_services:
                     mapped_findings["unmapped_findings"].append(result)
                     mapped_findings["summary"]["unmapped_findings"] += 1

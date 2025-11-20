@@ -7,7 +7,7 @@ and build the reverse ownership index.
 
 import re
 from pathlib import Path
-from typing import List, Set, Tuple
+from typing import List, Optional
 
 
 class DockerfileParser:
@@ -25,17 +25,15 @@ class DockerfileParser:
         # Matches: COPY source dest, ADD source dest
         # Handles: COPY source1 source2 ... dest, ADD source1 source2 ... dest
         self.copy_add_pattern = re.compile(
-            r'^\s*(?:COPY|ADD)\s+([^\n]+)',
-            re.IGNORECASE | re.MULTILINE
+            r"^\s*(?:COPY|ADD)\s+([^\n]+)", re.IGNORECASE | re.MULTILINE
         )
 
         # Pattern to extract individual source paths from the command
-        self.source_paths_pattern = re.compile(
-            r'([^\s\"]+|\"[^\"]+\")',
-            re.IGNORECASE
-        )
+        self.source_paths_pattern = re.compile(r"([^\s\"]+|\"[^\"]+\")", re.IGNORECASE)
 
-    def parse_dockerfile(self, dockerfile_path: Path, build_context: Path, repo_root: Path) -> List[Path]:
+    def parse_dockerfile(
+        self, dockerfile_path: Path, build_context: Path, repo_root: Path
+    ) -> List[Path]:
         """
         Parse a Dockerfile and extract all source paths from COPY/ADD commands.
 
@@ -51,7 +49,7 @@ class DockerfileParser:
             return []
 
         try:
-            content = dockerfile_path.read_text(encoding='utf-8')
+            content = dockerfile_path.read_text(encoding="utf-8")
         except Exception:
             return []
 
@@ -96,7 +94,7 @@ class DockerfileParser:
         paths.extend(quoted_paths)
 
         # Remove quoted sections from remaining string
-        remaining = re.sub(r'"[^"]+"', '', command_args)
+        remaining = re.sub(r'"[^"]+"', "", command_args)
 
         # Extract unquoted paths
         unquoted_paths = self.source_paths_pattern.findall(remaining)
@@ -107,9 +105,11 @@ class DockerfileParser:
             # The last path is typically the destination
             paths = paths[:-1]
 
-        return [p for p in paths if p and not p.startswith('--')]
+        return [p for p in paths if p and not p.startswith("--")]
 
-    def _normalize_path(self, path_str: str, build_context: Path, repo_root: Path) -> Optional[Path]:
+    def _normalize_path(
+        self, path_str: str, build_context: Path, repo_root: Path
+    ) -> Optional[Path]:
         """
         Normalize a source path to absolute repository path.
 
@@ -122,7 +122,7 @@ class DockerfileParser:
             Normalized Path relative to repo root, or None if invalid
         """
         # Handle relative paths
-        if path_str.startswith('./') or path_str.startswith('../'):
+        if path_str.startswith("./") or path_str.startswith("../"):
             # Resolve relative to build context
             resolved_path = (build_context / path_str).resolve()
         else:
@@ -143,7 +143,9 @@ class DockerfileParser:
             # Path is outside repository
             return None
 
-    def analyze_dockerfile_structure(self, dockerfile_path: Path, repo_root: Path) -> dict:
+    def analyze_dockerfile_structure(
+        self, dockerfile_path: Path, repo_root: Path
+    ) -> dict:
         """
         Analyze Dockerfile structure and extract comprehensive information.
 
@@ -159,12 +161,12 @@ class DockerfileParser:
         source_paths = self.parse_dockerfile(dockerfile_path, build_context, repo_root)
 
         return {
-            'dockerfile_path': dockerfile_path.relative_to(repo_root),
-            'build_context': build_context.relative_to(repo_root),
-            'source_paths': source_paths,
-            'source_path_count': len(source_paths),
-            'implicit_territory': [build_context.relative_to(repo_root)],
-            'explicit_territory': source_paths
+            "dockerfile_path": dockerfile_path.relative_to(repo_root),
+            "build_context": build_context.relative_to(repo_root),
+            "source_paths": source_paths,
+            "source_path_count": len(source_paths),
+            "implicit_territory": [build_context.relative_to(repo_root)],
+            "explicit_territory": source_paths,
         }
 
     def batch_parse_dockerfiles(self, dockerfiles: List[Path], repo_root: Path) -> dict:

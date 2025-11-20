@@ -6,7 +6,6 @@ handling edge cases and naming variations.
 """
 
 from collections import defaultdict
-from pathlib import Path
 from typing import Dict, List, Optional, Set
 from dataclasses import dataclass
 
@@ -14,6 +13,7 @@ from dataclasses import dataclass
 @dataclass
 class ServiceChartMapping:
     """Definitive mapping between service and chart."""
+
     service_token: str
     chart_name: str
     confidence: float  # 0.0 to 1.0
@@ -37,7 +37,9 @@ class ServiceChartRegistry:
         self.chart_to_services: Dict[str, Set[str]] = defaultdict(set)
 
         # Alternative mappings for edge cases
-        self.alternative_mappings: Dict[str, List[ServiceChartMapping]] = defaultdict(list)
+        self.alternative_mappings: Dict[str, List[ServiceChartMapping]] = defaultdict(
+            list
+        )
 
     def register_mapping(
         self,
@@ -45,7 +47,7 @@ class ServiceChartRegistry:
         chart_name: str,
         confidence: float = 1.0,
         mapping_type: str = "convention",
-        source: str = "auto"
+        source: str = "auto",
     ) -> None:
         """
         Register a service-to-chart mapping.
@@ -62,7 +64,7 @@ class ServiceChartRegistry:
             chart_name=chart_name,
             confidence=confidence,
             mapping_type=mapping_type,
-            source=source
+            source=source,
         )
 
         # Check if we already have a mapping for this service
@@ -133,9 +135,7 @@ class ServiceChartRegistry:
         return self.alternative_mappings.get(service_token, [])
 
     def resolve_chart_for_service(
-        self,
-        service_token: str,
-        min_confidence: float = 0.5
+        self, service_token: str, min_confidence: float = 0.5
     ) -> Optional[str]:
         """
         Resolve chart for service with confidence threshold.
@@ -184,16 +184,21 @@ class ServiceChartRegistry:
         ]
         avg_services_per_chart = (
             sum(services_per_chart) / len(services_per_chart)
-            if services_per_chart else 0
+            if services_per_chart
+            else 0
         )
 
         return {
-            'total_services': total_services,
-            'total_charts': total_charts,
-            'mapping_types': dict(mapping_types),
-            'avg_services_per_chart': avg_services_per_chart,
-            'max_services_per_chart': max(services_per_chart) if services_per_chart else 0,
-            'alternative_mappings': sum(len(alts) for alts in self.alternative_mappings.values())
+            "total_services": total_services,
+            "total_charts": total_charts,
+            "mapping_types": dict(mapping_types),
+            "avg_services_per_chart": avg_services_per_chart,
+            "max_services_per_chart": (
+                max(services_per_chart) if services_per_chart else 0
+            ),
+            "alternative_mappings": sum(
+                len(alts) for alts in self.alternative_mappings.values()
+            ),
         }
 
     def find_orphaned_services(self) -> List[str]:
@@ -204,7 +209,8 @@ class ServiceChartRegistry:
             List of service tokens without chart mappings
         """
         return [
-            token for token in self.service_to_chart.keys()
+            token
+            for token in self.service_to_chart.keys()
             if not self.service_to_chart[token].chart_name
         ]
 
@@ -219,7 +225,8 @@ class ServiceChartRegistry:
             List of service tokens with confidence below threshold
         """
         return [
-            token for token, mapping in self.service_to_chart.items()
+            token
+            for token, mapping in self.service_to_chart.items()
             if mapping.confidence < threshold
         ]
 

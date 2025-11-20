@@ -8,8 +8,7 @@ Now integrated with Unified Pareto Strategy for service identification and terri
 """
 
 from pathlib import Path
-from typing import List, Optional, Dict, Any, Tuple
-import re
+from typing import List, Optional, Dict, Any
 import yaml
 
 from .service_registry import ServiceRegistry
@@ -76,7 +75,7 @@ class SmartDockerfileAnalyzer:
         values_file = chart_dir / "values.yaml"
         if values_file.exists():
             try:
-                with open(values_file, 'r') as f:
+                with open(values_file, "r") as f:
                     values = yaml.safe_load(f)
 
                 # Extract image information from common patterns
@@ -162,7 +161,9 @@ class SmartDockerfileAnalyzer:
         path_str = str(path)
         return any(pattern in path_str for pattern in ignore_patterns)
 
-    def _extract_image_from_values(self, values: Dict[str, Any]) -> Optional[Dict[str, str]]:
+    def _extract_image_from_values(
+        self, values: Dict[str, Any]
+    ) -> Optional[Dict[str, str]]:
         """Extract image information from values.yaml."""
         # Common image patterns in Helm charts
         image_patterns = [
@@ -206,7 +207,10 @@ class SmartDockerfileAnalyzer:
                     if key == "image" and isinstance(value, (str, dict)):
                         image_name = path.split(".")[-1] if path else "secondary"
                         if isinstance(value, str):
-                            additional_images[image_name] = {"repository": value, "tag": "latest"}
+                            additional_images[image_name] = {
+                                "repository": value,
+                                "tag": "latest",
+                            }
                         elif isinstance(value, dict):
                             additional_images[image_name] = value
 
@@ -216,12 +220,13 @@ class SmartDockerfileAnalyzer:
         search_for_images(values)
         return additional_images
 
-    def _find_matching_chart(self, dockerfile_name: str, chart_images: Dict[str, Any]) -> Optional[str]:
+    def _find_matching_chart(
+        self, dockerfile_name: str, chart_images: Dict[str, Any]
+    ) -> Optional[str]:
         """Find chart that matches Dockerfile name using semantic matching."""
         # Clean up dockerfile name
         clean_dockerfile = (
-            dockerfile_name
-            .replace("dockerfile", "")
+            dockerfile_name.replace("dockerfile", "")
             .replace("-", "")
             .replace("_", "")
             .strip(".")
@@ -230,8 +235,7 @@ class SmartDockerfileAnalyzer:
         # Try exact match first
         for chart_name in chart_images:
             clean_chart = (
-                chart_name
-                .replace("-", "")
+                chart_name.replace("-", "")
                 .replace("_", "")
                 .replace("chart", "")
                 .replace("service", "")
@@ -298,7 +302,9 @@ class SmartDockerfileAnalyzer:
 
     def _calculate_mapping_confidence(self, mapping: Dict[str, Any]) -> str:
         """Calculate overall confidence in mapping."""
-        total_dockerfiles = len(mapping["dockerfiles"]) + len(mapping["unmapped_dockerfiles"])
+        total_dockerfiles = len(mapping["dockerfiles"]) + len(
+            mapping["unmapped_dockerfiles"]
+        )
         if total_dockerfiles == 0:
             return "unknown"
 
@@ -332,7 +338,9 @@ class SmartDockerfileAnalyzer:
 
         # Phase 2: Territory Claiming
         for dockerfile_path in dockerfiles:
-            service_token = self.service_registry.get_service_by_dockerfile(dockerfile_path)
+            service_token = self.service_registry.get_service_by_dockerfile(
+                dockerfile_path
+            )
             if service_token:
                 service_info = self.service_registry.get_service_by_token(service_token)
 
@@ -357,26 +365,28 @@ class SmartDockerfileAnalyzer:
                     {
                         "token": service.token,
                         "dockerfile": str(service.dockerfile_path),
-                        "parent_directory": str(service.parent_directory)
+                        "parent_directory": str(service.parent_directory),
                     }
                     for service in self.service_registry.get_all_services()
-                ]
+                ],
             },
             "territory_claiming": {
                 "ownership_statistics": self.reverse_ownership_index.get_index_statistics(),
                 "shared_folders": self.reverse_ownership_index.get_shared_folders(),
                 "service_coverage": {
-                    service.token: self.reverse_ownership_index.get_service_coverage(service.token)
+                    service.token: self.reverse_ownership_index.get_service_coverage(
+                        service.token
+                    )
                     for service in self.service_registry.get_all_services()
-                }
+                },
             },
             "dockerfile_analysis": {
                 "total_dockerfiles": len(dockerfiles),
                 "dockerfiles": [
                     self.dockerfile_parser.analyze_dockerfile_structure(df, repo_path)
                     for df in dockerfiles
-                ]
-            }
+                ],
+            },
         }
 
         return results

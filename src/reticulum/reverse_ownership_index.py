@@ -6,7 +6,7 @@ This is the "brain" of the territory claiming system.
 """
 
 from pathlib import Path
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, Set
 from collections import defaultdict
 
 
@@ -37,7 +37,9 @@ class ReverseOwnershipIndex:
         """
         self._add_ownership(folder_path, service_token)
 
-    def claim_explicit_territory(self, service_token: str, source_paths: List[Path]) -> None:
+    def claim_explicit_territory(
+        self, service_token: str, source_paths: List[Path]
+    ) -> None:
         """
         Claim explicit territory from Dockerfile COPY/ADD commands.
 
@@ -133,9 +135,13 @@ class ReverseOwnershipIndex:
         folders = self.service_to_folders.get(service_token, set())
 
         return {
-            'total_folders': len(folders),
-            'shared_folders': len([f for f in folders if len(self.ownership_index[f]) > 1]),
-            'exclusive_folders': len([f for f in folders if len(self.ownership_index[f]) == 1])
+            "total_folders": len(folders),
+            "shared_folders": len(
+                [f for f in folders if len(self.ownership_index[f]) > 1]
+            ),
+            "exclusive_folders": len(
+                [f for f in folders if len(self.ownership_index[f]) == 1]
+            ),
         }
 
     def get_index_statistics(self) -> Dict[str, int]:
@@ -154,15 +160,19 @@ class ReverseOwnershipIndex:
         total_ownerships = sum(len(owners) for owners in self.ownership_index.values())
 
         return {
-            'total_folders': total_folders,
-            'total_services': total_services,
-            'shared_folders': shared_folders,
-            'exclusive_folders': exclusive_folders,
-            'total_ownerships': total_ownerships,
-            'avg_owners_per_folder': total_ownerships / total_folders if total_folders > 0 else 0
+            "total_folders": total_folders,
+            "total_services": total_services,
+            "shared_folders": shared_folders,
+            "exclusive_folders": exclusive_folders,
+            "total_ownerships": total_ownerships,
+            "avg_owners_per_folder": (
+                total_ownerships / total_folders if total_folders > 0 else 0
+            ),
         }
 
-    def find_services_by_file_change(self, changed_files: List[Path]) -> Dict[Path, List[str]]:
+    def find_services_by_file_change(
+        self, changed_files: List[Path]
+    ) -> Dict[Path, List[str]]:
         """
         Find services affected by file changes.
 

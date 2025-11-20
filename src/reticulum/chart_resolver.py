@@ -5,7 +5,6 @@ Resolves service tokens to Helm charts for deployment targeting.
 """
 
 from collections import defaultdict
-from pathlib import Path
 from typing import Dict, List, Optional, Set
 
 
@@ -40,7 +39,9 @@ class ChartResolver:
         """
         return self.service_chart_registry.get_chart_for_service(service_token)
 
-    def resolve_services_to_charts(self, service_tokens: List[str]) -> Dict[str, Optional[str]]:
+    def resolve_services_to_charts(
+        self, service_tokens: List[str]
+    ) -> Dict[str, Optional[str]]:
         """
         Resolve multiple service tokens to charts.
 
@@ -102,12 +103,14 @@ class ChartResolver:
         services = self.resolve_chart_to_services(chart_name)
 
         return {
-            'chart_name': chart_name,
-            'service_count': len(services),
-            'services': services
+            "chart_name": chart_name,
+            "service_count": len(services),
+            "services": services,
         }
 
-    def validate_service_chart_mappings(self, service_tokens: List[str]) -> Dict[str, dict]:
+    def validate_service_chart_mappings(
+        self, service_tokens: List[str]
+    ) -> Dict[str, dict]:
         """
         Validate service-to-chart mappings.
 
@@ -124,19 +127,19 @@ class ChartResolver:
 
             if mapping:
                 validation_results[token] = {
-                    'status': 'mapped',
-                    'chart_name': mapping.chart_name,
-                    'confidence': mapping.confidence,
-                    'mapping_type': mapping.mapping_type,
-                    'source': mapping.source
+                    "status": "mapped",
+                    "chart_name": mapping.chart_name,
+                    "confidence": mapping.confidence,
+                    "mapping_type": mapping.mapping_type,
+                    "source": mapping.source,
                 }
             else:
                 validation_results[token] = {
-                    'status': 'unmapped',
-                    'chart_name': None,
-                    'confidence': 0.0,
-                    'mapping_type': None,
-                    'source': None
+                    "status": "unmapped",
+                    "chart_name": None,
+                    "confidence": 0.0,
+                    "mapping_type": None,
+                    "source": None,
                 }
 
         return validation_results
@@ -165,10 +168,12 @@ class ChartResolver:
                 mapping_types[mapping.mapping_type] += 1
 
         return {
-            'total_services': total_services,
-            'mapped_services': mapped_services,
-            'unmapped_services': total_services - mapped_services,
-            'mapping_rate': mapped_services / total_services if total_services > 0 else 0,
-            'high_confidence_mappings': high_confidence_mappings,
-            'mapping_types': dict(mapping_types)
+            "total_services": total_services,
+            "mapped_services": mapped_services,
+            "unmapped_services": total_services - mapped_services,
+            "mapping_rate": (
+                mapped_services / total_services if total_services > 0 else 0
+            ),
+            "high_confidence_mappings": high_confidence_mappings,
+            "mapping_types": dict(mapping_types),
         }
