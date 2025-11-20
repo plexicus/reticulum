@@ -1,6 +1,6 @@
 [project]
 name = "reticulum"
-version = "0.7.0"
+version = "0.7.1"
 description = "Exposure Scanner for Cloud Infrastructure Security Analysis"
 authors = [{name = "Jose Palanco", email = "jose.palanco@plexicus.ai"}]
 license = {text = "MIT"}
@@ -51,7 +51,7 @@ Repository = "https://github.com/plexicus/reticulum"
 
 [tool.commitizen]
 name = "cz_conventional_commits"
-version = "0.7.0"
+version = "0.7.1"
 version_files = [
     "pyproject.toml:version",
     "src/reticulum/__init__.py:__version__",

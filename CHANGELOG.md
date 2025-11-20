@@ -1,3 +1,10 @@
+## v0.7.1 (2025-11-20)
+
+### Feat
+
+- implement comprehensive security tools comparison analysis
+- enhance Dockerfile discovery with additional naming patterns
+
 ## v0.7.0 (2025-11-20)
 
 ### Feat
