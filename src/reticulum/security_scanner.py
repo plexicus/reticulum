@@ -566,8 +566,12 @@ class SecurityScanner:
             service_info = service_data["service_info"]
             for finding in service_data["trivy_findings"]:
                 # Use the original finding's ruleId and message if available
-                original_rule_id = finding.get("ruleId", f"trivy-finding-{service_name}")
-                original_message = finding.get("message", {"text": "Security vulnerability found"})
+                original_rule_id = finding.get(
+                    "ruleId", f"trivy-finding-{service_name}"
+                )
+                original_message = finding.get(
+                    "message", {"text": "Security vulnerability found"}
+                )
 
                 result = {
                     "ruleId": original_rule_id,
@@ -577,11 +581,19 @@ class SecurityScanner:
                     "properties": {
                         "service_name": service_name,
                         "exposure_level": service_info.get("risk_level", "LOW"),
-                        "enhanced_priority": service_info.get("enhanced_risk_level", "LOW"),
-                        "vulnerability_id": finding.get("properties", {}).get("vulnerability_id", ""),
+                        "enhanced_priority": service_info.get(
+                            "enhanced_risk_level", "LOW"
+                        ),
+                        "vulnerability_id": finding.get("properties", {}).get(
+                            "vulnerability_id", ""
+                        ),
                         "severity": finding.get("properties", {}).get("severity", ""),
-                        "package_name": finding.get("properties", {}).get("package_name", ""),
-                        "package_version": finding.get("properties", {}).get("package_version", ""),
+                        "package_name": finding.get("properties", {}).get(
+                            "package_name", ""
+                        ),
+                        "package_version": finding.get("properties", {}).get(
+                            "package_version", ""
+                        ),
                     },
                 }
                 enhanced_run["results"].append(result)

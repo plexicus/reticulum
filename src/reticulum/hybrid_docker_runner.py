@@ -83,10 +83,14 @@ class HybridDockerRunner:
         if ci_detected:
             docker_available = self._is_docker_available()
             if docker_available:
-                print("✅ CI environment detected, but Docker is available - using Docker tools")
+                print(
+                    "✅ CI environment detected, but Docker is available - using Docker tools"
+                )
                 return False
             else:
-                print("📄 CI environment detected, Docker not available - using SARIF files")
+                print(
+                    "📄 CI environment detected, Docker not available - using SARIF files"
+                )
                 return True
 
         return False
@@ -100,11 +104,9 @@ class HybridDockerRunner:
         """
         try:
             import subprocess
+
             result = subprocess.run(
-                ["docker", "info"],
-                capture_output=True,
-                text=True,
-                timeout=10
+                ["docker", "info"], capture_output=True, text=True, timeout=10
             )
             return result.returncode == 0
         except Exception:

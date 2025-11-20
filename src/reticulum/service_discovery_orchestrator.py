@@ -31,9 +31,7 @@ class ServiceDiscoveryOrchestrator:
         self.service_registry = ServiceRegistry()
         self.alternative_evidence_analyzer = AlternativeEvidenceAnalyzer(repo_root)
 
-    def discover_all_services(
-        self, chart_dirs: List[Path]
-    ) -> Dict[str, Any]:
+    def discover_all_services(self, chart_dirs: List[Path]) -> Dict[str, Any]:
         """
         Discover all services using multiple evidence sources.
 
@@ -52,7 +50,7 @@ class ServiceDiscoveryOrchestrator:
                 "dockerfile_services": 0,
                 "alternative_evidence_services": 0,
                 "unmapped_charts": 0,
-            }
+            },
         }
 
         # Phase 1: Dockerfile-based discovery
@@ -65,7 +63,8 @@ class ServiceDiscoveryOrchestrator:
 
         # Phase 2: Alternative evidence discovery for remaining charts
         remaining_charts = [
-            chart_dir for chart_dir in chart_dirs
+            chart_dir
+            for chart_dir in chart_dirs
             if chart_dir.name not in existing_services
         ]
 
@@ -73,21 +72,24 @@ class ServiceDiscoveryOrchestrator:
             remaining_charts, existing_services
         )
         discovery_results["alternative_evidence_services"] = alternative_services
-        discovery_results["summary"]["alternative_evidence_services"] = len(alternative_services)
+        discovery_results["summary"]["alternative_evidence_services"] = len(
+            alternative_services
+        )
 
         # Phase 3: Identify unmapped charts
         all_discovered_services = existing_services.union(
             {service["service_name"] for service in alternative_services}
         )
         unmapped_charts = [
-            chart_dir for chart_dir in chart_dirs
+            chart_dir
+            for chart_dir in chart_dirs
             if chart_dir.name not in all_discovered_services
         ]
         discovery_results["unmapped_charts"] = [
             {
                 "chart_name": chart_dir.name,
                 "chart_directory": str(chart_dir.relative_to(self.repo_root)),
-                "reason": "No evidence found for service mapping"
+                "reason": "No evidence found for service mapping",
             }
             for chart_dir in unmapped_charts
         ]
@@ -95,7 +97,9 @@ class ServiceDiscoveryOrchestrator:
 
         return discovery_results
 
-    def _discover_dockerfile_services(self, chart_dirs: List[Path]) -> List[Dict[str, Any]]:
+    def _discover_dockerfile_services(
+        self, chart_dirs: List[Path]
+    ) -> List[Dict[str, Any]]:
         """Discover services using Dockerfile-based evidence."""
         services = []
 
@@ -117,8 +121,10 @@ class ServiceDiscoveryOrchestrator:
                 self.service_registry.set_chart_name(service_token, chart_name)
 
                 # Analyze Dockerfile for source paths
-                dockerfile_analysis = self.dockerfile_analyzer.analyze_dockerfile_with_build_context(
-                    dockerfile_path, self.repo_root, chart_name
+                dockerfile_analysis = (
+                    self.dockerfile_analyzer.analyze_dockerfile_with_build_context(
+                        dockerfile_path, self.repo_root, chart_name
+                    )
                 )
 
                 # Create service definition
@@ -126,8 +132,12 @@ class ServiceDiscoveryOrchestrator:
                     "service_name": service_token,
                     "chart_name": chart_name,
                     "dockerfile_path": str(dockerfile_path.relative_to(self.repo_root)),
-                    "source_code_paths": dockerfile_analysis.get("combined_source_paths", []),
-                    "build_context_analysis": dockerfile_analysis.get("build_context_analysis", {}),
+                    "source_code_paths": dockerfile_analysis.get(
+                        "combined_source_paths", []
+                    ),
+                    "build_context_analysis": dockerfile_analysis.get(
+                        "build_context_analysis", {}
+                    ),
                     "discovery_method": "dockerfile",
                     "confidence": "high",
                     "risk_level": "MEDIUM",  # Default, will be refined by exposure analysis
@@ -162,21 +172,19 @@ class ServiceDiscoveryOrchestrator:
 
     def validate_service_mappings(self) -> Dict[str, Any]:
         """Validate service mappings and identify potential issues."""
-        validation_results = {
-            "warnings": [],
-            "errors": [],
-            "suggestions": []
-        }
+        validation_results = {"warnings": [], "errors": [], "suggestions": []}
 
         # Check for service token mismatches
         for service in self.service_registry.get_all_services():
             if service.chart_name and service.token != service.chart_name:
-                validation_results["warnings"].append({
-                    "type": "service_token_mismatch",
-                    "service_token": service.token,
-                    "chart_name": service.chart_name,
-                    "message": f"Service token '{service.token}' doesn't match chart name '{service.chart_name}'"
-                })
+                validation_results["warnings"].append(
+                    {
+                        "type": "service_token_mismatch",
+                        "service_token": service.token,
+                        "chart_name": service.chart_name,
+                        "message": f"Service token '{service.token}' doesn't match chart name '{service.chart_name}'",
+                    }
+                )
 
         # Check for services with no source paths
         # This would require integration with the main service analysis
