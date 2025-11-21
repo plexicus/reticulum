@@ -56,8 +56,8 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Commands:"
             echo "  COMMIT_MESSAGE  - Commit message (optional, will ask if not provided)"
-            echo "  --push          - Push to remote after commit"
-            echo "  --no-push       - Don't push to remote (default)"
+            echo "  --push          - Push to remote after commit (default)"
+            echo "  --no-push       - Don't push to remote"
             echo ""
             echo "Examples:"
             echo "  /commit-push \"Implement user authentication\""
@@ -134,12 +134,12 @@ if [[ -z "$COMMIT_MESSAGE" ]]; then
         exit 1
     fi
 
-    # Ask for push preference
-    read -p "🚀 Push to remote? [y/N]: " push_input
-    if [[ "$push_input" =~ ^[Yy]$ ]]; then
-        PUSH_REMOTE=true
-    else
+    # Ask for push preference (default to yes)
+    read -p "🚀 Push to remote? [Y/n]: " push_input
+    if [[ "$push_input" =~ ^[Nn]$ ]]; then
         PUSH_REMOTE=false
+    else
+        PUSH_REMOTE=true
     fi
 else
     # Validate English for provided commit message
