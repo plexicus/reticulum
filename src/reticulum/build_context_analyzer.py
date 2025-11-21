@@ -57,6 +57,8 @@ class BuildContextAnalyzer:
             "inference_methods": [],
         }
 
+        discovery_log = []
+
         # Strategy 1: Check if Dockerfile is in a source code directory
         build_context = self._infer_build_context_from_location(
             dockerfile_path, repo_root, chart_name
@@ -66,6 +68,9 @@ class BuildContextAnalyzer:
             analysis["build_context_type"] = "source_directory"
             analysis["confidence"] = "high"
             analysis["inference_methods"].append("directory_location")
+            discovery_log.append(f"✅ Strategy 1: Found build context via directory location: {analysis['build_context']}")
+        else:
+            discovery_log.append(f"❌ Strategy 1: No build context found via directory location")
 
         # Strategy 2: Analyze Dockerfile commands for build context hints
         if not analysis["build_context"]:
@@ -77,6 +82,9 @@ class BuildContextAnalyzer:
                 analysis["build_context_type"] = "command_analysis"
                 analysis["confidence"] = "medium"
                 analysis["inference_methods"].append("dockerfile_commands")
+                discovery_log.append(f"✅ Strategy 2: Found build context via command analysis: {analysis['build_context']}")
+            else:
+                discovery_log.append(f"❌ Strategy 2: No build context found via command analysis")
 
         # Strategy 3: Use chart name to find matching source directory
         if not analysis["build_context"] and chart_name:
@@ -88,6 +96,9 @@ class BuildContextAnalyzer:
                 analysis["build_context_type"] = "chart_name_matching"
                 analysis["confidence"] = "medium"
                 analysis["inference_methods"].append("chart_name_matching")
+                discovery_log.append(f"✅ Strategy 3: Found build context via chart name matching: {analysis['build_context']}")
+            else:
+                discovery_log.append(f"❌ Strategy 3: No build context found via chart name matching for chart: {chart_name}")
 
         # Strategy 4: Fall back to Dockerfile directory
         if not analysis["build_context"]:
@@ -97,11 +108,15 @@ class BuildContextAnalyzer:
             analysis["build_context_type"] = "dockerfile_directory"
             analysis["confidence"] = "low"
             analysis["inference_methods"].append("fallback_dockerfile_dir")
+            discovery_log.append(f"⚠️  Strategy 4: Falling back to Dockerfile directory: {analysis['build_context']}")
 
         # Extract source paths relative to build context
         analysis["source_paths"] = self._extract_source_paths_relative_to_context(
             dockerfile_path, Path(repo_root) / analysis["build_context"]
         )
+
+        # Log the discovery process
+        self._log_build_context_discovery(chart_name or "unknown", discovery_log, analysis)
 
         return analysis
 
@@ -136,6 +151,13 @@ class BuildContextAnalyzer:
             if source_dir:
                 return source_dir
 
+            # Priority 3: Enhanced pattern matching for common structures
+            source_dir = self._find_source_by_enhanced_patterns(
+                dockerfile_name, chart_name, repo_root
+            )
+            if source_dir:
+                return source_dir
+
         # Case 3: Dockerfile is in chart directory - check for source subdirectory
         if "charts" in str(dockerfile_dir.relative_to(repo_root)):
             # Look for source, src, or app subdirectory
@@ -143,6 +165,77 @@ class BuildContextAnalyzer:
                 source_subdir = dockerfile_dir / subdir_name
                 if source_subdir.exists() and source_subdir.is_dir():
                     return source_subdir
+
+        return None
+
+    def _find_source_by_enhanced_patterns(
+        self, dockerfile_name: str, chart_name: str, repo_root: Path
+    ) -> Optional[Path]:
+        """
+        Find source directory using enhanced pattern matching for common repository structures.
+        """
+        # Generate candidate names
+        candidates = []
+
+        # Use chart name if available
+        if chart_name:
+            candidates.append(chart_name)
+            # Clean chart name
+            clean_chart = (
+                chart_name.replace("-chart", "")
+                .replace("-helm", "")
+                .replace("-service", "")
+                .replace("-app", "")
+                .rstrip("-")
+            )
+            candidates.append(clean_chart)
+
+        # Use Dockerfile name
+        candidates.append(dockerfile_name)
+        clean_dockerfile = (
+            dockerfile_name.replace("Dockerfile", "")
+            .replace("dockerfile", "")
+            .replace(".", "")
+            .rstrip("-")
+            .rstrip("_")
+        )
+        if clean_dockerfile:
+            candidates.append(clean_dockerfile)
+
+        # Generate variations
+        all_candidates = []
+        for candidate in candidates:
+            if candidate:
+                all_candidates.extend([
+                    candidate,
+                    candidate.replace("-", ""),
+                    candidate.replace("-", "_"),
+                    candidate.lower(),
+                    candidate.upper(),
+                ])
+
+        # Remove duplicates and empty
+        all_candidates = list(set([c for c in all_candidates if c]))
+
+        # Search patterns
+        search_patterns = []
+        for candidate in all_candidates:
+            search_patterns.extend([
+                f"source-code/{candidate}",
+                f"src/{candidate}",
+                f"apps/{candidate}",
+                f"services/{candidate}",
+                f"microservices/{candidate}",
+                f"backend/{candidate}",
+                f"frontend/{candidate}",
+                candidate,  # Direct match
+            ])
+
+        # Search for existing directories
+        for pattern in search_patterns:
+            potential_dir = repo_root / pattern
+            if potential_dir.exists() and potential_dir.is_dir():
+                return potential_dir
 
         return None
 
@@ -651,3 +744,16 @@ class BuildContextAnalyzer:
                 affected_services[owner].append(str(file_path))
 
         return affected_services
+
+    def _log_build_context_discovery(self, chart_name: str, discovery_log: List[str], analysis: Dict[str, Any]):
+        """Log build context discovery strategies for debugging."""
+        if len(discovery_log) > 1:  # Only log if we have multiple strategies
+            print(f"\n🔍 Build Context Discovery Log for chart '{chart_name}':")
+            for log_entry in discovery_log:
+                print(f"   {log_entry}")
+            print(f"   📊 Final Analysis:")
+            print(f"     - Build Context: {analysis['build_context']}")
+            print(f"     - Type: {analysis['build_context_type']}")
+            print(f"     - Confidence: {analysis['confidence']}")
+            print(f"     - Source Paths: {analysis['source_paths']}")
+            print(f"     - Methods: {analysis['inference_methods']}")

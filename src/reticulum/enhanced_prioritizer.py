@@ -4,8 +4,25 @@ Enhanced Prioritizer
 Modifies service priorities based on security findings and exposure levels.
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, List
+from dataclasses import dataclass
 from .network_policy_analyzer import NetworkPolicyAnalyzer
+
+
+@dataclass
+class FindingScore:
+    """Individual finding score with preserved context."""
+    finding_id: str
+    tool: str  # "trivy" or "semgrep"
+    severity: str
+    base_score: float
+    context_modifier: float
+    final_score: float
+    finding_data: Dict[str, Any]
+
+    def __post_init__(self):
+        """Calculate final score after initialization."""
+        self.final_score = self.base_score * self.context_modifier
 
 
 class EnhancedPrioritizer:
@@ -64,17 +81,27 @@ class EnhancedPrioritizer:
             service_name = service["service_name"]
             original_risk = service["risk_level"]
 
-            # Calculate security risk score
-            security_score = self._calculate_security_score(
+            # Calculate individual finding scores
+            finding_scores = self._calculate_finding_scores(
                 service_name, trivy_mapping, semgrep_mapping
             )
+
+            # Aggregate finding scores into service-level metrics
+            security_metrics = self._aggregate_finding_scores(finding_scores)
+            security_score = security_metrics["aggregated_score"]
 
             # Calculate egress risk score
             egress_score = self._calculate_egress_risk_score(service)
 
-            # Calculate enhanced priority
-            enhanced_risk = self._calculate_enhanced_priority(
-                original_risk, security_score, egress_score
+            # Get findings summary to check for critical findings
+            findings_summary = self._get_findings_summary(
+                service_name, trivy_mapping, semgrep_mapping
+            )
+            has_critical_findings = findings_summary.get("critical_findings", 0) > 0
+
+            # Calculate enhanced priority and rank
+            enhanced_risk, combined_score, rank = self._calculate_enhanced_priority(
+                original_risk, security_score, egress_score, has_critical_findings
             )
 
             # Create enhanced service entry
@@ -83,12 +110,26 @@ class EnhancedPrioritizer:
                 {
                     "original_risk_level": original_risk,
                     "enhanced_risk_level": enhanced_risk,
+                    "combined_score": combined_score,
+                    "reticulum_score": rank,
                     "security_risk_score": security_score,
                     "egress_risk_score": egress_score,
-                    "security_findings_summary": self._get_findings_summary(
-                        service_name, trivy_mapping, semgrep_mapping
-                    ),
+                    "security_findings_summary": findings_summary,
                     "egress_analysis": service.get("egress_analysis", {}),
+                    # Per-finding scoring data
+                    "finding_scores": [
+                        {
+                            "finding_id": fs.finding_id,
+                            "tool": fs.tool,
+                            "severity": fs.severity,
+                            "base_score": fs.base_score,
+                            "context_modifier": fs.context_modifier,
+                            "final_score": fs.final_score,
+                            "finding_data": fs.finding_data
+                        }
+                        for fs in finding_scores
+                    ],
+                    "security_metrics": security_metrics,
                 }
             )
 
@@ -117,35 +158,179 @@ class EnhancedPrioritizer:
 
         return enhanced_report
 
-    def _calculate_security_score(
+    def _calculate_finding_scores(
         self,
         service_name: str,
         trivy_mapping: Dict[str, Any],
         semgrep_mapping: Dict[str, Any],
-    ) -> float:
-        """Calculate security risk score for a service."""
-        score = 0.0
+    ) -> List[FindingScore]:
+        """Calculate individual scores for all findings in a service."""
+        finding_scores = []
 
-        # Add Trivy findings score
+        # Calculate scores for Trivy findings
         if service_name in trivy_mapping["services"]:
             for finding in trivy_mapping["services"][service_name]["trivy_findings"]:
-                severity = finding.get("level", "warning").lower()
-                score += self.severity_weights.get(severity, 1.0)
+                finding_score = self._calculate_finding_score(finding, "trivy")
+                finding_scores.append(finding_score)
 
-        # Add Semgrep findings score
+        # Calculate scores for Semgrep findings
         if service_name in semgrep_mapping["services"]:
             for finding in semgrep_mapping["services"][service_name][
                 "semgrep_findings"
             ]:
-                severity = finding.get("level", "warning").lower()
-                score += self.severity_weights.get(severity, 1.0)
+                finding_score = self._calculate_finding_score(finding, "semgrep")
+                finding_scores.append(finding_score)
 
-        return score
+        return finding_scores
+
+    def _calculate_finding_score(self, finding: Dict[str, Any], tool: str) -> FindingScore:
+        """Calculate individual score for a single finding."""
+        # Extract finding identifier
+        finding_id = finding.get("ruleId", f"{tool}-finding-{id(finding)}")
+
+        # Base score from severity
+        severity = finding.get("level", "warning").lower()
+        base_score = self.severity_weights.get(severity, 1.0)
+
+        # Add context-based modifiers
+        context_modifier = self._calculate_context_modifier(finding, tool)
+
+        return FindingScore(
+            finding_id=finding_id,
+            tool=tool,
+            severity=severity,
+            base_score=base_score,
+            context_modifier=context_modifier,
+            final_score=base_score * context_modifier,
+            finding_data=finding
+        )
+
+    def _calculate_context_modifier(self, finding: Dict[str, Any], tool: str) -> float:
+        """Calculate context modifier for a finding based on additional factors."""
+        modifier = 1.0
+
+        # Tool-specific modifiers
+        if tool == "trivy":
+            # Trivy findings: consider package criticality
+            properties = finding.get("properties", {})
+            package_name = properties.get("package_name", "")
+            if any(critical_pkg in package_name.lower() for critical_pkg in ["openssl", "kernel", "libc"]):
+                modifier *= 1.5  # Critical system packages
+        elif tool == "semgrep":
+            # Semgrep findings: consider rule confidence and impact
+            properties = finding.get("properties", {})
+            confidence = properties.get("confidence", "medium")
+            if confidence == "high":
+                modifier *= 1.3
+            elif confidence == "low":
+                modifier *= 0.7
+
+        # Location-based modifiers
+        locations = finding.get("locations", [])
+        if locations:
+            location = locations[0].get("physicalLocation", {}).get("artifactLocation", {})
+            file_path = location.get("uri", "")
+            if any(critical_path in file_path for critical_path in ["/etc/", "/bin/", "/sbin/", "/usr/bin/"]):
+                modifier *= 1.4  # Critical system locations
+
+        return max(0.5, min(2.0, modifier))  # Bound between 0.5 and 2.0
+
+    def _aggregate_finding_scores(self, finding_scores: List[FindingScore]) -> Dict[str, Any]:
+        """
+        Aggregate individual finding scores into service-level metrics.
+
+        Uses weighted aggregation that preserves critical findings impact.
+        """
+        if not finding_scores:
+            return {
+                "aggregated_score": 0.0,
+                "max_finding_score": 0.0,
+                "critical_findings_count": 0,
+                "top_findings": [],
+                "total_findings": 0
+            }
+
+        # Calculate key metrics
+        total_findings = len(finding_scores)
+        critical_findings = [fs for fs in finding_scores if fs.severity in ["critical", "error"]]
+        critical_findings_count = len(critical_findings)
+        max_finding_score = max(fs.final_score for fs in finding_scores) if finding_scores else 0.0
+
+        # Weighted aggregation formula: max severity + weighted average of others
+        if critical_findings:
+            # If critical findings exist, they dominate the score
+            critical_max = max(fs.final_score for fs in critical_findings)
+            other_findings = [fs for fs in finding_scores if fs.severity not in ["critical", "error"]]
+
+            if other_findings:
+                # Weighted average of non-critical findings (lower weight)
+                other_avg = sum(fs.final_score for fs in other_findings) / len(other_findings)
+                aggregated_score = critical_max + (other_avg * 0.3)  # Critical dominates
+            else:
+                aggregated_score = critical_max
+        else:
+            # No critical findings - use weighted average
+            weights = {
+                "high": 1.0,
+                "warning": 0.8,
+                "medium": 0.6,
+                "low": 0.4,
+                "info": 0.2
+            }
+            weighted_sum = sum(fs.final_score * weights.get(fs.severity, 0.5) for fs in finding_scores)
+            weight_sum = sum(weights.get(fs.severity, 0.5) for fs in finding_scores)
+            aggregated_score = weighted_sum / weight_sum if weight_sum > 0 else 0.0
+
+        # Get top 5 findings by score
+        top_findings = sorted(finding_scores, key=lambda fs: fs.final_score, reverse=True)[:5]
+
+        return {
+            "aggregated_score": aggregated_score,
+            "max_finding_score": max_finding_score,
+            "critical_findings_count": critical_findings_count,
+            "top_findings": [
+                {
+                    "finding_id": fs.finding_id,
+                    "tool": fs.tool,
+                    "severity": fs.severity,
+                    "final_score": fs.final_score,
+                    "description": fs.finding_data.get("message", {}).get("text", "No description")
+                }
+                for fs in top_findings
+            ],
+            "total_findings": total_findings
+        }
+
+    def _calculate_reticulum_score(
+        self, combined_score: float, has_critical_findings: bool
+    ) -> int:
+        """
+        Calculate reticulum score (1-100) based on combined score and critical findings.
+
+        Args:
+            combined_score: The calculated combined score from enhanced prioritizer
+            has_critical_findings: Whether the service has critical/error level findings
+
+        Returns:
+            Integer reticulum_score from 1-100 (higher = more critical)
+        """
+        # Base reticulum_score from combined score (scaled 0-80)
+        base_reticulum_score = min(80, max(0, int((combined_score / 10.0) * 80)))
+
+        # Add bonus for critical findings (up to +20)
+        critical_bonus = 20 if has_critical_findings else 0
+
+        return min(100, base_reticulum_score + critical_bonus)
 
     def _calculate_enhanced_priority(
-        self, original_risk: str, security_score: float, egress_score: float
-    ) -> str:
-        """Calculate enhanced priority based on original risk, security score, and egress score."""
+        self, original_risk: str, security_score: float, egress_score: float, has_critical_findings: bool
+    ) -> tuple[str, float, int]:
+        """
+        Calculate enhanced priority based on original risk, security score, and egress score.
+
+        Returns:
+            Tuple of (enhanced_priority, combined_score, reticulum_score)
+        """
         exposure_weight = self.exposure_weights.get(original_risk, 1.0)
 
         # Combine exposure, security, and egress factors
@@ -153,11 +338,16 @@ class EnhancedPrioritizer:
 
         # Determine enhanced priority
         if combined_score >= 2.5:
-            return "HIGH"
+            enhanced_priority = "HIGH"
         elif combined_score >= 1.2:
-            return "MEDIUM"
+            enhanced_priority = "MEDIUM"
         else:
-            return "LOW"
+            enhanced_priority = "LOW"
+
+        # Calculate reticulum_score
+        reticulum_score = self._calculate_reticulum_score(combined_score, has_critical_findings)
+
+        return enhanced_priority, combined_score, reticulum_score
 
     def _get_findings_summary(
         self,

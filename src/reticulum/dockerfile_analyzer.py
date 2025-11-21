@@ -18,27 +18,44 @@ class DockerfileAnalyzer:
         self, chart_dir: Path, repo_path: Path, chart_name: str
     ) -> Optional[Path]:
         """Find Dockerfile for a chart in the repository."""
+        discovery_log = []
+
         # Strategy 1: Look for Dockerfile in chart directory
         dockerfile = chart_dir / "Dockerfile"
         if dockerfile.exists():
+            discovery_log.append(f"✅ Strategy 1: Found Dockerfile in chart directory: {dockerfile}")
+            self._log_discovery_strategies(chart_name, discovery_log)
             return dockerfile
+        else:
+            discovery_log.append(f"❌ Strategy 1: No Dockerfile in chart directory: {dockerfile}")
 
         # Strategy 2: Look in subdirectories of chart
         for subdir in chart_dir.iterdir():
             if subdir.is_dir():
                 dockerfile = subdir / "Dockerfile"
                 if dockerfile.exists():
+                    discovery_log.append(f"✅ Strategy 2: Found Dockerfile in chart subdirectory: {dockerfile}")
+                    self._log_discovery_strategies(chart_name, discovery_log)
                     return dockerfile
+        discovery_log.append(f"❌ Strategy 2: No Dockerfile in chart subdirectories")
 
         # Strategy 3: Look for Dockerfile in repo root with same name as chart
         dockerfile = repo_path / chart_name / "Dockerfile"
         if dockerfile.exists():
+            discovery_log.append(f"✅ Strategy 3: Found Dockerfile in repo root: {dockerfile}")
+            self._log_discovery_strategies(chart_name, discovery_log)
             return dockerfile
+        else:
+            discovery_log.append(f"❌ Strategy 3: No Dockerfile in repo root: {dockerfile}")
 
         # Strategy 4: Look in repo root (for single-app repos)
         dockerfile = repo_path / "Dockerfile"
         if dockerfile.exists():
+            discovery_log.append(f"✅ Strategy 4: Found Dockerfile in repo root: {dockerfile}")
+            self._log_discovery_strategies(chart_name, discovery_log)
             return dockerfile
+        else:
+            discovery_log.append(f"❌ Strategy 4: No Dockerfile in repo root: {dockerfile}")
 
         # Strategy 5: Look in common locations
         common_paths = [
@@ -49,18 +66,28 @@ class DockerfileAnalyzer:
 
         for path in common_paths:
             if path.exists():
+                discovery_log.append(f"✅ Strategy 5: Found Dockerfile in common location: {path}")
+                self._log_discovery_strategies(chart_name, discovery_log)
                 return path
+        discovery_log.append(f"❌ Strategy 5: No Dockerfile in common locations")
 
         # Strategy 6: Look for Dockerfile variants (Dockerfile.*)
         for variant in ["Dockerfile.dev", "Dockerfile.prod", "Dockerfile.staging"]:
             dockerfile = chart_dir / variant
             if dockerfile.exists():
+                discovery_log.append(f"✅ Strategy 6: Found Dockerfile variant: {dockerfile}")
+                self._log_discovery_strategies(chart_name, discovery_log)
                 return dockerfile
+        discovery_log.append(f"❌ Strategy 6: No Dockerfile variants found")
 
         # Strategy 7: Deep search in repository for any Dockerfile matching chart name patterns
         dockerfile = self._deep_search_dockerfile(repo_path, chart_name)
         if dockerfile:
+            discovery_log.append(f"✅ Strategy 7: Found Dockerfile via deep search: {dockerfile}")
+            self._log_discovery_strategies(chart_name, discovery_log)
             return dockerfile
+        else:
+            discovery_log.append(f"❌ Strategy 7: Deep search failed for chart: {chart_name}")
 
         # Strategy 8: Look for Dockerfiles in common dockerfiles directory
         dockerfile_patterns = [
@@ -76,14 +103,134 @@ class DockerfileAnalyzer:
             f"Dockerfile.{chart_name.replace('-stack', '')}",
         ]
 
+        # Remove duplicate patterns
+        dockerfile_patterns = list(set(dockerfile_patterns))
+
         dockerfiles_dir = repo_path / "dockerfiles"
         if dockerfiles_dir.exists():
             for pattern in dockerfile_patterns:
                 dockerfile = dockerfiles_dir / pattern
                 if dockerfile.exists():
+                    discovery_log.append(f"✅ Strategy 8: Found Dockerfile in dockerfiles directory: {dockerfile}")
+                    self._log_discovery_strategies(chart_name, discovery_log)
                     return dockerfile
+            discovery_log.append(f"❌ Strategy 8: No matching Dockerfile in dockerfiles directory for patterns: {dockerfile_patterns}")
+        else:
+            discovery_log.append(f"❌ Strategy 8: dockerfiles directory does not exist: {dockerfiles_dir}")
+
+        # Strategy 9: Look for any Dockerfile in the repository that might match
+        dockerfile = self._find_any_dockerfile_for_chart(repo_path, chart_name)
+        if dockerfile:
+            discovery_log.append(f"✅ Strategy 9: Found potential Dockerfile: {dockerfile}")
+            self._log_discovery_strategies(chart_name, discovery_log)
+            return dockerfile
+
+        discovery_log.append(f"❌ All Dockerfile discovery strategies failed for chart: {chart_name}")
+        self._log_discovery_strategies(chart_name, discovery_log)
+        return None
+
+    def _find_any_dockerfile_for_chart(
+        self, repo_path: Path, chart_name: str
+    ) -> Optional[Path]:
+        """
+        Find any Dockerfile in the repository that might be related to the chart.
+
+        This is a fallback strategy that searches for any Dockerfile with flexible
+        pattern matching when other strategies fail.
+        """
+        # Generate flexible patterns for the chart name
+        patterns = self._generate_flexible_patterns(chart_name)
+
+        # Search for Dockerfiles in the entire repository
+        for dockerfile_path in repo_path.rglob("*Dockerfile*"):
+            # Skip files in ignore directories
+            if self._should_ignore_dockerfile(dockerfile_path):
+                continue
+
+            # Check if this Dockerfile matches any of our patterns
+            if self._matches_flexible_pattern(dockerfile_path, patterns, chart_name):
+                return dockerfile_path
 
         return None
+
+    def _generate_flexible_patterns(self, chart_name: str) -> List[str]:
+        """Generate flexible patterns for chart name matching."""
+        patterns = []
+
+        # Clean the chart name
+        clean_name = (
+            chart_name.replace("-chart", "")
+            .replace("-helm", "")
+            .replace("-service", "")
+            .replace("-app", "")
+            .replace("-gateway", "")
+            .replace("-api", "")
+            .replace("-web", "")
+            .rstrip("-")
+        )
+
+        # Generate various pattern combinations
+        patterns.extend([
+            clean_name,
+            clean_name.replace("-", ""),
+            clean_name.replace("-", "_"),
+            clean_name.lower(),
+            clean_name.upper(),
+        ])
+
+        # Add common variations for microservices
+        if "-" in clean_name:
+            parts = clean_name.split("-")
+            if len(parts) >= 2:
+                patterns.extend([
+                    parts[0],  # First part only
+                    parts[-1],  # Last part only
+                    f"{parts[0]}-{parts[1]}" if len(parts) >= 2 else "",
+                ])
+
+        # Remove empty patterns and duplicates
+        patterns = [p for p in patterns if p]
+        patterns = list(set(patterns))
+
+        return patterns
+
+    def _should_ignore_dockerfile(self, dockerfile_path: Path) -> bool:
+        """Check if Dockerfile path should be ignored."""
+        ignore_patterns = [
+            ".git",
+            "node_modules",
+            "vendor",
+            "__pycache__",
+            ".pytest_cache",
+            "target",
+            "build",
+            "dist",
+        ]
+
+        path_str = str(dockerfile_path)
+        return any(pattern in path_str for pattern in ignore_patterns)
+
+    def _matches_flexible_pattern(
+        self, dockerfile_path: Path, patterns: List[str], chart_name: str
+    ) -> bool:
+        """Check if Dockerfile matches any flexible pattern."""
+        dockerfile_name = dockerfile_path.name
+        dockerfile_parent = dockerfile_path.parent.name
+
+        # Check Dockerfile name patterns
+        for pattern in patterns:
+            if pattern and (
+                pattern in dockerfile_name or
+                pattern in dockerfile_parent or
+                pattern in str(dockerfile_path.relative_to(dockerfile_path.parent.parent))
+            ):
+                return True
+
+        # Check for exact chart name in path
+        if chart_name in str(dockerfile_path):
+            return True
+
+        return False
 
     def analyze_dockerfile_with_build_context(
         self, dockerfile_path: Path, repo_root: Path, chart_name: str = ""
@@ -366,3 +513,10 @@ class DockerfileAnalyzer:
 
         # Remove duplicates and sort
         return sorted(list(set(validated_paths)))
+
+    def _log_discovery_strategies(self, chart_name: str, discovery_log: List[str]):
+        """Log Dockerfile discovery strategies for debugging."""
+        if len(discovery_log) > 1:  # Only log if we have multiple strategies
+            print(f"\n🔍 Dockerfile Discovery Log for chart '{chart_name}':")
+            for log_entry in discovery_log:
+                print(f"   {log_entry}")

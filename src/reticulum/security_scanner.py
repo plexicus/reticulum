@@ -534,7 +534,7 @@ class SecurityScanner:
     ) -> Dict[str, Any]:
         """Generate enhanced SARIF report."""
         sarif_report = {
-            "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemas/sarif-schema-2.1.0.json",
+            "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/main/sarif-2.1/schema/sarif-schema-2.1.0.json",
             "version": "2.1.0",
             "runs": [],
         }
@@ -544,9 +544,28 @@ class SecurityScanner:
             "tool": {
                 "driver": {
                     "name": "Reticulum Enhanced Security Scanner",
-                    "version": "1.0.0",
+                    "version": "0.7.1",
                     "informationUri": "https://github.com/plexicus/reticulum",
-                    "rules": [],
+                    "rules": [
+                        {
+                            "id": "RETICULUM-ENHANCED-PRIORITIZATION",
+                            "name": "Enhanced Security Prioritization",
+                            "shortDescription": {
+                                "text": "Enhanced service prioritization based on security findings and exposure analysis"
+                            },
+                            "fullDescription": {
+                                "text": "Reticulum combines security vulnerability findings with service exposure analysis to provide enhanced prioritization scores (1-100) for remediation efforts"
+                            },
+                            "defaultConfiguration": {
+                                "level": "note"
+                            },
+                            "helpUri": "https://github.com/plexicus/reticulum",
+                            "properties": {
+                                "category": "security-prioritization",
+                                "precision": "high"
+                            }
+                        }
+                    ],
                 }
             },
             "results": [],
@@ -562,8 +581,21 @@ class SecurityScanner:
         }
 
         # Add individual vulnerabilities as results (unaggregated)
+        # Use enhanced_report data which contains the prioritized services with reticulum_score field
+        prioritized_services_list = enhanced_report.get("prioritized_services", [])
+
+        # Convert prioritized_services list to dictionary for easy lookup
+        prioritized_services_dict = {}
+        for service in prioritized_services_list:
+            service_name = service.get("service_name")
+            if service_name:
+                prioritized_services_dict[service_name] = service
+
         for service_name, service_data in trivy_mapping["services"].items():
+            # Get enhanced service info from prioritized_services if available
+            enhanced_service_info = prioritized_services_dict.get(service_name, {})
             service_info = service_data["service_info"]
+
             for finding in service_data["trivy_findings"]:
                 # Use the original finding's ruleId and message if available
                 original_rule_id = finding.get(
@@ -573,6 +605,14 @@ class SecurityScanner:
                     "message", {"text": "Security vulnerability found"}
                 )
 
+                # Find the individual finding score for this finding
+                finding_score_data = None
+                if "finding_scores" in enhanced_service_info:
+                    for fs in enhanced_service_info["finding_scores"]:
+                        if fs.get("finding_id") == original_rule_id or fs.get("finding_data", {}).get("ruleId") == original_rule_id:
+                            finding_score_data = fs
+                            break
+
                 result = {
                     "ruleId": original_rule_id,
                     "level": finding.get("level", "warning"),
@@ -581,19 +621,72 @@ class SecurityScanner:
                     "properties": {
                         "service_name": service_name,
                         "exposure_level": service_info.get("risk_level", "LOW"),
-                        "enhanced_priority": service_info.get(
-                            "enhanced_risk_level", "LOW"
+                        "enhanced_priority": enhanced_service_info.get(
+                            "enhanced_risk_level", service_info.get("enhanced_risk_level", "LOW")
                         ),
+                        "reticulum_score": enhanced_service_info.get("reticulum_score", service_info.get("reticulum_score", 0)),  # Use reticulum_score from enhanced prioritization
+                        "combined_score": enhanced_service_info.get("combined_score", service_info.get("combined_score", 0.0)),  # For transparency
                         "vulnerability_id": finding.get("properties", {}).get(
                             "vulnerability_id", ""
                         ),
-                        "severity": finding.get("properties", {}).get("severity", ""),
+                        "severity": finding.get("properties", {}).get("severity", ""),  # Unchanged
                         "package_name": finding.get("properties", {}).get(
                             "package_name", ""
                         ),
                         "package_version": finding.get("properties", {}).get(
                             "package_version", ""
                         ),
+                        # Per-finding scoring data
+                        "finding_score": finding_score_data["final_score"] if finding_score_data else 0.0,
+                        "finding_base_score": finding_score_data["base_score"] if finding_score_data else 0.0,
+                        "finding_context_modifier": finding_score_data["context_modifier"] if finding_score_data else 1.0,
+                        "finding_tool": finding_score_data["tool"] if finding_score_data else "unknown",
+                    },
+                }
+                enhanced_run["results"].append(result)
+
+        # Process Semgrep findings
+        for service_name, service_data in semgrep_mapping["services"].items():
+            # Get enhanced service info from prioritized_services if available
+            enhanced_service_info = prioritized_services_dict.get(service_name, {})
+            service_info = service_data["service_info"]
+
+            for finding in service_data["semgrep_findings"]:
+                # Use the original finding's ruleId and message if available
+                original_rule_id = finding.get(
+                    "ruleId", f"semgrep-finding-{service_name}"
+                )
+                original_message = finding.get(
+                    "message", {"text": "Code security issue found"}
+                )
+
+                # Find the individual finding score for this finding
+                finding_score_data = None
+                if "finding_scores" in enhanced_service_info:
+                    for fs in enhanced_service_info["finding_scores"]:
+                        if fs.get("finding_id") == original_rule_id or fs.get("finding_data", {}).get("ruleId") == original_rule_id:
+                            finding_score_data = fs
+                            break
+
+                result = {
+                    "ruleId": original_rule_id,
+                    "level": finding.get("level", "warning"),
+                    "message": original_message,
+                    "locations": finding.get("locations", []),
+                    "properties": {
+                        "service_name": service_name,
+                        "exposure_level": service_info.get("risk_level", "LOW"),
+                        "enhanced_priority": enhanced_service_info.get(
+                            "enhanced_risk_level", service_info.get("enhanced_risk_level", "LOW")
+                        ),
+                        "reticulum_score": enhanced_service_info.get("reticulum_score", service_info.get("reticulum_score", 0)),
+                        "combined_score": enhanced_service_info.get("combined_score", service_info.get("combined_score", 0.0)),
+                        # Per-finding scoring data
+                        "finding_score": finding_score_data["final_score"] if finding_score_data else 0.0,
+                        "finding_base_score": finding_score_data["base_score"] if finding_score_data else 0.0,
+                        "finding_context_modifier": finding_score_data["context_modifier"] if finding_score_data else 1.0,
+                        "finding_tool": finding_score_data["tool"] if finding_score_data else "semgrep",
+                        "rule_description": finding.get("properties", {}).get("description", ""),
                     },
                 }
                 enhanced_run["results"].append(result)
@@ -616,7 +709,7 @@ class SecurityScanner:
                 "semgrep": semgrep_results["severity_counts"],
             },
             "exposure_analysis": reticulum_results.get("summary", {}),
-            "enhanced_prioritization": enhanced_report.get("enhanced_summary", {}),
+            "enhanced_prioritization": enhanced_report,
             "total_findings": {
                 "trivy": trivy_results["severity_counts"]["total"],
                 "semgrep": semgrep_results["severity_counts"]["total"],

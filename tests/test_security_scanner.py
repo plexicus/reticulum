@@ -28,11 +28,16 @@ class TestSecurityScanner:
         prioritizer = EnhancedPrioritizer()
 
         # Test priority calculation
-        assert prioritizer._calculate_enhanced_priority("HIGH", 10.0, 1.0) == "HIGH"
-        assert prioritizer._calculate_enhanced_priority("HIGH", 0.0, 1.0) == "HIGH"
-        assert prioritizer._calculate_enhanced_priority("MEDIUM", 15.0, 1.0) == "HIGH"
-        assert prioritizer._calculate_enhanced_priority("LOW", 20.0, 1.0) == "LOW"  # LOW exposure weight is too low to reach MEDIUM
-        assert prioritizer._calculate_enhanced_priority("LOW", 0.0, 1.0) == "LOW"
+        enhanced_priority, combined_score, reticulum_score = prioritizer._calculate_enhanced_priority("HIGH", 10.0, 1.0, False)
+        assert enhanced_priority == "HIGH"
+        enhanced_priority, combined_score, reticulum_score = prioritizer._calculate_enhanced_priority("HIGH", 0.0, 1.0, False)
+        assert enhanced_priority == "HIGH"
+        enhanced_priority, combined_score, reticulum_score = prioritizer._calculate_enhanced_priority("MEDIUM", 15.0, 1.0, False)
+        assert enhanced_priority == "HIGH"
+        enhanced_priority, combined_score, reticulum_score = prioritizer._calculate_enhanced_priority("LOW", 20.0, 1.0, False)
+        assert enhanced_priority == "LOW"  # LOW exposure weight is too low to reach MEDIUM
+        enhanced_priority, combined_score, reticulum_score = prioritizer._calculate_enhanced_priority("LOW", 0.0, 1.0, False)
+        assert enhanced_priority == "LOW"
 
     def test_findings_mapper_initialization(self):
         """Test findings mapper initialization."""
