@@ -50,12 +50,32 @@ Adjusts risk based on deep configuration analysis:
 
 ## 📦 Installation
 
-### Prerequisites
+
+### **🐳 Docker (Recommended)**
+
+Reticulum supports multi-architecture builds out of the box (Apple Silicon/ARM64 and Intel/AMD64).
+
+1. **Build the image:**  
+   docker build -t reticulum .
+
+2. Run with analysis data:  
+   Since Reticulum runs inside a container, you must mount the directory containing your code and SARIF reports.  
+   # Mount current directory to /data and analyze 
+   ```bash 
+   docker run --rm -v $(pwd):/data reticulum \  
+     -p /data/tests/monorepo-06 \  
+     -s /data/tests/monorepo-06/trivy.sarif
+   ```
+
+
+### **🛠️ Build from Source**
+
+#### Prerequisites
 - [D Language Compiler](https://dlang.org/download.html) (DMD or LDC2)
 - [DUB](https://code.dlang.org/download) (Package Manager)
 - [Trivy](https://trivy.dev/) & [Semgrep](https://semgrep.dev/) (Scanners)
 
-### Build from Source
+#### Build from Source
 ```bash
 git clone https://github.com/plexicus/reticulum.git
 cd reticulum
