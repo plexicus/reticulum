@@ -1,0 +1,15 @@
+id: "security-privileged"
+name: "Privileged Container"
+description: "Detects if container is privileged"
+severity: "critical"
+tags: ["security", "privileged"]
+target: "values"
+match:
+  - key: "securityContext.privileged"
+    op: "eq"
+    value: true
+action:
+  risk_profile:
+    set_flag: "isPrivileged"
+    score_boost: 20  # Privilege escalation risk
+  tags: ["privileged"]

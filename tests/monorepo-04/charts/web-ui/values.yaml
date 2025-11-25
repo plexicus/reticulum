@@ -1,0 +1,25 @@
+replicaCount: 2
+
+image:
+  repository: web-ui
+  tag: latest
+
+service:
+  type: ClusterIP
+  port: 80
+
+# Traditional NGINX Ingress
+ingress:
+  enabled: true
+  className: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+  hosts:
+    - host: webapp.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: webapp-tls
+      hosts:
+        - webapp.example.com

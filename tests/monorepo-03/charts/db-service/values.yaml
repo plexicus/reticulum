@@ -1,0 +1,16 @@
+replicaCount: 1
+
+image:
+  repository: db-service
+  tag: latest
+
+service:
+  type: ClusterIP
+  port: 5000
+
+# No Gateway API exposure - internal only
+gateway:
+  enabled: false
+
+httpRoute:
+  enabled: false

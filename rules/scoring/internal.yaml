@@ -1,0 +1,13 @@
+id: "scoring-internal"
+name: "Internal Service Scoring"
+description: "Applies penalty for internal services (default)"
+severity: "info"
+tags: ["scoring", "internal"]
+target: "values"
+match:
+  - key: "service.type"
+    op: "eq"
+    value: "ClusterIP"
+action:
+  risk_profile:
+    score_multiplier: 0.5

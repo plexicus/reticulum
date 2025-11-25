@@ -1,0 +1,14 @@
+id: "class-auth"
+name: "Auth Service Classification"
+description: "Detects Auth services (Keycloak, Ory, etc.)"
+severity: "critical"
+tags: ["classification", "auth"]
+target: "chart_metadata"
+match:
+  - key: "name"
+    op: "regex"
+    value: ".*(auth|keycloak|ory|kratos|hydra|oathkeeper).*"
+action:
+  risk_profile:
+    score_boost: 20
+  tags: ["category:auth"]

@@ -1,0 +1,57 @@
+# Comprehensive Test Configuration for auth-api
+# This configuration is designed to trigger MULTIPLE rules for thorough testing
+
+replicaCount: 1
+
+image:
+  repository: auth-api
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+# TEST: LoadBalancer exposure (exposure-service-lb)
+service:
+  type: LoadBalancer
+  port: 80
+
+# TEST: Ingress exposure (exposure-ingress-enabled)
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: auth.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+# TEST: Istio exposure (exposure-istio-root)
+istio:
+  enabled: true
+  gateway: istio-gateway
+  hosts:
+    - auth.example.com
+
+# TEST: ServiceAccount automount (harden-sa-automount)
+serviceAccount:
+  create: true
+  automount: true  # This should trigger the rule
+
+# TEST: Security context - privileged (security-privileged)
+securityContext:
+  privileged: true
+  runAsUser: 0  # root
+  capabilities:
+    add:
+      - SYS_ADMIN  # Dangerous capability
+
+# TEST: Host configurations
+hostNetwork: true
+hostPID: true
+hostIPC: true
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi

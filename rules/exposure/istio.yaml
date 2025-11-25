@@ -1,0 +1,15 @@
+id: "exposure-istio-root"
+name: "Istio VirtualService Exposure"
+description: "Detects if VirtualService is enabled at root level"
+severity: "high"
+tags: ["exposure", "istio"]
+target: "values"
+match:
+  - key: "virtualService.enabled"
+    op: "eq"
+    value: true
+action:
+  risk_profile:
+    set_flag: "isPublic"
+    score_multiplier: 1.3
+  tags: ["public-facing"]

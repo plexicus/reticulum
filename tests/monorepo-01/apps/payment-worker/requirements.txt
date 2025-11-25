@@ -1,0 +1,3 @@
+# VULNERABILITY: CVE-2020-1747 (Severity: CRITICAL)
+# Arbitrary code execution via unsafe load
+PyYAML==5.3

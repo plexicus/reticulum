@@ -1,0 +1,28 @@
+# PostgreSQL DB - MODERATE RISK CONTEXT
+# Internal + Database classification = Moderate priority
+
+replicaCount: 1
+
+image:
+  repository: postgres
+  tag: "13"
+
+# INTERNAL ONLY
+service:
+  type: ClusterIP  # scoring-internal
+  port: 5432
+
+# Database classification will add +10 boost
+database:
+  type: postgres
+
+# Secure configuration
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 999
+  fsGroup: 999
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi

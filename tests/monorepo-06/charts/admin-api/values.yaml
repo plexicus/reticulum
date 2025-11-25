@@ -1,0 +1,35 @@
+# Admin API - CRITICAL CONTEXT
+# Public exposure + Privileged + Auth service = Maximum risk multiplier
+
+replicaCount: 1
+
+image:
+  repository: admin-api
+  tag: "1.0"
+
+# PUBLIC EXPOSURE - Multiple vectors
+service:
+  type: LoadBalancer  # exposure-service-lb
+  port: 443
+
+ingress:
+  enabled: true  # exposure-ingress-enabled
+  hosts:
+    - host: admin.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+
+# SECURITY RISKS
+securityContext:
+  privileged: true  # security-privileged
+  runAsUser: 0
+
+serviceAccount:
+  create: true
+  automount: true  # harden-sa-automount
+
+resources:
+  limits:
+    cpu: 200m
+    memory: 256Mi

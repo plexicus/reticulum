@@ -1,0 +1,27 @@
+replicaCount: 2
+
+image:
+  repository: edge-service
+  tag: latest
+
+service:
+  type: ClusterIP
+  port: 8080
+
+# Ambassador/Emissary Ingress configuration
+ambassador:
+  enabled: true
+  
+# Mapping for Ambassador
+mapping:
+  enabled: true
+  prefix: /api/
+  service: edge-service:8080
+  host: edge.example.com
+  
+# Host configuration
+host:
+  enabled: true
+  hostname: edge.example.com
+  acmeProvider:
+    authority: none

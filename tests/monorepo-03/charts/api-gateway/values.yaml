@@ -1,0 +1,31 @@
+replicaCount: 2
+
+image:
+  repository: api-gateway
+  tag: latest
+
+service:
+  type: ClusterIP
+  port: 8080
+
+# Kubernetes Gateway API configuration
+gateway:
+  enabled: true
+  className: "nginx"
+  
+# HTTPRoute for Gateway API
+httpRoute:
+  enabled: true
+  parentRefs:
+    - name: main-gateway
+      namespace: gateway-system
+  hostnames:
+    - "api.example.com"
+  rules:
+    - matches:
+        - path:
+            type: PathPrefix
+            value: /
+      backendRefs:
+        - name: api-gateway
+          port: 8080

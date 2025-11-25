@@ -1,0 +1,28 @@
+# Internal Worker - LOW RISK CONTEXT
+# Internal only + Non-privileged = Low priority despite many vulns
+
+replicaCount: 1
+
+image:
+  repository: internal-worker
+  tag: "1.0"
+
+# INTERNAL ONLY
+service:
+  type: ClusterIP  # scoring-internal (0.5x multiplier)
+  port: 8080
+
+# NO public exposure
+# NO ingress
+# NO privileged
+
+# Secure configuration
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  allowPrivilegeEscalation: false
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi

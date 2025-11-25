@@ -1,0 +1,14 @@
+id: "class-monitoring"
+name: "Monitoring Service Classification"
+description: "Detects Monitoring services (Prometheus, Grafana)"
+severity: "low"
+tags: ["classification", "monitoring"]
+target: "chart_metadata"
+match:
+  - key: "name"
+    op: "regex"
+    value: ".*(prometheus|grafana|alertmanager|loki).*"
+action:
+  risk_profile:
+    score_multiplier: 0.1 # Reduce score for monitoring tools (usually internal)
+  tags: ["category:monitoring"]

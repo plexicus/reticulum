@@ -1,0 +1,9 @@
+{
+	"name": "reticulum",
+	"description": "Context-aware security prioritization engine",
+	"license": "MIT",
+	"dependencies": {
+		"dyaml": "~>0.10.0"
+	},
+	"dflags-ldc": ["--lowmem"]
+}

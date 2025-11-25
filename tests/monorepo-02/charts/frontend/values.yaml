@@ -1,0 +1,33 @@
+replicaCount: 2
+
+image:
+  repository: frontend
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 3000
+
+# Istio VirtualService configuration
+istio:
+  enabled: true
+  gateway: istio-system/main-gateway
+  hosts:
+    - "frontend.example.com"
+  
+virtualService:
+  enabled: true
+  gateways:
+    - istio-system/main-gateway
+  hosts:
+    - "frontend.example.com"
+  http:
+    - match:
+        - uri:
+            prefix: "/"
+      route:
+        - destination:
+            host: frontend
+            port:
+              number: 3000

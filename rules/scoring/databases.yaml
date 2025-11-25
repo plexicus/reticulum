@@ -1,0 +1,14 @@
+id: "class-db"
+name: "Database Classification"
+description: "Detects Database services (Mongo, Postgres, etc.)"
+severity: "high"
+tags: ["classification", "db"]
+target: "chart_metadata"
+match:
+  - key: "name"
+    op: "regex"
+    value: ".*(mongo|postgres|redis|cassandra|mysql|mariadb).*"
+action:
+  risk_profile:
+    score_boost: 10
+  tags: ["category:db"]

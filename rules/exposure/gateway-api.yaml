@@ -1,0 +1,15 @@
+id: "exposure-gateway-api"
+name: "Gateway API Exposure"
+description: "Detects if Gateway API HTTPRoute is enabled"
+severity: "high"
+tags: ["exposure", "gateway-api"]
+target: "values"
+match:
+  - key: "gateway.httproute.enabled"
+    op: "eq"
+    value: true
+action:
+  risk_profile:
+    set_flag: "isPublic"
+    score_multiplier: 1.3
+  tags: ["public-facing"]

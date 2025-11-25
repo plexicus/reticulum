@@ -1,0 +1,13 @@
+id: "context-reduce-monitoring-severity"
+name: "Reduce Monitoring Tool Severity"
+description: "Reduce severity for vulnerabilities in monitoring tools (usually internal)"
+severity: "low"
+tags: ["context", "monitoring"]
+target: "finding"
+match:
+  - key: "tag"
+    op: "contains_tag"
+    value: "category:monitoring"
+action:
+  finding:
+    score_factor: 0.3  # Reduce to 30% - monitoring tools are typically internal

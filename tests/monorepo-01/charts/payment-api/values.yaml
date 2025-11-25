@@ -1,0 +1,18 @@
+image:
+  repository: mycompany/payment-api
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+# RETICULUM TRIGGER: Ingress Enabled = Public Exposure
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: api.payments.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific
+
+service:
+  type: ClusterIP
+  port: 80

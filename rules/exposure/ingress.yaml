@@ -1,0 +1,17 @@
+id: "exposure-ingress-enabled"
+name: "Public Ingress Exposure"
+description: "Detects if Ingress is explicitly enabled"
+severity: "high"
+tags: ["exposure", "ingress"]
+target: "values"
+match:
+  - key: "ingress.enabled"
+    op: "eq"
+    value: true
+  - key: "ingress.hosts"
+    op: "exists"
+action:
+  risk_profile:
+    set_flag: "isPublic"
+    score_multiplier: 1.3
+  tags: ["public-facing"]

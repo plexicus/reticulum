@@ -1,0 +1,24 @@
+# Payment Go - INTERNAL CONTEXT
+# Internal only + Non-privileged = Low priority despite SQL Injection
+
+replicaCount: 1
+
+image:
+  repository: payment-go
+  tag: "1.0"
+
+# INTERNAL ONLY
+service:
+  type: ClusterIP  # scoring-internal (0.5x multiplier)
+  port: 8080
+
+# Secure configuration
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  allowPrivilegeEscalation: false
+
+resources:
+  limits:
+    cpu: 100m
+    memory: 128Mi

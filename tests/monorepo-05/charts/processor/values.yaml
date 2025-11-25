@@ -1,0 +1,15 @@
+replicaCount: 1
+
+image:
+  repository: processor
+  tag: latest
+
+# No Ambassador exposure - internal only
+ambassador:
+  enabled: false
+
+mapping:
+  enabled: false
+
+host:
+  enabled: false

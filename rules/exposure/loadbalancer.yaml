@@ -1,0 +1,15 @@
+id: "exposure-service-lb"
+name: "Service LoadBalancer Exposure"
+description: "Detects if Service type is LoadBalancer"
+severity: "high"
+tags: ["exposure", "service"]
+target: "values"
+match:
+  - key: "service.type"
+    op: "eq"
+    value: "LoadBalancer"
+action:
+  risk_profile:
+    set_flag: "isPublic"
+    score_multiplier: 1.3
+  tags: ["public-facing"]

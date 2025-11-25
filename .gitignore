@@ -1,0 +1,63 @@
+# Build artifacts
+.dub
+dub.selections.json
+*.o
+*.obj
+*.a
+*.lib
+*.so
+*.dylib
+*.dll
+reticulum
+reticulum.exe
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Test output files
+*.sarif
+*_report.json
+reticulum_report.json
+trivy.sarif
+semgrep.sarif
+trivy-reticulum.sarif
+semgrep-reticulum.sarif
+raw_trivy.sarif
+raw_semgrep.sarif
+
+# Temporary files
+*.tmp
+*.log
+/tmp/
+
+# Node modules (in test monorepos)
+node_modules/
+package-lock.json
+
+# Python cache (in test monorepos)
+__pycache__/
+*.pyc
+*.pyo
+
+# Ruby gems (in test monorepos)
+Gemfile.lock
+.bundle/
+
+# Java build artifacts (in test monorepos)
+target/
+*.class
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Backup files
+*.bak
+*.backup
+*~

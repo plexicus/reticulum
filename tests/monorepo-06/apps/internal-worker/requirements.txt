@@ -1,0 +1,10 @@
+# Internal Worker - Many vulnerabilities but low priority
+
+celery==4.4.7
+redis==3.5.3
+requests==2.23.0
+urllib3==1.25.8
+cryptography==2.9
+PyYAML==5.3
+Pillow==7.1.0
+lxml==4.5.0

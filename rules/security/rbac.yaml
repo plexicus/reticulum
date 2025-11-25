@@ -1,0 +1,14 @@
+id: "harden-rbac-clusterrole"
+name: "Permissive ClusterRole Creation"
+description: "Detects if ClusterRole is created"
+severity: "high"
+tags: ["hardening", "rbac"]
+target: "values"
+match:
+  - key: "rbac.clusterRole.create"
+    op: "eq"
+    value: true
+action:
+  risk_profile:
+    score_boost: 10
+  tags: ["rbac:cluster-admin"]

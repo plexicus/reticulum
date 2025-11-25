@@ -1,0 +1,15 @@
+id: "exposure-istio-nested"
+name: "Istio VirtualService Exposure (Nested)"
+description: "Detects if VirtualService is enabled under istio key"
+severity: "high"
+tags: ["exposure", "istio"]
+target: "values"
+match:
+  - key: "istio.virtualservice.enabled"
+    op: "eq"
+    value: true
+action:
+  risk_profile:
+    set_flag: "isPublic"
+    score_multiplier: 1.3
+  tags: ["public-facing"]

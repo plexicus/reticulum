@@ -1,0 +1,5 @@
+apiVersion: v2
+name: edge-service
+description: Edge service with Ambassador Ingress
+version: 1.0.0
+appVersion: "1.0"

@@ -1,0 +1,18 @@
+replicaCount: 1
+
+image:
+  repository: auth-service
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 8000
+
+# No Istio exposure - internal only
+istio:
+  enabled: false
+
+# Internal service - no VirtualService
+virtualService:
+  enabled: false
