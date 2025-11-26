@@ -1,0 +1,962 @@
+=== MONOREPO 01 ===
+[48;5;129m[38;5;232m[1m CLOUD-NATIVE CONTEXTUAL SECURITY PRIORITIZER BY PLEXICUS                     [0m
+[100m[30m RETICULUM v1.0                                                                 [0m
+
+[38;5;129m██████╗ ███████╗████████╗██╗ ██████╗██╗   ██╗██╗     ██╗   ██╗███╗   ███╗[0m
+[38;5;129m██╔══██╗██╔════╝╚══██╔══╝██║██╔════╝██║   ██║██║     ██║   ██║████╗ ████║[0m
+[38;5;129m██████╔╝█████╗     ██║   ██║██║     ██║   ██║██║     ██║   ██║██╔████╔██║[0m
+[38;5;129m██╔══██╗██╔══╝     ██║   ██║██║     ██║   ██║██║     ██║   ██║██║╚██╔╝██║[0m
+[38;5;129m██║  ██║███████╗   ██║   ██║╚██████╗╚██████╔╝███████╗╚██████╔╝██║ ╚═╝ ██║[0m
+[38;5;129m╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝ ╚═════╝ ╚═╝     ╚═╝[0m
+
+   [38;5;250m[+] MODULE: [38;5;129mPRIORITIZER[0m [38;5;250mONLINE[0m
+
+[96m[*] [0mTarget Repository: /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-01
+[96m[*] [0mInitializing Rule Engine...
+    [RuleEngine] Loaded 9 rules from rules/exposure
+    [RuleEngine] Loaded 15 rules from rules/security
+    [RuleEngine] Loaded 20 rules from rules/scoring
+[94m
+┌─[0m[1m Phase 1: Service Discovery[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mMapping services and Helm charts[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+=== Discovery Walk: /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-01 ===
+=== Linking Services to Charts ===
+  LINKED: payment-api <--> payment-api (Score: 160)
+  LINKED: payment-worker <--> payment-worker (Score: 160)
+[94m
+┌─[0m[1m Phase 2: Exposure Analysis[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mAnalyzing Kubernetes deployment configurations[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+  [Analyzer] Analyzing chart: payment-api → /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-01/charts/payment-api
+    → Loading values: values.yaml
+      → RULE MATCH: Public Ingress Exposure (exposure-ingress-enabled)
+      → TAGS APPLIED: ["public-facing"]
+      → RULE MATCH: Internal Service Scoring (scoring-internal)
+    [Final Risk Profile]
+      • Public Exposure    : YES
+      • Privileged         : NO
+      • Dangerous Caps     : NO
+      • Svc Token Mount    : YES (Default)
+  [Analyzer] Analyzing chart: payment-worker → /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-01/charts/payment-worker
+    → Loading values: values.yaml
+      → RULE MATCH: ServiceAccount Token Automount (harden-sa-automount)
+      → RULE MATCH: Internal Service Scoring (scoring-internal)
+    [Final Risk Profile]
+      • Public Exposure    : NO
+      • Privileged         : NO
+      • Dangerous Caps     : NO
+      • Svc Token Mount    : YES (Default)
+[94m
+┌─[0m[1m Phase 3: Vulnerability Scoring[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mIngesting SARIF and applying contextual scoring[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+=== Processing SARIF file: tests/monorepo-01/trivy.sarif ===
+
+   [96m▸[0m [1mpayment-api[0m | [93mCVE-2018-18074[0m
+     [2mapps/payment-api/requirements.txt:4[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mpayment-api[0m | [93mCVE-2023-32681[0m
+     [2mapps/payment-api/requirements.txt:4[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mpayment-api[0m | [93mCVE-2024-35195[0m
+     [2mapps/payment-api/requirements.txt:4[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mpayment-api[0m | [93mCVE-2024-47081[0m
+     [2mapps/payment-api/requirements.txt:4[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mpayment-worker[0m | [93mCVE-2020-14343[0m
+     [2mapps/payment-worker/requirements.txt:3[0m
+     Tool: [2m75[0m → Reticulum: [34m42[0m | Rules: [2mharden-sa-automount, scoring-internal[0m
+
+   [96m▸[0m [1mpayment-worker[0m | [93mCVE-2020-1747[0m
+     [2mapps/payment-worker/requirements.txt:3[0m
+     Tool: [2m75[0m → Reticulum: [34m42[0m | Rules: [2mharden-sa-automount, scoring-internal[0m
+
+[92m[+] [0mReticulum Analysis Complete.
+=== MONOREPO 02 ===
+[48;5;129m[38;5;232m[1m CLOUD-NATIVE CONTEXTUAL SECURITY PRIORITIZER BY PLEXICUS                     [0m
+[100m[30m RETICULUM v1.0                                                                 [0m
+
+[38;5;129m██████╗ ███████╗████████╗██╗ ██████╗██╗   ██╗██╗     ██╗   ██╗███╗   ███╗[0m
+[38;5;129m██╔══██╗██╔════╝╚══██╔══╝██║██╔════╝██║   ██║██║     ██║   ██║████╗ ████║[0m
+[38;5;129m██████╔╝█████╗     ██║   ██║██║     ██║   ██║██║     ██║   ██║██╔████╔██║[0m
+[38;5;129m██╔══██╗██╔══╝     ██║   ██║██║     ██║   ██║██║     ██║   ██║██║╚██╔╝██║[0m
+[38;5;129m██║  ██║███████╗   ██║   ██║╚██████╗╚██████╔╝███████╗╚██████╔╝██║ ╚═╝ ██║[0m
+[38;5;129m╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝ ╚═════╝ ╚═╝     ╚═╝[0m
+
+   [38;5;250m[+] MODULE: [38;5;129mPRIORITIZER[0m [38;5;250mONLINE[0m
+
+[96m[*] [0mTarget Repository: /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-02
+[96m[*] [0mInitializing Rule Engine...
+    [RuleEngine] Loaded 9 rules from rules/exposure
+    [RuleEngine] Loaded 15 rules from rules/security
+    [RuleEngine] Loaded 20 rules from rules/scoring
+[94m
+┌─[0m[1m Phase 1: Service Discovery[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mMapping services and Helm charts[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+=== Discovery Walk: /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-02 ===
+=== Linking Services to Charts ===
+  LINKED: frontend <--> frontend (Score: 160)
+  LINKED: auth-service <--> auth-service (Score: 160)
+[94m
+┌─[0m[1m Phase 2: Exposure Analysis[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mAnalyzing Kubernetes deployment configurations[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+  [Analyzer] Analyzing chart: frontend → /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-02/charts/frontend
+    → Loading values: values.yaml
+      → RULE MATCH: Istio VirtualService Exposure (exposure-istio-root)
+      → TAGS APPLIED: ["public-facing"]
+      → RULE MATCH: Internal Service Scoring (scoring-internal)
+    [Final Risk Profile]
+      • Public Exposure    : YES
+      • Privileged         : NO
+      • Dangerous Caps     : NO
+      • Svc Token Mount    : YES (Default)
+  [Analyzer] Analyzing chart: auth-service → /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-02/charts/auth-service
+      → RULE MATCH: Auth Service Classification (class-auth)
+      → TAGS APPLIED: ["category:auth"]
+    → Loading values: values.yaml
+      → RULE MATCH: Internal Service Scoring (scoring-internal)
+    [Final Risk Profile]
+      • Public Exposure    : NO
+      • Privileged         : NO
+      • Dangerous Caps     : NO
+      • Svc Token Mount    : YES (Default)
+[94m
+┌─[0m[1m Phase 3: Vulnerability Scoring[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mIngesting SARIF and applying contextual scoring[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+=== Processing SARIF file: tests/monorepo-02/trivy.sarif ===
+
+   [96m▸[0m [1mauth-service[0m | [93mCVE-2023-30861[0m
+     [2mapps/auth-service/requirements.txt:1[0m
+     Tool: [2m75[0m → Reticulum: [33m57[0m | Rules: [2mclass-auth, scoring-internal[0m
+
+   [96m▸[0m [1mfrontend[0m | [93mCVE-2021-3749[0m
+     [2mapps/frontend/package-lock.json:35[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-istio-root, scoring-internal[0m
+
+   [96m▸[0m [1mfrontend[0m | [93mCVE-2025-27152[0m
+     [2mapps/frontend/package-lock.json:35[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-istio-root, scoring-internal[0m
+
+   [96m▸[0m [1mfrontend[0m | [93mCVE-2025-58754[0m
+     [2mapps/frontend/package-lock.json:35[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-istio-root, scoring-internal[0m
+
+   [96m▸[0m [1mfrontend[0m | [93mCVE-2020-28168[0m
+     [2mapps/frontend/package-lock.json:35[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-istio-root, scoring-internal[0m
+
+   [96m▸[0m [1mfrontend[0m | [93mCVE-2023-45857[0m
+     [2mapps/frontend/package-lock.json:35[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-istio-root, scoring-internal[0m
+
+   [96m▸[0m [1mfrontend[0m | [93mCVE-2025-13466[0m
+     [2mapps/frontend/package-lock.json:45[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-istio-root, scoring-internal[0m
+
+   [96m▸[0m [1mfrontend[0m | [93mCVE-2021-23337[0m
+     [2mapps/frontend/package-lock.json:472[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-istio-root, scoring-internal[0m
+
+   [96m▸[0m [1mfrontend[0m | [93mCVE-2020-28500[0m
+     [2mapps/frontend/package-lock.json:472[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-istio-root, scoring-internal[0m
+
+[92m[+] [0mReticulum Analysis Complete.
+=== MONOREPO 03 ===
+[48;5;129m[38;5;232m[1m CLOUD-NATIVE CONTEXTUAL SECURITY PRIORITIZER BY PLEXICUS                     [0m
+[100m[30m RETICULUM v1.0                                                                 [0m
+
+[38;5;129m██████╗ ███████╗████████╗██╗ ██████╗██╗   ██╗██╗     ██╗   ██╗███╗   ███╗[0m
+[38;5;129m██╔══██╗██╔════╝╚══██╔══╝██║██╔════╝██║   ██║██║     ██║   ██║████╗ ████║[0m
+[38;5;129m██████╔╝█████╗     ██║   ██║██║     ██║   ██║██║     ██║   ██║██╔████╔██║[0m
+[38;5;129m██╔══██╗██╔══╝     ██║   ██║██║     ██║   ██║██║     ██║   ██║██║╚██╔╝██║[0m
+[38;5;129m██║  ██║███████╗   ██║   ██║╚██████╗╚██████╔╝███████╗╚██████╔╝██║ ╚═╝ ██║[0m
+[38;5;129m╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝ ╚═════╝ ╚═╝     ╚═╝[0m
+
+   [38;5;250m[+] MODULE: [38;5;129mPRIORITIZER[0m [38;5;250mONLINE[0m
+
+[96m[*] [0mTarget Repository: /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-03
+[96m[*] [0mInitializing Rule Engine...
+    [RuleEngine] Loaded 9 rules from rules/exposure
+    [RuleEngine] Loaded 15 rules from rules/security
+    [RuleEngine] Loaded 20 rules from rules/scoring
+[94m
+┌─[0m[1m Phase 1: Service Discovery[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mMapping services and Helm charts[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+=== Discovery Walk: /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-03 ===
+=== Linking Services to Charts ===
+  LINKED: api-gateway <--> api-gateway (Score: 160)
+  LINKED: db-service <--> db-service (Score: 160)
+[94m
+┌─[0m[1m Phase 2: Exposure Analysis[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mAnalyzing Kubernetes deployment configurations[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+  [Analyzer] Analyzing chart: api-gateway → /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-03/charts/api-gateway
+    → Loading values: values.yaml
+      → RULE MATCH: Internal Service Scoring (scoring-internal)
+    [Final Risk Profile]
+      • Public Exposure    : NO
+      • Privileged         : NO
+      • Dangerous Caps     : NO
+      • Svc Token Mount    : YES (Default)
+  [Analyzer] Analyzing chart: db-service → /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-03/charts/db-service
+    → Loading values: values.yaml
+      → RULE MATCH: Internal Service Scoring (scoring-internal)
+    [Final Risk Profile]
+      • Public Exposure    : NO
+      • Privileged         : NO
+      • Dangerous Caps     : NO
+      • Svc Token Mount    : YES (Default)
+[94m
+┌─[0m[1m Phase 3: Vulnerability Scoring[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mIngesting SARIF and applying contextual scoring[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+=== Processing SARIF file: tests/monorepo-03/trivy.sarif ===
+
+   [96m▸[0m [1mapi-gateway[0m | [93mCVE-2020-28483[0m
+     [2mapps/api-gateway/go.mod:1[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1mapi-gateway[0m | [93mCVE-2023-26125[0m
+     [2mapps/api-gateway/go.mod:1[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1mapi-gateway[0m | [93mCVE-2023-29401[0m
+     [2mapps/api-gateway/go.mod:1[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1mdb-service[0m | [93mCVE-2023-30861[0m
+     [2mapps/db-service/requirements.txt:1[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1mdb-service[0m | [93mCVE-2020-14343[0m
+     [2mapps/db-service/requirements.txt:2[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+[92m[+] [0mReticulum Analysis Complete.
+=== MONOREPO 04 ===
+[48;5;129m[38;5;232m[1m CLOUD-NATIVE CONTEXTUAL SECURITY PRIORITIZER BY PLEXICUS                     [0m
+[100m[30m RETICULUM v1.0                                                                 [0m
+
+[38;5;129m██████╗ ███████╗████████╗██╗ ██████╗██╗   ██╗██╗     ██╗   ██╗███╗   ███╗[0m
+[38;5;129m██╔══██╗██╔════╝╚══██╔══╝██║██╔════╝██║   ██║██║     ██║   ██║████╗ ████║[0m
+[38;5;129m██████╔╝█████╗     ██║   ██║██║     ██║   ██║██║     ██║   ██║██╔████╔██║[0m
+[38;5;129m██╔══██╗██╔══╝     ██║   ██║██║     ██║   ██║██║     ██║   ██║██║╚██╔╝██║[0m
+[38;5;129m██║  ██║███████╗   ██║   ██║╚██████╗╚██████╔╝███████╗╚██████╔╝██║ ╚═╝ ██║[0m
+[38;5;129m╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝ ╚═════╝ ╚═╝     ╚═╝[0m
+
+   [38;5;250m[+] MODULE: [38;5;129mPRIORITIZER[0m [38;5;250mONLINE[0m
+
+[96m[*] [0mTarget Repository: /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-04
+[96m[*] [0mInitializing Rule Engine...
+    [RuleEngine] Loaded 9 rules from rules/exposure
+    [RuleEngine] Loaded 15 rules from rules/security
+    [RuleEngine] Loaded 20 rules from rules/scoring
+[94m
+┌─[0m[1m Phase 1: Service Discovery[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mMapping services and Helm charts[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+=== Discovery Walk: /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-04 ===
+=== Linking Services to Charts ===
+  LINKED: web-ui <--> web-ui (Score: 160)
+  LINKED: worker <--> worker (Score: 160)
+[94m
+┌─[0m[1m Phase 2: Exposure Analysis[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mAnalyzing Kubernetes deployment configurations[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+  [Analyzer] Analyzing chart: web-ui → /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-04/charts/web-ui
+    → Loading values: values.yaml
+      → RULE MATCH: Public Ingress Exposure (exposure-ingress-enabled)
+      → TAGS APPLIED: ["public-facing"]
+      → RULE MATCH: Internal Service Scoring (scoring-internal)
+    [Final Risk Profile]
+      • Public Exposure    : YES
+      • Privileged         : NO
+      • Dangerous Caps     : NO
+      • Svc Token Mount    : YES (Default)
+  [Analyzer] Analyzing chart: worker → /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-04/charts/worker
+    → Loading values: values.yaml
+      → RULE MATCH: Internal Service Scoring (scoring-internal)
+    [Final Risk Profile]
+      • Public Exposure    : NO
+      • Privileged         : NO
+      • Dangerous Caps     : NO
+      • Svc Token Mount    : YES (Default)
+[94m
+┌─[0m[1m Phase 3: Vulnerability Scoring[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mIngesting SARIF and applying contextual scoring[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+=== Processing SARIF file: tests/monorepo-04/trivy.sarif ===
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2021-23424[0m
+     [2mapps/web-ui/package-lock.json:3921[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2025-13466[0m
+     [2mapps/web-ui/package-lock.json:4941[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2024-4068[0m
+     [2mapps/web-ui/package-lock.json:9189[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2021-23364[0m
+     [2mapps/web-ui/package-lock.json:15982[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2024-21538[0m
+     [2mapps/web-ui/package-lock.json:16042[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2024-48910[0m
+     [2mapps/web-ui/package-lock.json:7262[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2024-45801[0m
+     [2mapps/web-ui/package-lock.json:7262[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2024-47875[0m
+     [2mapps/web-ui/package-lock.json:7262[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2025-26791[0m
+     [2mapps/web-ui/package-lock.json:7262[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2022-29078[0m
+     [2mapps/web-ui/package-lock.json:7366[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2024-33883[0m
+     [2mapps/web-ui/package-lock.json:7366[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2024-21536[0m
+     [2mapps/web-ui/package-lock.json:10249[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2021-23436[0m
+     [2mapps/web-ui/package-lock.json:10493[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2021-3757[0m
+     [2mapps/web-ui/package-lock.json:10493[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2024-29415[0m
+     [2mapps/web-ui/package-lock.json:10672[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2022-37601[0m
+     [2mapps/web-ui/package-lock.json:16094[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2022-37599[0m
+     [2mapps/web-ui/package-lock.json:16094[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2022-37603[0m
+     [2mapps/web-ui/package-lock.json:16094[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2021-23337[0m
+     [2mapps/web-ui/package-lock.json:12557[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2024-4067[0m
+     [2mapps/web-ui/package-lock.json:9329[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2022-3517[0m
+     [2mapps/web-ui/package-lock.json:16434[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2022-24771[0m
+     [2mapps/web-ui/package-lock.json:13217[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2022-24772[0m
+     [2mapps/web-ui/package-lock.json:13217[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2022-0122[0m
+     [2mapps/web-ui/package-lock.json:13217[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2022-24773[0m
+     [2mapps/web-ui/package-lock.json:13217[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mGHSA-5rrq-pxf6-6jx5[0m
+     [2mapps/web-ui/package-lock.json:13217[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mGHSA-gf8q-jrpm-jvxq[0m
+     [2mapps/web-ui/package-lock.json:13217[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2021-3803[0m
+     [2mapps/web-ui/package-lock.json:19179[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2023-44270[0m
+     [2mapps/web-ui/package-lock.json:16852[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2023-44270[0m
+     [2mapps/web-ui/package-lock.json:14244[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2024-47068[0m
+     [2mapps/web-ui/package-lock.json:16993[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2022-25883[0m
+     [2mapps/web-ui/package-lock.json:17658[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2021-42740[0m
+     [2mapps/web-ui/package-lock.json:17973[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2024-29180[0m
+     [2mapps/web-ui/package-lock.json:20822[0m
+     Tool: [2m75[0m → Reticulum: [34m48[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2025-30359[0m
+     [2mapps/web-ui/package-lock.json:20853[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+   [96m▸[0m [1mweb-ui[0m | [93mCVE-2025-30360[0m
+     [2mapps/web-ui/package-lock.json:20853[0m
+     Tool: [2m50[0m → Reticulum: [34m32[0m | Rules: [2mexposure-ingress-enabled, scoring-internal[0m
+
+[92m[+] [0mReticulum Analysis Complete.
+=== MONOREPO 05 ===
+[48;5;129m[38;5;232m[1m CLOUD-NATIVE CONTEXTUAL SECURITY PRIORITIZER BY PLEXICUS                     [0m
+[100m[30m RETICULUM v1.0                                                                 [0m
+
+[38;5;129m██████╗ ███████╗████████╗██╗ ██████╗██╗   ██╗██╗     ██╗   ██╗███╗   ███╗[0m
+[38;5;129m██╔══██╗██╔════╝╚══██╔══╝██║██╔════╝██║   ██║██║     ██║   ██║████╗ ████║[0m
+[38;5;129m██████╔╝█████╗     ██║   ██║██║     ██║   ██║██║     ██║   ██║██╔████╔██║[0m
+[38;5;129m██╔══██╗██╔══╝     ██║   ██║██║     ██║   ██║██║     ██║   ██║██║╚██╔╝██║[0m
+[38;5;129m██║  ██║███████╗   ██║   ██║╚██████╗╚██████╔╝███████╗╚██████╔╝██║ ╚═╝ ██║[0m
+[38;5;129m╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝ ╚═════╝ ╚═╝     ╚═╝[0m
+
+   [38;5;250m[+] MODULE: [38;5;129mPRIORITIZER[0m [38;5;250mONLINE[0m
+
+[96m[*] [0mTarget Repository: /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-05
+[96m[*] [0mInitializing Rule Engine...
+    [RuleEngine] Loaded 9 rules from rules/exposure
+    [RuleEngine] Loaded 15 rules from rules/security
+    [RuleEngine] Loaded 20 rules from rules/scoring
+[94m
+┌─[0m[1m Phase 1: Service Discovery[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mMapping services and Helm charts[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+=== Discovery Walk: /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-05 ===
+=== Linking Services to Charts ===
+  LINKED: processor <--> processor (Score: 160)
+  LINKED: edge-service <--> edge-service (Score: 160)
+[94m
+┌─[0m[1m Phase 2: Exposure Analysis[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mAnalyzing Kubernetes deployment configurations[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+  [Analyzer] Analyzing chart: processor → /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-05/charts/processor
+    → Loading values: values.yaml
+    [Final Risk Profile]
+      • Public Exposure    : NO
+      • Privileged         : NO
+      • Dangerous Caps     : NO
+      • Svc Token Mount    : YES (Default)
+  [Analyzer] Analyzing chart: edge-service → /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-05/charts/edge-service
+    → Loading values: values.yaml
+      → RULE MATCH: Internal Service Scoring (scoring-internal)
+    [Final Risk Profile]
+      • Public Exposure    : NO
+      • Privileged         : NO
+      • Dangerous Caps     : NO
+      • Svc Token Mount    : YES (Default)
+[94m
+┌─[0m[1m Phase 3: Vulnerability Scoring[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mIngesting SARIF and applying contextual scoring[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+=== Processing SARIF file: tests/monorepo-05/trivy.sarif ===
+
+   [96m▸[0m [1medge-service[0m | [93mCVE-2021-44228[0m
+     [2mapps/edge-service/pom.xml:8[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1medge-service[0m | [93mCVE-2021-45046[0m
+     [2mapps/edge-service/pom.xml:8[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1medge-service[0m | [93mCVE-2021-45105[0m
+     [2mapps/edge-service/pom.xml:8[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1medge-service[0m | [93mCVE-2021-44832[0m
+     [2mapps/edge-service/pom.xml:8[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1mprocessor[0m | [93mCVE-2021-23727[0m
+     [2mapps/processor/requirements.txt:3[0m
+     Tool: [2m75[0m → Reticulum: [31m75[0m | Rules: [2mnone[0m
+
+   [96m▸[0m [1mprocessor[0m | [93mCVE-2020-14343[0m
+     [2mapps/processor/requirements.txt:1[0m
+     Tool: [2m75[0m → Reticulum: [31m75[0m | Rules: [2mnone[0m
+
+[92m[+] [0mReticulum Analysis Complete.
+=== MONOREPO 06 ===
+[48;5;129m[38;5;232m[1m CLOUD-NATIVE CONTEXTUAL SECURITY PRIORITIZER BY PLEXICUS                     [0m
+[100m[30m RETICULUM v1.0                                                                 [0m
+
+[38;5;129m██████╗ ███████╗████████╗██╗ ██████╗██╗   ██╗██╗     ██╗   ██╗███╗   ███╗[0m
+[38;5;129m██╔══██╗██╔════╝╚══██╔══╝██║██╔════╝██║   ██║██║     ██║   ██║████╗ ████║[0m
+[38;5;129m██████╔╝█████╗     ██║   ██║██║     ██║   ██║██║     ██║   ██║██╔████╔██║[0m
+[38;5;129m██╔══██╗██╔══╝     ██║   ██║██║     ██║   ██║██║     ██║   ██║██║╚██╔╝██║[0m
+[38;5;129m██║  ██║███████╗   ██║   ██║╚██████╗╚██████╔╝███████╗╚██████╔╝██║ ╚═╝ ██║[0m
+[38;5;129m╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝ ╚═════╝ ╚═╝     ╚═╝[0m
+
+   [38;5;250m[+] MODULE: [38;5;129mPRIORITIZER[0m [38;5;250mONLINE[0m
+
+[96m[*] [0mTarget Repository: /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-06
+[96m[*] [0mInitializing Rule Engine...
+    [RuleEngine] Loaded 9 rules from rules/exposure
+    [RuleEngine] Loaded 15 rules from rules/security
+    [RuleEngine] Loaded 20 rules from rules/scoring
+[94m
+┌─[0m[1m Phase 1: Service Discovery[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mMapping services and Helm charts[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+=== Discovery Walk: /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-06 ===
+=== Linking Services to Charts ===
+  LINKED: postgres-db <--> postgres-db (Score: 100)
+  LINKED: payment-go <--> payment-go (Score: 160)
+  LINKED: internal-worker <--> internal-worker (Score: 160)
+  LINKED: admin-api <--> admin-api (Score: 160)
+[94m
+┌─[0m[1m Phase 2: Exposure Analysis[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mAnalyzing Kubernetes deployment configurations[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+  [Analyzer] Analyzing chart: postgres-db → /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-06/charts/postgres-db
+      → RULE MATCH: Database Classification (class-db)
+      → TAGS APPLIED: ["category:db"]
+    → Loading values: values.yaml
+      → RULE MATCH: Internal Service Scoring (scoring-internal)
+    [Final Risk Profile]
+      • Public Exposure    : NO
+      • Privileged         : NO
+      • Dangerous Caps     : NO
+      • Svc Token Mount    : YES (Default)
+  [Analyzer] Analyzing chart: payment-go → /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-06/charts/payment-go
+    → Loading values: values.yaml
+      → RULE MATCH: Internal Service Scoring (scoring-internal)
+    [Final Risk Profile]
+      • Public Exposure    : NO
+      • Privileged         : NO
+      • Dangerous Caps     : NO
+      • Svc Token Mount    : YES (Default)
+  [Analyzer] Analyzing chart: internal-worker → /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-06/charts/internal-worker
+    → Loading values: values.yaml
+      → RULE MATCH: Internal Service Scoring (scoring-internal)
+    [Final Risk Profile]
+      • Public Exposure    : NO
+      • Privileged         : NO
+      • Dangerous Caps     : NO
+      • Svc Token Mount    : YES (Default)
+  [Analyzer] Analyzing chart: admin-api → /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-06/charts/admin-api
+    → Loading values: values.yaml
+      → RULE MATCH: Public Ingress Exposure (exposure-ingress-enabled)
+      → TAGS APPLIED: ["public-facing"]
+      → RULE MATCH: Service LoadBalancer Exposure (exposure-service-lb)
+      → TAGS APPLIED: ["public-facing"]
+      → RULE MATCH: Privileged Container (security-privileged)
+      → TAGS APPLIED: ["privileged"]
+      → RULE MATCH: ServiceAccount Token Automount (harden-sa-automount)
+    [Final Risk Profile]
+      • Public Exposure    : YES
+      • Privileged         : YES
+      • Dangerous Caps     : NO
+      • Svc Token Mount    : YES (Default)
+[94m
+┌─[0m[1m Phase 3: Vulnerability Scoring[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mIngesting SARIF and applying contextual scoring[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+=== Processing SARIF file: tests/monorepo-06/trivy.sarif ===
+
+   [96m▸[0m [1madmin-api[0m | [93mCVE-2023-30861[0m
+     [2mapps/admin-api/requirements.txt:3[0m
+     Tool: [2m75[0m → Reticulum: [91m100[0m | Rules: [2mexposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount[0m
+
+   [96m▸[0m [1madmin-api[0m | [93mCVE-2024-22195[0m
+     [2mapps/admin-api/requirements.txt:5[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mexposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount[0m
+
+   [96m▸[0m [1madmin-api[0m | [93mCVE-2024-34064[0m
+     [2mapps/admin-api/requirements.txt:5[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mexposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount[0m
+
+   [96m▸[0m [1madmin-api[0m | [93mCVE-2024-56201[0m
+     [2mapps/admin-api/requirements.txt:5[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mexposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount[0m
+
+   [96m▸[0m [1madmin-api[0m | [93mCVE-2024-56326[0m
+     [2mapps/admin-api/requirements.txt:5[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mexposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount[0m
+
+   [96m▸[0m [1madmin-api[0m | [93mCVE-2025-27516[0m
+     [2mapps/admin-api/requirements.txt:5[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mexposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount[0m
+
+   [96m▸[0m [1madmin-api[0m | [93mCVE-2023-32681[0m
+     [2mapps/admin-api/requirements.txt:4[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mexposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount[0m
+
+   [96m▸[0m [1madmin-api[0m | [93mCVE-2024-35195[0m
+     [2mapps/admin-api/requirements.txt:4[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mexposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount[0m
+
+   [96m▸[0m [1madmin-api[0m | [93mCVE-2024-47081[0m
+     [2mapps/admin-api/requirements.txt:4[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mexposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount[0m
+
+   [96m▸[0m [1madmin-api[0m | [93mCVE-2021-33503[0m
+     [2mapps/admin-api/requirements.txt:6[0m
+     Tool: [2m75[0m → Reticulum: [91m100[0m | Rules: [2mexposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount[0m
+
+   [96m▸[0m [1madmin-api[0m | [93mCVE-2023-43804[0m
+     [2mapps/admin-api/requirements.txt:6[0m
+     Tool: [2m75[0m → Reticulum: [91m100[0m | Rules: [2mexposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount[0m
+
+   [96m▸[0m [1madmin-api[0m | [93mCVE-2023-45803[0m
+     [2mapps/admin-api/requirements.txt:6[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mexposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount[0m
+
+   [96m▸[0m [1madmin-api[0m | [93mCVE-2024-37891[0m
+     [2mapps/admin-api/requirements.txt:6[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mexposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount[0m
+
+   [96m▸[0m [1madmin-api[0m | [93mCVE-2025-50181[0m
+     [2mapps/admin-api/requirements.txt:6[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mexposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-25289[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-34552[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2022-22817[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2023-50447[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2020-35653[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2020-35654[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-23437[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-25287[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-25288[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-25290[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-25291[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-25293[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-27921[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-27922[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-27923[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-28675[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-28676[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-28677[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2022-24303[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2022-45198[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2023-44271[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2023-4863[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2024-28219[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2020-35655[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-25292[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-28678[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2022-22815[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2022-22816[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mGHSA-jgpv-4h4c-xhw3[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mGHSA-4fx9-vc88-q2xc[0m
+     [2mapps/internal-worker/requirements.txt:9[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2020-14343[0m
+     [2mapps/internal-worker/requirements.txt:8[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2020-1747[0m
+     [2mapps/internal-worker/requirements.txt:8[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-23727[0m
+     [2mapps/internal-worker/requirements.txt:3[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2020-25659[0m
+     [2mapps/internal-worker/requirements.txt:7[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2023-0286[0m
+     [2mapps/internal-worker/requirements.txt:7[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2023-50782[0m
+     [2mapps/internal-worker/requirements.txt:7[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2023-23931[0m
+     [2mapps/internal-worker/requirements.txt:7[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2024-0727[0m
+     [2mapps/internal-worker/requirements.txt:7[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mGHSA-5cpq-8wj7-hf2v[0m
+     [2mapps/internal-worker/requirements.txt:7[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mGHSA-jm77-qphf-c4w8[0m
+     [2mapps/internal-worker/requirements.txt:7[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mGHSA-v8gr-m533-ghj9[0m
+     [2mapps/internal-worker/requirements.txt:7[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2020-27783[0m
+     [2mapps/internal-worker/requirements.txt:10[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-28957[0m
+     [2mapps/internal-worker/requirements.txt:10[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-43818[0m
+     [2mapps/internal-worker/requirements.txt:10[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2022-2309[0m
+     [2mapps/internal-worker/requirements.txt:10[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2023-32681[0m
+     [2mapps/internal-worker/requirements.txt:5[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2024-35195[0m
+     [2mapps/internal-worker/requirements.txt:5[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2024-47081[0m
+     [2mapps/internal-worker/requirements.txt:5[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2021-33503[0m
+     [2mapps/internal-worker/requirements.txt:6[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2023-43804[0m
+     [2mapps/internal-worker/requirements.txt:6[0m
+     Tool: [2m75[0m → Reticulum: [34m37[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2020-26137[0m
+     [2mapps/internal-worker/requirements.txt:6[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2023-45803[0m
+     [2mapps/internal-worker/requirements.txt:6[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2024-37891[0m
+     [2mapps/internal-worker/requirements.txt:6[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+   [96m▸[0m [1minternal-worker[0m | [93mCVE-2025-50181[0m
+     [2mapps/internal-worker/requirements.txt:6[0m
+     Tool: [2m50[0m → Reticulum: [2m25[0m | Rules: [2mscoring-internal[0m
+
+[92m[+] [0mReticulum Analysis Complete.
+=== MONOREPO 07 ===
+[48;5;129m[38;5;232m[1m CLOUD-NATIVE CONTEXTUAL SECURITY PRIORITIZER BY PLEXICUS                     [0m
+[100m[30m RETICULUM v1.0                                                                 [0m
+
+[38;5;129m██████╗ ███████╗████████╗██╗ ██████╗██╗   ██╗██╗     ██╗   ██╗███╗   ███╗[0m
+[38;5;129m██╔══██╗██╔════╝╚══██╔══╝██║██╔════╝██║   ██║██║     ██║   ██║████╗ ████║[0m
+[38;5;129m██████╔╝█████╗     ██║   ██║██║     ██║   ██║██║     ██║   ██║██╔████╔██║[0m
+[38;5;129m██╔══██╗██╔══╝     ██║   ██║██║     ██║   ██║██║     ██║   ██║██║╚██╔╝██║[0m
+[38;5;129m██║  ██║███████╗   ██║   ██║╚██████╗╚██████╔╝███████╗╚██████╔╝██║ ╚═╝ ██║[0m
+[38;5;129m╚═╝  ╚═╝╚══════╝   ╚═╝   ╚═╝ ╚═════╝ ╚═════╝ ╚══════╝ ╚═════╝ ╚═╝     ╚═╝[0m
+
+   [38;5;250m[+] MODULE: [38;5;129mPRIORITIZER[0m [38;5;250mONLINE[0m
+
+[96m[*] [0mTarget Repository: /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-07
+[96m[*] [0mInitializing Rule Engine...
+    [RuleEngine] Loaded 9 rules from rules/exposure
+    [RuleEngine] Loaded 15 rules from rules/security
+    [RuleEngine] Loaded 20 rules from rules/scoring
+[94m
+┌─[0m[1m Phase 1: Service Discovery[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mMapping services and Helm charts[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+=== Discovery Walk: /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-07 ===
+=== Linking Services to Charts ===
+  LINKED: auth-api <--> auth-api (Score: 160)
+[94m
+┌─[0m[1m Phase 2: Exposure Analysis[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mAnalyzing Kubernetes deployment configurations[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+  [Analyzer] Analyzing chart: auth-api → /Users/jpalanco/Library/CloudStorage/SynologyDrive-Home/Projects/reticulum-d/tests/monorepo-07/charts/test-app
+      → RULE MATCH: Auth Service Classification (class-auth)
+      → TAGS APPLIED: ["category:auth"]
+    → Loading values: values.yaml
+      → RULE MATCH: Public Ingress Exposure (exposure-ingress-enabled)
+      → TAGS APPLIED: ["public-facing"]
+      → RULE MATCH: Service LoadBalancer Exposure (exposure-service-lb)
+      → TAGS APPLIED: ["public-facing"]
+      → RULE MATCH: Privileged Container (security-privileged)
+      → TAGS APPLIED: ["privileged"]
+      → RULE MATCH: ServiceAccount Token Automount (harden-sa-automount)
+      → RULE MATCH: Host Network Access (security-host-network)
+      → TAGS APPLIED: ["host-network"]
+    [Final Risk Profile]
+      • Public Exposure    : YES
+      • Privileged         : YES
+      • Dangerous Caps     : NO
+      • Svc Token Mount    : YES (Default)
+[94m
+┌─[0m[1m Phase 3: Vulnerability Scoring[0m[94m ─────────────────────────────────────────────────────────[0m
+[94m│ [0m[2mIngesting SARIF and applying contextual scoring[0m
+[94m└────────────────────────────────────────────────────────────────────[0m
+=== Processing SARIF file: tests/monorepo-07/trivy.sarif ===
+
+   [96m▸[0m [1mauth-api[0m | [93mCVE-2023-30861[0m
+     [2mapps/auth-api/requirements.txt:1[0m
+     Tool: [2m75[0m → Reticulum: [91m100[0m | Rules: [2mclass-auth, exposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount, security-host-network[0m
+
+   [96m▸[0m [1mauth-api[0m | [93mCVE-2024-22195[0m
+     [2mapps/auth-api/requirements.txt:3[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mclass-auth, exposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount, security-host-network[0m
+
+   [96m▸[0m [1mauth-api[0m | [93mCVE-2024-34064[0m
+     [2mapps/auth-api/requirements.txt:3[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mclass-auth, exposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount, security-host-network[0m
+
+   [96m▸[0m [1mauth-api[0m | [93mCVE-2024-56201[0m
+     [2mapps/auth-api/requirements.txt:3[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mclass-auth, exposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount, security-host-network[0m
+
+   [96m▸[0m [1mauth-api[0m | [93mCVE-2024-56326[0m
+     [2mapps/auth-api/requirements.txt:3[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mclass-auth, exposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount, security-host-network[0m
+
+   [96m▸[0m [1mauth-api[0m | [93mCVE-2025-27516[0m
+     [2mapps/auth-api/requirements.txt:3[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mclass-auth, exposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount, security-host-network[0m
+
+   [96m▸[0m [1mauth-api[0m | [93mCVE-2023-32681[0m
+     [2mapps/auth-api/requirements.txt:2[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mclass-auth, exposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount, security-host-network[0m
+
+   [96m▸[0m [1mauth-api[0m | [93mCVE-2024-35195[0m
+     [2mapps/auth-api/requirements.txt:2[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mclass-auth, exposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount, security-host-network[0m
+
+   [96m▸[0m [1mauth-api[0m | [93mCVE-2024-47081[0m
+     [2mapps/auth-api/requirements.txt:2[0m
+     Tool: [2m50[0m → Reticulum: [91m100[0m | Rules: [2mclass-auth, exposure-ingress-enabled, exposure-service-lb, security-privileged, harden-sa-automount, security-host-network[0m
+
+[92m[+] [0mReticulum Analysis Complete.

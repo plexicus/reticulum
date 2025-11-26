@@ -107,7 +107,7 @@ void printInfo(string message)
 // Track if this is the first finding for header
 bool firstFinding = true;
 
-void printMatch(string service, string cveId, string filePath, int lineNum, int baseScore, int finalScore, string priority, string[] appliedRules)
+void printMatch(string service, string cveId, string filePath, int lineNum, int baseScore, int finalScore, string priority, string[] appliedRules, string description)
 {
     if (firstFinding)
     {
@@ -141,6 +141,7 @@ void printMatch(string service, string cveId, string filePath, int lineNum, int 
     // Print finding in a clean, simple format
     writeln("   \033[96m▸\033[0m \033[1m" ~ service ~ "\033[0m | \033[93m" ~ cveId ~ "\033[0m");
     writeln("     \033[2m" ~ fullPath ~ "\033[0m");
+    writeln("     \033[2m" ~ description ~ "\033[0m");
     writeln("     Tool: \033[2m" ~ to!string(baseScore) ~ "\033[0m → Reticulum: " ~ scoreColor ~ to!string(
             finalScore) ~ "\033[0m | Rules: \033[2m" ~ rulesStr ~ "\033[0m");
     writeln("");

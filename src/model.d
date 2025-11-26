@@ -208,6 +208,7 @@ class Finding
     string location;
     int baseScore; // Added: Original severity score (0-100)
     int reticulumScore; // Contextual score
+    string description; // Added: Vulnerability description
     Priority priority;
     JSONValue originalJson;
     string[] appliedRules; // Track which rules modified this finding

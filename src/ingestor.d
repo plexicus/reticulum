@@ -236,6 +236,27 @@ void processSarif(string filename, Service[] services, string repoPath, RuleEngi
                 f.severity = severityLabel;
                 f.baseScore = baseScore; // Set the base score
 
+                // Extract description
+                if ("shortDescription" in result && "text" in result["shortDescription"])
+                {
+                    f.description = result["shortDescription"]["text"].str;
+                }
+                else if ("message" in result && "text" in result["message"])
+                {
+                    f.description = result["message"]["text"].str;
+                }
+                else
+                {
+                    f.description = "No description available";
+                }
+
+                // Clean up description: remove newlines and excessive whitespace
+                import std.string : strip, replace;
+                import std.array : split, join;
+
+                f.description = f.description.replace("\n", " ").replace("\r", " ");
+                f.description = f.description.split().join(" ").strip();
+
                 // --- RULE ENGINE EVALUATION ---
                 // Check if finding should be suppressed or modified based on context
                 if (service.chart !is null)
@@ -276,7 +297,7 @@ void processSarif(string filename, Service[] services, string repoPath, RuleEngi
                 }
 
                 printMatch(service.id, ruleId, filePath, lineNum, baseScore, f.reticulumScore, to!string(
-                        f.priority), f.appliedRules);
+                        f.priority), f.appliedRules, f.description);
 
                 // Enrich SARIF
                 JSONValue richData;
