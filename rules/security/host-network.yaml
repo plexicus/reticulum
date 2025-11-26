@@ -1,0 +1,15 @@
+id: "security-host-network"
+name: "Host Network Access"
+description: "Detects usage of hostNetwork: true"
+severity: "critical"
+tags: ["security", "network", "privileged"]
+target: "values"
+match:
+  - key: "hostNetwork"
+    op: "eq"
+    value: true
+action:
+  risk_profile:
+    set_flag: "isPrivileged"
+    score_multiplier: 1.5
+  tags: ["host-network"]

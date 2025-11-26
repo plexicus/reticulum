@@ -1,0 +1,29 @@
+id: "security-irsa-role"
+name: "AWS IRSA Role Binding"
+description: "Detects AWS IAM Roles for Service Accounts (IRSA)"
+severity: "info"
+tags: ["security", "iam", "aws"]
+target: "values"
+match:
+  - key: "serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
+    op: "exists"
+    value: ""
+action:
+  risk_profile:
+    score_boost: 10
+  tags: ["iam-bound"]
+---
+id: "security-gcp-workload-identity"
+name: "GCP Workload Identity"
+description: "Detects GCP Workload Identity bindings"
+severity: "info"
+tags: ["security", "iam", "gcp"]
+target: "values"
+match:
+  - key: "serviceAccount.annotations.iam\\.gke\\.io/gcp-service-account"
+    op: "exists"
+    value: ""
+action:
+  risk_profile:
+    score_boost: 10
+  tags: ["iam-bound"]
