@@ -1,0 +1,15 @@
+id: "exposure-nodeport"
+name: "NodePort Exposure"
+description: "Detects if Service type is NodePort"
+severity: "medium"
+tags: ["exposure", "service"]
+target: "values"
+match:
+  - key: "service.type"
+    op: "eq"
+    value: "NodePort"
+action:
+  risk_profile:
+    set_flag: "isPublic"
+    score_multiplier: 1.1
+  tags: ["public-facing"]

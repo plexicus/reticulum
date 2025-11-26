@@ -42,10 +42,14 @@ class RuleEngine
     {
         try
         {
-            Node root = Loader.fromFile(path).load();
-            if (root.type != NodeType.mapping)
-                return;
-            parseRuleNode(root);
+            // Support multiple documents in a single file (separated by ---)
+            foreach (Node root; Loader.fromFile(path))
+            {
+                if (root.type == NodeType.mapping)
+                {
+                    parseRuleNode(root);
+                }
+            }
         }
         catch (Throwable e)
         {

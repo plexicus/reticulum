@@ -1,0 +1,51 @@
+id: "exposure-ambassador-legacy"
+name: "Ambassador Exposure (Legacy)"
+description: "Detects if Ambassador mapping is enabled"
+severity: "high"
+tags: ["exposure", "ambassador"]
+target: "values"
+match:
+  - key: "ambassador.mapping.enabled"
+    op: "eq"
+    value: true
+action:
+  risk_profile:
+    set_flag: "isPublic"
+    score_multiplier: 1.3
+  tags: ["public-facing"]
+
+---
+
+id: "exposure-emissary"
+name: "Emissary Exposure"
+description: "Detects if Emissary mapping is enabled"
+severity: "high"
+tags: ["exposure", "emissary"]
+target: "values"
+match:
+  - key: "emissary.mapping.enabled"
+    op: "eq"
+    value: true
+action:
+  risk_profile:
+    set_flag: "isPublic"
+    score_multiplier: 1.3
+  tags: ["public-facing"]
+
+---
+
+id: "exposure-emissary-host"
+name: "Emissary Host Exposure"
+description: "Detects if Emissary host is defined"
+severity: "high"
+tags: ["exposure", "emissary"]
+target: "values"
+match:
+  - key: "emissary.mapping.hostname"
+    op: "exists"
+    value: true
+action:
+  risk_profile:
+    set_flag: "isPublic"
+    score_multiplier: 1.3
+  tags: ["public-facing"]

@@ -56,7 +56,9 @@ Adjusts risk based on deep configuration analysis:
 Reticulum supports multi-architecture builds out of the box (Apple Silicon/ARM64 and Intel/AMD64).
 
 1. **Build the image:**  
+   ```bash 
    docker build -t reticulum .
+   ```
 
 2. Run with analysis data:  
    Since Reticulum runs inside a container, you must mount the directory containing your code and SARIF reports.  
@@ -84,14 +86,23 @@ dub build --compiler=ldc2
 
 ## ⚡ Quick Start
 
-### 1. Scan your Monorepo
-Use the helper script to generate SARIF files from your source:
+### 1. Generate Scan Data
+First, generate the SARIF files. You can use our helper script (requires local Trivy/Semgrep) or run scanners manually.
 ```bash
 ./run_tools.sh tests/monorepo-06
 ```
 
-### 2. Run Reticulum
-Analyze the results with contextual awareness:
+### 2. Run Analysis
+
+#### Option A: Using Docker (Recommended)
+Mount your current directory to `/data` so Reticulum can see your files.
+```bash
+docker run --rm -v $(pwd):/data reticulum \
+  -p /data/tests/monorepo-06 \
+  -s /data/tests/monorepo-06/trivy.sarif
+```
+
+#### Option B: Using Local Binary
 ```bash
 ./reticulum -p tests/monorepo-06 -s tests/monorepo-06/trivy.sarif
 ```
