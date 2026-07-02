@@ -74,7 +74,30 @@ impl Default for RiskProfile {
     }
 }
 
+/// Flag names addressable from rule actions (`set_flag` / `set_flags`).
+pub const KNOWN_FLAGS: [&str; 5] = [
+    "isPublic",
+    "isPrivileged",
+    "hasDangerousCaps",
+    "hasInternetEgress",
+    "mountServiceToken",
+];
+
 impl RiskProfile {
+    /// Set a context flag by its rule-facing name. Returns false for unknown
+    /// names so callers can surface a warning instead of failing silently.
+    pub fn set_flag(&mut self, name: &str, value: bool) -> bool {
+        match name {
+            "isPublic" => self.is_public = value,
+            "isPrivileged" => self.is_privileged = value,
+            "hasDangerousCaps" => self.has_dangerous_caps = value,
+            "hasInternetEgress" => self.has_internet_egress = value,
+            "mountServiceToken" => self.mount_service_token = value,
+            _ => return false,
+        }
+        true
+    }
+
     pub fn add_multiplier(&mut self, m: f32) {
         self.multipliers.push(m);
     }
