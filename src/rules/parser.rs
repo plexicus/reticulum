@@ -134,9 +134,9 @@ fn parse_match_list(
                 Yaml::Number(n) if n.is_i64() => MatchValue::Int(n.as_i64().unwrap_or(0)),
                 Yaml::Number(n) => MatchValue::Float(n.as_f64().unwrap_or(0.0)),
                 Yaml::String(s) => MatchValue::Str(s.clone()),
-                Yaml::Sequence(seq) => MatchValue::List(
-                    seq.iter().map(yaml_scalar_to_string).collect(),
-                ),
+                Yaml::Sequence(seq) => {
+                    MatchValue::List(seq.iter().map(yaml_scalar_to_string).collect())
+                }
                 _ => MatchValue::None,
             };
         }
@@ -206,7 +206,9 @@ fn parse_action(act: &Yaml, rule: &mut Rule, source: &str, warnings: &mut Vec<St
 }
 
 pub(crate) fn yaml_str(node: &Yaml, key: &str) -> Option<String> {
-    node.get(key).map(yaml_scalar_to_string).filter(|s| !s.is_empty())
+    node.get(key)
+        .map(yaml_scalar_to_string)
+        .filter(|s| !s.is_empty())
 }
 
 /// Numeric fields may arrive as float, int or quoted string.
@@ -257,7 +259,10 @@ action:
         assert!(warnings.is_empty(), "unexpected: {:?}", warnings);
         assert_eq!(rule.id, "exposure-ingress-enabled");
         assert_eq!(rule.matches.len(), 1);
-        assert_eq!(rule.action.risk_profile.set_flag.as_deref(), Some("isPublic"));
+        assert_eq!(
+            rule.action.risk_profile.set_flag.as_deref(),
+            Some("isPublic")
+        );
         assert_eq!(rule.action.risk_profile.score_multiplier, Some(1.3));
     }
 
@@ -285,7 +290,10 @@ action:
         assert_eq!(rule.any_matches.len(), 2);
         assert_eq!(
             rule.action.risk_profile.set_flags,
-            vec![("isPublic".to_string(), true), ("mountServiceToken".to_string(), false)]
+            vec![
+                ("isPublic".to_string(), true),
+                ("mountServiceToken".to_string(), false)
+            ]
         );
     }
 

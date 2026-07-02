@@ -59,8 +59,16 @@ pub fn render_mermaid(services: &[Service], charts: &[Chart]) -> String {
                     .cloned()
                     .collect::<Vec<_>>()
                     .join(", ");
-                let label = if rules.is_empty() { "exposed".to_string() } else { rules };
-                edges.push(format!("    internet -->|\"{}\"| {}\n", escape(&label), node));
+                let label = if rules.is_empty() {
+                    "exposed".to_string()
+                } else {
+                    rules
+                };
+                edges.push(format!(
+                    "    internet -->|\"{}\"| {}\n",
+                    escape(&label),
+                    node
+                ));
             }
             continue;
         }
@@ -68,7 +76,11 @@ pub fn render_mermaid(services: &[Service], charts: &[Chart]) -> String {
         for path in &c.risk.exposure_paths {
             if let Some((label, _)) = path.split_once(" ← ") {
                 // Outbound: open egress from the workload to the internet
-                edges.push(format!("    {} -.->|\"{}\"| internet\n", node, escape(label)));
+                edges.push(format!(
+                    "    {} -.->|\"{}\"| internet\n",
+                    node,
+                    escape(label)
+                ));
                 continue;
             }
 
@@ -221,7 +233,11 @@ mod tests {
     #[test]
     fn graph_internal_service_has_no_internet_edge() {
         let chart = Chart::new("worker", "/repo/charts/worker");
-        let mut svc = Service::new("worker", "/repo/apps/worker/Dockerfile", "/repo/apps/worker");
+        let mut svc = Service::new(
+            "worker",
+            "/repo/apps/worker/Dockerfile",
+            "/repo/apps/worker",
+        );
         svc.chart = Some(0);
         let out = render_mermaid(&[svc], &[chart]);
         assert!(out.contains("svc_worker"));
@@ -233,8 +249,15 @@ mod tests {
     fn graph_helm_public_uses_rule_labels() {
         let mut chart = Chart::new("admin-api", "/repo/charts/admin-api");
         chart.risk.set_flag("isPublic", true);
-        chart.risk.applied_rule_ids.push("exposure-ingress-enabled".to_string());
-        let mut svc = Service::new("admin-api", "/repo/apps/admin/Dockerfile", "/repo/apps/admin");
+        chart
+            .risk
+            .applied_rule_ids
+            .push("exposure-ingress-enabled".to_string());
+        let mut svc = Service::new(
+            "admin-api",
+            "/repo/apps/admin/Dockerfile",
+            "/repo/apps/admin",
+        );
         svc.chart = Some(0);
         let out = render_mermaid(&[svc], &[chart]);
         assert!(out.contains("internet -->|\"exposure-ingress-enabled\"| svc_admin_api"));

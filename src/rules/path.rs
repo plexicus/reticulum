@@ -81,7 +81,11 @@ mod tests {
     fn escaped_dots_stay_in_segment() {
         assert_eq!(
             parse_key("serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"),
-            vec!["serviceAccount", "annotations", "eks.amazonaws.com/role-arn"]
+            vec![
+                "serviceAccount",
+                "annotations",
+                "eks.amazonaws.com/role-arn"
+            ]
         );
     }
 

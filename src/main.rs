@@ -163,7 +163,10 @@ fn main() -> ExitCode {
     let abs_repo_path = match fs::canonicalize(&repo_path) {
         Ok(p) => p,
         Err(e) => {
-            ui::print_error(&format!("Cannot resolve repository path '{}': {}", repo_path, e));
+            ui::print_error(&format!(
+                "Cannot resolve repository path '{}': {}",
+                repo_path, e
+            ));
             return ExitCode::FAILURE;
         }
     };
@@ -174,9 +177,7 @@ fn main() -> ExitCode {
     let mut engine = RuleEngine::new();
     match find_rules_base(args.rules.as_deref()) {
         Some(base) => load_rule_sets(&mut engine, &base),
-        None => ui::print_warning(
-            "No rules directory found (use --rules); running without rules.",
-        ),
+        None => ui::print_warning("No rules directory found (use --rules); running without rules."),
     }
 
     ui::print_phase(

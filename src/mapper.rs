@@ -150,7 +150,11 @@ mod tests {
 
     #[test]
     fn match_score_name_and_path() {
-        let s = Service::new("payment-go", "/repo/apps/payment-go/Dockerfile", "/repo/apps/payment-go");
+        let s = Service::new(
+            "payment-go",
+            "/repo/apps/payment-go/Dockerfile",
+            "/repo/apps/payment-go",
+        );
         let c = Chart::new("payment-go", "/repo/charts/payment-go");
         // Name matches (+100); paths don't nest; no values.yaml on disk
         assert_eq!(calculate_match_score(&s, &c), 100);

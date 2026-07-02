@@ -119,7 +119,10 @@ pub fn discover(
     }
 
     if !inv.units.is_empty() {
-        println!("  [Compose] Discovered {} compose services", inv.units.len());
+        println!(
+            "  [Compose] Discovered {} compose services",
+            inv.units.len()
+        );
     }
     inv
 }
@@ -157,7 +160,10 @@ fn build_context(definition: &Yaml, compose_dir: &Path) -> (Option<PathBuf>, Opt
 pub fn analyze(inv: &ComposeInventory, charts: &mut [Chart], engine: &RuleEngine) {
     for unit in &inv.units {
         let chart = &mut charts[unit.chart_idx];
-        println!("  [Analyzer] Analyzing compose service: {} ({})", unit.name, unit.file);
+        println!(
+            "  [Analyzer] Analyzing compose service: {} ({})",
+            unit.name, unit.file
+        );
         chart.risk.reset();
         engine.evaluate_metadata(chart);
 
@@ -175,7 +181,11 @@ pub fn analyze(inv: &ComposeInventory, charts: &mut [Chart], engine: &RuleEngine
         );
         println!(
             "      • Privileged         : {}",
-            if chart.risk.is_privileged { "YES" } else { "NO" }
+            if chart.risk.is_privileged {
+                "YES"
+            } else {
+                "NO"
+            }
         );
         for path in &chart.risk.exposure_paths {
             println!("      ⇢ EXPOSURE PATH: {}", path);
@@ -198,7 +208,10 @@ fn analyze_ports(chart: &mut Chart, unit: &ComposeUnit) {
     }
     chart.risk.set_flag("isPublic", true);
     chart.risk.add_multiplier(1.3);
-    chart.risk.applied_rule_ids.push("compose-exposure-ports".to_string());
+    chart
+        .risk
+        .applied_rule_ids
+        .push("compose-exposure-ports".to_string());
     for desc in published {
         chart
             .risk
@@ -259,14 +272,20 @@ fn analyze_security(chart: &mut Chart, unit: &ComposeUnit) {
     if def.get("privileged").and_then(|p| p.as_bool()) == Some(true) {
         chart.risk.set_flag("isPrivileged", true);
         chart.risk.add_boost(20);
-        chart.risk.applied_rule_ids.push("compose-privileged".to_string());
+        chart
+            .risk
+            .applied_rule_ids
+            .push("compose-privileged".to_string());
         println!("      → RULE MATCH: Compose privileged container (compose-privileged)");
     }
 
     if def.get("network_mode").and_then(|n| n.as_str()) == Some("host") {
         chart.risk.set_flag("isPrivileged", true);
         chart.risk.add_multiplier(1.5);
-        chart.risk.applied_rule_ids.push("compose-host-network".to_string());
+        chart
+            .risk
+            .applied_rule_ids
+            .push("compose-host-network".to_string());
         println!("      → RULE MATCH: Compose host network (compose-host-network)");
     }
 
@@ -279,7 +298,10 @@ fn analyze_security(chart: &mut Chart, unit: &ComposeUnit) {
         if !dangerous.is_empty() {
             chart.risk.set_flag("hasDangerousCaps", true);
             chart.risk.add_boost(15);
-            chart.risk.applied_rule_ids.push("compose-dangerous-caps".to_string());
+            chart
+                .risk
+                .applied_rule_ids
+                .push("compose-dangerous-caps".to_string());
             println!(
                 "      → RULE MATCH: Compose dangerous capabilities {:?} (compose-dangerous-caps)",
                 dangerous
@@ -345,7 +367,10 @@ mod tests {
             file: "docker-compose.yml".into(),
         };
         let doc = synthetic_doc(&unit);
-        assert_eq!(doc.get("kind").and_then(|k| k.as_str()), Some("ComposeService"));
+        assert_eq!(
+            doc.get("kind").and_then(|k| k.as_str()),
+            Some("ComposeService")
+        );
         assert_eq!(doc.get("image").and_then(|i| i.as_str()), Some("nginx"));
     }
 }

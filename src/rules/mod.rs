@@ -69,10 +69,10 @@ pub struct RuleMatch {
 /// score — the D original's NaN defaults did exactly that.
 #[derive(Debug, Clone, Default)]
 pub struct RiskProfileMod {
-    pub set_flag: Option<String>,          // Legacy: flag to set to true
-    pub set_flags: Vec<(String, bool)>,    // v2: explicit flag -> value pairs
-    pub score_multiplier: Option<f32>,     // Multiplier to apply
-    pub score_boost: Option<i32>,          // Raw points to add
+    pub set_flag: Option<String>,       // Legacy: flag to set to true
+    pub set_flags: Vec<(String, bool)>, // v2: explicit flag -> value pairs
+    pub score_multiplier: Option<f32>,  // Multiplier to apply
+    pub score_boost: Option<i32>,       // Raw points to add
 }
 
 #[derive(Debug, Clone, Default)]
