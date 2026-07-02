@@ -1,0 +1,90 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://raw.githubusercontent.com/oasis-tcs/sarif-spec/master/Schemata/sarif-schema-2.1.0.json",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "Trivy",
+          "rules": [
+            {
+              "id": "CVE-2023-37920",
+              "defaultConfiguration": { "level": "error" }
+            },
+            {
+              "id": "CVE-2024-3651",
+              "defaultConfiguration": { "level": "warning" }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "CVE-2023-37920",
+          "level": "error",
+          "message": { "text": "Removal of e-Tugra root certificate: certifi 2022.12.7" },
+          "properties": {
+            "security-severity": "9.8",
+            "trivy:packageName": "certifi",
+            "trivy:fixedVersion": "2023.7.22"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "apps/admin-api/requirements.txt" },
+                "region": { "startLine": 2 }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2023-37920",
+          "level": "error",
+          "message": { "text": "Removal of e-Tugra root certificate: certifi 2022.12.7" },
+          "properties": {
+            "security-severity": "9.8",
+            "trivy:packageName": "certifi",
+            "trivy:fixedVersion": "2023.7.22"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "apps/internal-worker/requirements.txt" },
+                "region": { "startLine": 2 }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CVE-2024-3651",
+          "level": "warning",
+          "message": { "text": "idna: potential DoS via resource consumption" },
+          "properties": {
+            "security-severity": "6.5",
+            "trivy:packageName": "idna",
+            "trivy:fixedVersion": ""
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "apps/payment-go/main.go" },
+                "region": { "startLine": 10 }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "no-rule-id-finding",
+          "message": { "text": "Finding without severity metadata\nmulti line   description" },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": { "uri": "apps/postgres-db/Dockerfile" }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+[package]
+name = "reticulum"
+version = "1.0.0"
+edition = "2021"
+description = "Context-aware security prioritization engine"
+license = "MIT"
+authors = ["Jose Ramon Palanco <jose.palanco@plexicus.ai>"]
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+serde = "1"
+serde_json = { version = "1", features = ["preserve_order"] }
+serde_yaml = "0.9"
+regex = "1"
+walkdir = "2"
+
+[profile.release]
+lto = true
+strip = true

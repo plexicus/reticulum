@@ -23,30 +23,60 @@ Reticulum automates this logic.
 
 ## 🚀 Key Features
 
-### 🧠 Advanced Rule Engine
-- **Custom Logic**: Define prioritization rules using simple YAML.
-- **Contextual Scoring**: Boost scores for critical services (Auth, Payments) or reduce them for internal tools.
-- **Flexible Targets**: Match against Helm Chart metadata, `values.yaml` configurations, or specific vulnerability findings.
-- [**View Full Rule Documentation**](RULES.md)
+### 🗺️ Multi-Source Resource Mapping
+One inventory, four discoverers — see [docs/sources.md](docs/sources.md):
+- **Helm charts**: `Chart.yaml` + every values variant (`values-prod.yaml`, …)
+- **Raw Kubernetes manifests**: Deployments, StatefulSets, DaemonSets, Jobs,
+  CronJobs, Pods — multi-document files included
+- **docker-compose**: services, build contexts and published ports
+- **Dockerfiles**: `Dockerfile`, `Dockerfile.<name>`, `<name>.Dockerfile`
+
+### 🔍 Exposure Traceability
+Reticulum doesn't guess that something is public — it **proves the path**,
+resolving label selectors and backend references across manifests:
+
+```
+Ingress/web-ingress → Service/web-svc → Deployment/web-frontend
+Service/postgres-svc (LoadBalancer) → StatefulSet/postgres-db
+NetworkPolicy/batch-egress egress 0.0.0.0/0 ← Deployment/internal-batch
+```
+
+Chains appear in the CLI, in the JSON report (`exposurePaths`) and as a
+**Mermaid exposure graph** (`--graph`) you can paste into any README or PR.
+
+### 🧠 Advanced Rule Engine (DSL v2)
+- **Custom Logic**: prioritization and suppression rules in simple YAML.
+- **Powerful matching**: wildcards (`containers.*.securityContext.privileged`),
+  escaped dots for annotation keys, OR blocks (`any:`), `in`/`gte`/`lte`/
+  `not_exists`, regex — over Helm values, chart metadata, raw manifests
+  (`kind:` filtered), compose services and SARIF findings.
+- **Contextual Scoring**: boost crown jewels (Auth, Payments), relax internal
+  tools, suppress accepted risks — as reviewable, versioned code.
+- [**Full DSL Reference & Cookbook**](RULES.md)
 
 ### 🌐 Exposure Detection
-Automatically detects public exposure vectors:
 - **Ingress Controllers**: NGINX, Traefik, HAProxy
 - **Service Mesh**: Istio VirtualServices & Gateways
-- **Gateway API**: HTTPRoutes
-- **Cloud LoadBalancers**: Service type `LoadBalancer`
+- **Gateway API**: HTTPRoutes (values-based and raw `HTTPRoute` manifests)
+- **Cloud LoadBalancers / NodePorts**: values-based and raw `Service` manifests
 - **Ambassador/Emissary**: Mappings
+- **docker-compose**: published ports (loopback binds correctly ignored)
+- **NetworkPolicies**: open egress to `0.0.0.0/0`
 
 ### 🛡️ Security Context Analysis
-Adjusts risk based on deep configuration analysis:
-- **Privileged Containers**: Drastically increases risk score.
-- **Service Account Mounting**: Detects dangerous token automounting.
-- **Capabilities**: Identifies dangerous Linux capabilities (e.g., `SYS_ADMIN`).
+- **Privileged Containers**: Helm values, raw manifests (any container via
+  wildcards) and compose `privileged: true`.
+- **Host Access**: `hostNetwork`, `network_mode: host`, `hostPath` mounts.
+- **Capabilities**: dangerous Linux capabilities (e.g., `SYS_ADMIN`).
+- **Service Account Mounting**: token automount detection — and hardening
+  recognition when it's explicitly disabled.
+- **Cloud IAM**: IRSA / GCP Workload Identity bindings.
 
 ### 🔌 Native Integrations
 - **Infrastructure**: Trivy (Container & FS scanning)
-- **Code**: Semgrep (SAST)
-- **Output**: JSON reports, Enriched SARIF, CLI summaries
+- **Code**: Semgrep (SAST) — any SARIF producer works
+- **Output**: JSON reports, Enriched SARIF, CLI summaries, Mermaid graphs
+- **CI**: GitHub Actions recipe in [docs/integrations.md](docs/integrations.md)
 
 ## 📦 Installation
 
@@ -73,15 +103,15 @@ Reticulum supports multi-architecture builds out of the box (Apple Silicon/ARM64
 ### **🛠️ Build from Source**
 
 #### Prerequisites
-- [D Language Compiler](https://dlang.org/download.html) (DMD or LDC2)
-- [DUB](https://code.dlang.org/download) (Package Manager)
+- [Rust Toolchain](https://rustup.rs/) (rustc + cargo, stable)
 - [Trivy](https://trivy.dev/) & [Semgrep](https://semgrep.dev/) (Scanners)
 
 #### Build from Source
 ```bash
 git clone https://github.com/plexicus/reticulum.git
 cd reticulum
-dub build --compiler=ldc2
+cargo build --release
+# Binary at target/release/reticulum
 ```
 
 ## ⚡ Quick Start
@@ -104,11 +134,55 @@ docker run --rm -v $(pwd):/data reticulum \
 
 #### Option B: Using Local Binary
 ```bash
-./reticulum -p tests/monorepo-06 -s tests/monorepo-06/trivy.sarif
+./target/release/reticulum -p tests/monorepo-06 -s tests/monorepo-06/trivy.sarif
 ```
+
+> Rules are loaded from `./rules` (or the directory next to the binary).
+> Use `--rules <dir>` to point somewhere else.
 
 ### 3. See the Difference
 Reticulum will output a prioritized list of vulnerabilities, highlighting why certain issues were escalated (e.g., `Public Exposure`, `Privileged`).
+
+### 4. Draw the Exposure Graph
+
+```bash
+./target/release/reticulum -p tests/monorepo-08 --scan-only --graph exposure.mmd
+```
+
+The generated Mermaid graph shows every service, its priority color and the
+exact path the internet takes to reach it:
+
+```mermaid
+flowchart LR
+    classDef p0 fill:#7f1d1d,stroke:#ef4444,color:#ffffff,stroke-width:2px
+    classDef p1 fill:#9a3412,stroke:#f97316,color:#ffffff
+    classDef p2 fill:#854d0e,stroke:#eab308,color:#ffffff
+    classDef vector fill:#0f766e,stroke:#14b8a6,color:#ffffff
+    internet(("🌐 Internet"))
+    svc_internal_batch["internal-batch ⚠<br/>k8s · score 70 · P1_CRITICAL"]:::p1
+    svc_postgres_db["postgres-db ⚠<br/>k8s · score 100 · P0_BLEEDING"]:::p0
+    svc_web_frontend["web-frontend<br/>k8s · score 65 · P2_HIGH"]:::p2
+    vec_Ingress_web_ingress["Ingress/web-ingress"]:::vector
+    vec_Service_postgres_svc__LoadBalancer_["Service/postgres-svc (LoadBalancer)"]:::vector
+    vec_Service_web_svc["Service/web-svc"]:::vector
+    internet --> vec_Ingress_web_ingress
+    internet --> vec_Service_postgres_svc__LoadBalancer_
+    svc_internal_batch -.->|"NetworkPolicy/batch-egress egress 0.0.0.0/0"| internet
+    vec_Ingress_web_ingress --> vec_Service_web_svc
+    vec_Service_postgres_svc__LoadBalancer_ --> svc_postgres_db
+    vec_Service_web_svc --> svc_web_frontend
+```
+
+## 📚 Documentation
+
+| Doc | Contents |
+|---|---|
+| [RULES.md](RULES.md) | Complete rule DSL reference + cookbook |
+| [docs/architecture.md](docs/architecture.md) | Pipeline, modules, design principles |
+| [docs/scoring.md](docs/scoring.md) | The scoring math, with worked examples |
+| [docs/sources.md](docs/sources.md) | Helm / K8s / compose mapping semantics |
+| [docs/integrations.md](docs/integrations.md) | Trivy, Semgrep, GitHub Actions, gating |
+| [AUDIT.md](AUDIT.md) | The D→Rust migration audit trail |
 
 ## 🧪 Test Scenarios
 
@@ -123,6 +197,8 @@ The repository includes comprehensive test monorepos demonstrating Reticulum's c
 | **monorepo-05** | Ambassador | Emissary-Ingress mappings |
 | **monorepo-06** | **Context Demo** | **Multi-service prioritization (Public vs Internal)** |
 | **monorepo-07** | **Rule Validation** | **Systematic rule engine testing** |
+| **monorepo-08** | **Raw K8s Manifests** | **Selector-chain traceability (Ingress→Service→Deployment, NetworkPolicy)** |
+| **monorepo-09** | **docker-compose** | **Published-port exposure, privileged/caps detection** |
 
 ## 🎨 Priority Levels
 
@@ -137,13 +213,15 @@ The repository includes comprehensive test monorepos demonstrating Reticulum's c
 ## 🛠 Project Structure
 
 ```
-reticulum-d/
+reticulum/
 ├── src/
-│   ├── app.d           # CLI Entry Point
-│   ├── analyzer.d      # Exposure Analysis Logic
-│   ├── ingestor.d      # SARIF Processing & Scoring
-│   ├── rules/          # Rule Engine Implementation
-│   └── discovery.d     # Service Discovery
+│   ├── main.rs         # CLI Entry Point
+│   ├── analyzer.rs     # Exposure Analysis Logic
+│   ├── ingestor.rs     # SARIF Processing & Scoring
+│   ├── mapper.rs       # Service Discovery
+│   ├── model.rs        # Domain Model & Scoring
+│   ├── ui.rs           # Terminal Output
+│   └── rules/          # Rule Engine Implementation
 ├── rules/              # Default YAML Rules
 │   ├── exposure/       # Exposure Detection Rules
 │   ├── security/       # Security Hardening Rules
