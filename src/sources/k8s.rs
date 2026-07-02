@@ -266,7 +266,7 @@ pub fn analyze(inv: &K8sInventory, charts: &mut [Chart], engine: &RuleEngine) {
             engine.evaluate_manifest(chart, &inv.docs[idx].doc);
         }
 
-        chart.risk.applied_rule_ids.dedup();
+        chart.risk.dedup_applied_rules();
         print_profile(chart);
     }
 }

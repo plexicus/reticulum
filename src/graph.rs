@@ -143,8 +143,13 @@ fn node_id(prefix: &str, raw: &str) -> String {
     format!("{}_{}", prefix, sanitized)
 }
 
+/// Mermaid statements are line-oriented and labels are double-quoted, so
+/// untrusted resource names must not carry quotes or control characters.
 fn escape(s: &str) -> String {
-    s.replace('"', "#quot;")
+    s.chars()
+        .filter(|c| !c.is_control())
+        .collect::<String>()
+        .replace('"', "#quot;")
 }
 
 #[cfg(test)]
@@ -171,6 +176,31 @@ mod tests {
         assert!(out.contains("vec_Service_web_svc --> svc_web_frontend"));
         // 50 * 1.3 = 65 -> P2
         assert!(out.contains(":::p2"));
+    }
+
+    #[test]
+    fn graph_escapes_quotes_and_control_chars() {
+        // Untrusted metadata.name must not break out of Mermaid labels
+        let mut chart = Chart::with_source("evil", "/repo/k8s", SourceKind::K8s);
+        chart.risk.set_flag("isPublic", true);
+        chart
+            .risk
+            .exposure_paths
+            .push("Ingress/bad\"]:::p0\nclick x \"javascript:alert(1)\" → Deployment/evil".into());
+        let mut svc = Service::new("evil", "/repo/k8s/e.yaml", "/repo/k8s");
+        svc.chart = Some(0);
+        let out = render_mermaid(&[svc], &[chart]);
+        // No raw quote may survive (labels cannot be closed early)...
+        assert!(!out.contains("bad\"]"));
+        assert!(out.contains("#quot;"));
+        // ...and no injected newline may start a standalone Mermaid directive.
+        for line in out.lines() {
+            assert!(
+                !line.trim_start().starts_with("click"),
+                "injected directive leaked: {}",
+                line
+            );
+        }
     }
 
     #[test]

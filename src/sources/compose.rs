@@ -167,7 +167,7 @@ pub fn analyze(inv: &ComposeInventory, charts: &mut [Chart], engine: &RuleEngine
         // User-defined manifest rules, as kind: ComposeService
         engine.evaluate_manifest(chart, &synthetic_doc(unit));
 
-        chart.risk.applied_rule_ids.dedup();
+        chart.risk.dedup_applied_rules();
         println!("    [Final Risk Profile]");
         println!(
             "      • Public Exposure    : {}",

@@ -123,6 +123,13 @@ impl RiskProfile {
         true
     }
 
+    /// Order-preserving dedup of the applied-rule audit trail
+    /// (`Vec::dedup` only strips consecutive repeats).
+    pub fn dedup_applied_rules(&mut self) {
+        let mut seen = std::collections::HashSet::new();
+        self.applied_rule_ids.retain(|r| seen.insert(r.clone()));
+    }
+
     pub fn add_multiplier(&mut self, m: f32) {
         self.multipliers.push(m);
     }

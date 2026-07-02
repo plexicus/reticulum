@@ -86,6 +86,12 @@ impl RuleEngine {
 
     /// Evaluate `manifest`-target rules against one raw Kubernetes document.
     /// Rules with a `kind:` filter only run on documents of that kind.
+    ///
+    /// A unit's exposure analysis spans several related documents (workload,
+    /// Services, Ingresses, NetworkPolicies), so a rule matching a field they
+    /// share (labels, annotations) would otherwise stack its score once per
+    /// document. Each manifest rule therefore contributes to a unit at most
+    /// once — same guard the built-in chain tracing uses.
     pub fn evaluate_manifest(&self, chart: &mut Chart, doc: &Yaml) {
         let doc_kind = doc.get("kind").and_then(|k| k.as_str()).unwrap_or("");
         for rule in &self.rules {
@@ -96,6 +102,9 @@ impl RuleEngine {
                 if !want.eq_ignore_ascii_case(doc_kind) {
                     continue;
                 }
+            }
+            if chart.risk.applied_rule_ids.iter().any(|r| r == &rule.id) {
+                continue;
             }
             if rule.matches_with(|m| check_values_match(doc, m)) {
                 apply_action(chart, rule);
@@ -581,6 +590,35 @@ action:
             &yaml("kind: Ingress\nspec:\n  rules:\n    - host: x.com\n"),
         );
         assert!(chart.risk.is_public);
+    }
+
+    #[test]
+    fn manifest_rule_fires_once_per_unit_across_related_docs() {
+        // Regression: a rule matching shared metadata (e.g. team labels) on a
+        // Deployment+Service+Ingress trio must not stack its boost per doc.
+        let engine = engine_from(
+            r#"
+id: "team-owned"
+target: "manifest"
+match:
+  - key: "metadata.labels.team"
+    op: "eq"
+    value: "payments"
+action:
+  risk_profile:
+    score_boost: 20
+"#,
+        );
+        let mut chart = Chart::new("w", "/tmp/w");
+        let deployment =
+            yaml("kind: Deployment\nmetadata:\n  labels:\n    team: payments\n");
+        let service = yaml("kind: Service\nmetadata:\n  labels:\n    team: payments\n");
+        let ingress = yaml("kind: Ingress\nmetadata:\n  labels:\n    team: payments\n");
+        engine.evaluate_manifest(&mut chart, &deployment);
+        engine.evaluate_manifest(&mut chart, &service);
+        engine.evaluate_manifest(&mut chart, &ingress);
+        assert_eq!(chart.risk.boosts, vec![20]);
+        assert_eq!(chart.risk.applied_rule_ids, vec!["team-owned"]);
     }
 
     #[test]

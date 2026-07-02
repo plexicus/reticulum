@@ -75,6 +75,12 @@ match:
     value: true
 ```
 
+A workload's exposure analysis spans several related documents (the workload
+itself, its Services, Ingresses/HTTPRoutes and NetworkPolicies). A `manifest`
+rule **contributes to a unit's score at most once**, even when several related
+documents match — e.g. a rule keying off a `metadata.labels.team` label shared
+by a Deployment/Service/Ingress trio fires once, not three times.
+
 docker-compose services are evaluated as synthetic documents of kind
 `ComposeService`, with the service definition at the top level plus `name`:
 
