@@ -4,8 +4,12 @@ pub fn print_banner() {
     // Header bar - full width tactical style (Purple background, black text)
     print!("\x1b[48;5;129m\x1b[38;5;232m\x1b[1m CLOUD-NATIVE CONTEXTUAL SECURITY PRIORITIZER BY PLEXICUS ");
     println!("                    \x1b[0m");
-    print!("\x1b[100m\x1b[30m RETICULUM v1.0 ");
-    println!("                                                                \x1b[0m\n");
+    let version_tag = format!(" RETICULUM v{} ", env!("CARGO_PKG_VERSION"));
+    print!("\x1b[100m\x1b[30m{}", version_tag);
+    println!(
+        "{}\x1b[0m\n",
+        " ".repeat(80usize.saturating_sub(version_tag.len()))
+    );
 
     // RETICULUM logo in ANSI Shadow font
     const LOGO: [&str; 6] = [
