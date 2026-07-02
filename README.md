@@ -73,15 +73,15 @@ Reticulum supports multi-architecture builds out of the box (Apple Silicon/ARM64
 ### **🛠️ Build from Source**
 
 #### Prerequisites
-- [D Language Compiler](https://dlang.org/download.html) (DMD or LDC2)
-- [DUB](https://code.dlang.org/download) (Package Manager)
+- [Rust Toolchain](https://rustup.rs/) (rustc + cargo, stable)
 - [Trivy](https://trivy.dev/) & [Semgrep](https://semgrep.dev/) (Scanners)
 
 #### Build from Source
 ```bash
 git clone https://github.com/plexicus/reticulum.git
 cd reticulum
-dub build --compiler=ldc2
+cargo build --release
+# Binary at target/release/reticulum
 ```
 
 ## ⚡ Quick Start
@@ -104,8 +104,11 @@ docker run --rm -v $(pwd):/data reticulum \
 
 #### Option B: Using Local Binary
 ```bash
-./reticulum -p tests/monorepo-06 -s tests/monorepo-06/trivy.sarif
+./target/release/reticulum -p tests/monorepo-06 -s tests/monorepo-06/trivy.sarif
 ```
+
+> Rules are loaded from `./rules` (or the directory next to the binary).
+> Use `--rules <dir>` to point somewhere else.
 
 ### 3. See the Difference
 Reticulum will output a prioritized list of vulnerabilities, highlighting why certain issues were escalated (e.g., `Public Exposure`, `Privileged`).
@@ -137,13 +140,15 @@ The repository includes comprehensive test monorepos demonstrating Reticulum's c
 ## 🛠 Project Structure
 
 ```
-reticulum-d/
+reticulum/
 ├── src/
-│   ├── app.d           # CLI Entry Point
-│   ├── analyzer.d      # Exposure Analysis Logic
-│   ├── ingestor.d      # SARIF Processing & Scoring
-│   ├── rules/          # Rule Engine Implementation
-│   └── discovery.d     # Service Discovery
+│   ├── main.rs         # CLI Entry Point
+│   ├── analyzer.rs     # Exposure Analysis Logic
+│   ├── ingestor.rs     # SARIF Processing & Scoring
+│   ├── mapper.rs       # Service Discovery
+│   ├── model.rs        # Domain Model & Scoring
+│   ├── ui.rs           # Terminal Output
+│   └── rules/          # Rule Engine Implementation
 ├── rules/              # Default YAML Rules
 │   ├── exposure/       # Exposure Detection Rules
 │   ├── security/       # Security Hardening Rules

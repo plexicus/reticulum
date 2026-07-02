@@ -8,14 +8,14 @@ ARCHIVE_NAME="reticulum-${VERSION}-linux-amd64.tar.gz"
 echo "[*] Building Reticulum Release ${VERSION}..."
 
 # Build binary
-dub build --build=release --compiler=ldc2
+cargo build --release
 
 # Prepare distribution directory
 rm -rf ${DIST_DIR}
 mkdir -p ${DIST_DIR}/rules
 
 # Copy assets
-cp reticulum ${DIST_DIR}/
+cp target/release/reticulum ${DIST_DIR}/
 cp -r rules/* ${DIST_DIR}/rules/
 cp README.md ${DIST_DIR}/
 cp LICENSE ${DIST_DIR}/
