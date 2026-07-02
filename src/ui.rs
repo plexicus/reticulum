@@ -4,8 +4,12 @@ pub fn print_banner() {
     // Header bar - full width tactical style (Purple background, black text)
     print!("\x1b[48;5;129m\x1b[38;5;232m\x1b[1m CLOUD-NATIVE CONTEXTUAL SECURITY PRIORITIZER BY PLEXICUS ");
     println!("                    \x1b[0m");
-    print!("\x1b[100m\x1b[30m RETICULUM v1.0 ");
-    println!("                                                                \x1b[0m\n");
+    let version_tag = format!(" RETICULUM v{} ", env!("CARGO_PKG_VERSION"));
+    print!("\x1b[100m\x1b[30m{}", version_tag);
+    println!(
+        "{}\x1b[0m\n",
+        " ".repeat(80usize.saturating_sub(version_tag.len()))
+    );
 
     // RETICULUM logo in ANSI Shadow font
     const LOGO: [&str; 6] = [
@@ -23,7 +27,9 @@ pub fn print_banner() {
     }
 
     println!();
-    println!("   \x1b[38;5;250m[+] MODULE: \x1b[38;5;129mPRIORITIZER\x1b[0m \x1b[38;5;250mONLINE\x1b[0m");
+    println!(
+        "   \x1b[38;5;250m[+] MODULE: \x1b[38;5;129mPRIORITIZER\x1b[0m \x1b[38;5;250mONLINE\x1b[0m"
+    );
     println!();
 }
 
@@ -33,7 +39,9 @@ pub fn print_phase(phase: &str, description: &str) {
         phase
     );
     println!("\x1b[94m│ \x1b[0m\x1b[2m{}\x1b[0m", description);
-    println!("\x1b[94m└────────────────────────────────────────────────────────────────────\x1b[0m");
+    println!(
+        "\x1b[94m└────────────────────────────────────────────────────────────────────\x1b[0m"
+    );
 }
 
 pub fn print_success(message: &str) {
@@ -92,7 +100,10 @@ pub fn print_match(
     };
 
     // Print finding in a clean, simple format
-    println!("   \x1b[96m▸\x1b[0m \x1b[1m{}\x1b[0m | \x1b[93m{}\x1b[0m", service, cve_id);
+    println!(
+        "   \x1b[96m▸\x1b[0m \x1b[1m{}\x1b[0m | \x1b[93m{}\x1b[0m",
+        service, cve_id
+    );
     println!("     \x1b[2m{}\x1b[0m", full_path);
     println!("     \x1b[2m{}\x1b[0m", description);
     println!(
@@ -109,7 +120,9 @@ pub fn print_help() {
     println!("  \x1b[96m-p, --path\x1b[0m          Path to the source repository \x1b[2m(Required)\x1b[0m");
     println!("  \x1b[96m-s, --sarif\x1b[0m         Path to input SARIF file \x1b[2m(Required unless --scan-only)\x1b[0m");
     println!("  \x1b[96m-o, --output\x1b[0m        Path to save the output JSON report");
-    println!("  \x1b[96m    --sarif-output\x1b[0m  Path to save enriched SARIF \x1b[2m(optional)\x1b[0m");
+    println!(
+        "  \x1b[96m    --sarif-output\x1b[0m  Path to save enriched SARIF \x1b[2m(optional)\x1b[0m"
+    );
     println!("  \x1b[96m    --scan-only\x1b[0m     Perform exposure analysis only \x1b[2m(ignores SARIF)\x1b[0m");
     println!("  \x1b[96m    --rules\x1b[0m         Base directory containing rule sets \x1b[2m(default: ./rules or next to the binary)\x1b[0m");
     println!("  \x1b[96m    --graph\x1b[0m         Path to save an exposure graph \x1b[2m(Mermaid flowchart)\x1b[0m");
@@ -118,7 +131,9 @@ pub fn print_help() {
     println!("  \x1b[2m# Full analysis with SARIF input\x1b[0m");
     println!("  \x1b[32m./reticulum -p ./src -s results.sarif\x1b[0m\n");
     println!("  \x1b[2m# Generate enriched SARIF output\x1b[0m");
-    println!("  \x1b[32m./reticulum -p ./src -s results.sarif --sarif-output enriched.sarif\x1b[0m\n");
+    println!(
+        "  \x1b[32m./reticulum -p ./src -s results.sarif --sarif-output enriched.sarif\x1b[0m\n"
+    );
     println!("  \x1b[2m# Exposure analysis only\x1b[0m");
     println!("  \x1b[32m./reticulum -p ./src --scan-only -o exposure.json\x1b[0m\n");
 }

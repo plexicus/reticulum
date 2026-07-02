@@ -1,0 +1,76 @@
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  test:
+    name: Test & Lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+
+      - name: Format check
+        run: cargo fmt --check
+
+      - name: Clippy
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Tests
+        run: cargo test
+
+      - name: Build release binary
+        run: cargo build --release
+
+      - name: End-to-end smoke (raw K8s traceability)
+        run: |
+          ./target/release/reticulum -p tests/monorepo-08 --scan-only \
+            -o /tmp/scan-08.json --graph /tmp/graph-08.mmd
+          python3 - <<'EOF'
+          import json
+          d = json.load(open("/tmp/scan-08.json"))
+          svc = {s["id"]: s for s in d["services"]}
+          rp = svc["web-frontend"]["riskProfile"]
+          assert rp["isPublic"], "web-frontend must be public via Ingress chain"
+          assert rp["exposurePaths"] == [
+              "Ingress/web-ingress → Service/web-svc → Deployment/web-frontend"
+          ], rp["exposurePaths"]
+          assert svc["internal-batch"]["riskProfile"]["isPrivileged"]
+          assert svc["postgres-db"]["riskProfile"]["isPublic"]
+          print("monorepo-08 traceability OK")
+          EOF
+
+      - name: End-to-end smoke (SARIF scoring)
+        run: |
+          ./target/release/reticulum -p tests/monorepo-06 \
+            -s tests/fixtures/synthetic-trivy.sarif -o /tmp/full-06.json
+          python3 - <<'EOF'
+          import json
+          d = json.load(open("/tmp/full-06.json"))
+          scores = {s["id"]: s["maxReticulumScore"] for s in d["services"]}
+          expected = {"admin-api": 100, "internal-worker": 49, "payment-go": 22, "postgres-db": 35}
+          assert scores == expected, scores
+          print("monorepo-06 scoring OK", scores)
+          EOF
+
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -t reticulum:ci .
+      - name: Smoke run
+        run: docker run --rm -v "$PWD:/data" reticulum:ci -p /data/tests/monorepo-06 --scan-only --rules /app/rules

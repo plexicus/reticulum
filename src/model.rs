@@ -260,7 +260,12 @@ impl Service {
         }
 
         // Findings Summary
-        let max_base = self.findings.iter().map(|f| f.base_score).max().unwrap_or(0);
+        let max_base = self
+            .findings
+            .iter()
+            .map(|f| f.base_score)
+            .max()
+            .unwrap_or(0);
         let max_ret = self
             .findings
             .iter()

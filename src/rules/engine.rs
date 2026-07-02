@@ -326,7 +326,11 @@ mod tests {
     }
 
     fn m(key: &str, op: MatchOp, value: MatchValue) -> RuleMatch {
-        RuleMatch { key: key.into(), op, value }
+        RuleMatch {
+            key: key.into(),
+            op,
+            value,
+        }
     }
 
     const INGRESS_RULE: &str = r#"
@@ -354,7 +358,10 @@ action:
         engine.evaluate_values(&mut chart, &values);
         assert!(chart.risk.is_public);
         assert_eq!(chart.risk.multipliers, vec![1.3]);
-        assert_eq!(chart.risk.applied_rule_ids, vec!["exposure-ingress-enabled"]);
+        assert_eq!(
+            chart.risk.applied_rule_ids,
+            vec!["exposure-ingress-enabled"]
+        );
         assert_eq!(chart.tags, vec!["public-facing"]);
     }
 
@@ -389,7 +396,10 @@ action:
         );
         // Nested variant matches
         let mut chart = Chart::new("a", "/tmp/a");
-        engine.evaluate_values(&mut chart, &yaml("istio:\n  virtualservice:\n    enabled: true\n"));
+        engine.evaluate_values(
+            &mut chart,
+            &yaml("istio:\n  virtualservice:\n    enabled: true\n"),
+        );
         assert!(chart.risk.is_public);
         // Root variant matches
         let mut chart = Chart::new("b", "/tmp/b");
@@ -504,30 +514,69 @@ action:
 
         assert!(check_values_match(
             &values,
-            &m("service.type", MatchOp::In, MatchValue::List(vec!["LoadBalancer".into(), "NodePort".into()]))
+            &m(
+                "service.type",
+                MatchOp::In,
+                MatchValue::List(vec!["LoadBalancer".into(), "NodePort".into()])
+            )
         ));
         assert!(!check_values_match(
             &values,
-            &m("service.type", MatchOp::In, MatchValue::List(vec!["ClusterIP".into()]))
+            &m(
+                "service.type",
+                MatchOp::In,
+                MatchValue::List(vec!["ClusterIP".into()])
+            )
         ));
-        assert!(check_values_match(&values, &m("replicas", MatchOp::Gte, MatchValue::Int(3))));
-        assert!(!check_values_match(&values, &m("replicas", MatchOp::Gte, MatchValue::Int(4))));
-        assert!(check_values_match(&values, &m("replicas", MatchOp::Lte, MatchValue::Int(3))));
-        assert!(check_values_match(&values, &m("weight", MatchOp::Gt, MatchValue::Float(2.0))));
-        assert!(check_values_match(&values, &m("missing.key", MatchOp::NotExists, MatchValue::None)));
-        assert!(!check_values_match(&values, &m("replicas", MatchOp::NotExists, MatchValue::None)));
+        assert!(check_values_match(
+            &values,
+            &m("replicas", MatchOp::Gte, MatchValue::Int(3))
+        ));
+        assert!(!check_values_match(
+            &values,
+            &m("replicas", MatchOp::Gte, MatchValue::Int(4))
+        ));
+        assert!(check_values_match(
+            &values,
+            &m("replicas", MatchOp::Lte, MatchValue::Int(3))
+        ));
+        assert!(check_values_match(
+            &values,
+            &m("weight", MatchOp::Gt, MatchValue::Float(2.0))
+        ));
+        assert!(check_values_match(
+            &values,
+            &m("missing.key", MatchOp::NotExists, MatchValue::None)
+        ));
+        assert!(!check_values_match(
+            &values,
+            &m("replicas", MatchOp::NotExists, MatchValue::None)
+        ));
     }
 
     #[test]
     fn match_ops_on_values() {
         let values = yaml("replicas: 3\nservice:\n  type: ClusterIP\nname: auth-api\n");
 
-        assert!(check_values_match(&values, &m("replicas", MatchOp::Eq, MatchValue::Int(3))));
-        assert!(check_values_match(&values, &m("replicas", MatchOp::Gt, MatchValue::Int(2))));
-        assert!(!check_values_match(&values, &m("replicas", MatchOp::Lt, MatchValue::Int(2))));
         assert!(check_values_match(
             &values,
-            &m("service.type", MatchOp::Neq, MatchValue::Str("LoadBalancer".into()))
+            &m("replicas", MatchOp::Eq, MatchValue::Int(3))
+        ));
+        assert!(check_values_match(
+            &values,
+            &m("replicas", MatchOp::Gt, MatchValue::Int(2))
+        ));
+        assert!(!check_values_match(
+            &values,
+            &m("replicas", MatchOp::Lt, MatchValue::Int(2))
+        ));
+        assert!(check_values_match(
+            &values,
+            &m(
+                "service.type",
+                MatchOp::Neq,
+                MatchValue::Str("LoadBalancer".into())
+            )
         ));
         assert!(check_values_match(
             &values,
@@ -548,11 +597,19 @@ action:
         let values = yaml("features:\n  - metrics\n  - tracing\n");
         assert!(check_values_match(
             &values,
-            &m("features", MatchOp::Contains, MatchValue::Str("tracing".into()))
+            &m(
+                "features",
+                MatchOp::Contains,
+                MatchValue::Str("tracing".into())
+            )
         ));
         assert!(!check_values_match(
             &values,
-            &m("features", MatchOp::Contains, MatchValue::Str("debug".into()))
+            &m(
+                "features",
+                MatchOp::Contains,
+                MatchValue::Str("debug".into())
+            )
         ));
     }
 
@@ -579,10 +636,7 @@ action:
         );
         let mut chart = Chart::new("w", "/tmp/w");
         // Wrong kind: no fire even though path exists
-        engine.evaluate_manifest(
-            &mut chart,
-            &yaml("kind: ConfigMap\nspec:\n  rules: []\n"),
-        );
+        engine.evaluate_manifest(&mut chart, &yaml("kind: ConfigMap\nspec:\n  rules: []\n"));
         assert!(!chart.risk.is_public);
         // Right kind
         engine.evaluate_manifest(
@@ -610,8 +664,7 @@ action:
 "#,
         );
         let mut chart = Chart::new("w", "/tmp/w");
-        let deployment =
-            yaml("kind: Deployment\nmetadata:\n  labels:\n    team: payments\n");
+        let deployment = yaml("kind: Deployment\nmetadata:\n  labels:\n    team: payments\n");
         let service = yaml("kind: Service\nmetadata:\n  labels:\n    team: payments\n");
         let ingress = yaml("kind: Ingress\nmetadata:\n  labels:\n    team: payments\n");
         engine.evaluate_manifest(&mut chart, &deployment);

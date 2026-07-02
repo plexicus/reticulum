@@ -299,8 +299,7 @@ pub fn process_sarif(
                 let svc_dir = normalize(Path::new(&service.directory));
                 let svc_docker = normalize(Path::new(&service.dockerfile_path));
 
-                let is_inside =
-                    finding_path == svc_docker || finding_path.starts_with(&svc_dir);
+                let is_inside = finding_path == svc_docker || finding_path.starts_with(&svc_dir);
                 if !is_inside {
                     continue;
                 }
@@ -465,12 +464,24 @@ mod tests {
 
     #[test]
     fn fixable_detection() {
-        assert!(is_fixable(&json!({"properties": {"trivy:fixedVersion": "1.2.3"}})));
-        assert!(!is_fixable(&json!({"properties": {"trivy:fixedVersion": ""}})));
-        assert!(!is_fixable(&json!({"properties": {"trivy:fixedVersion": "null"}})));
-        assert!(is_fixable(&json!({"properties": {"github:fixAvailable": true}})));
-        assert!(is_fixable(&json!({"properties": {"github:fixAvailable": "true"}})));
-        assert!(!is_fixable(&json!({"properties": {"github:fixAvailable": false}})));
+        assert!(is_fixable(
+            &json!({"properties": {"trivy:fixedVersion": "1.2.3"}})
+        ));
+        assert!(!is_fixable(
+            &json!({"properties": {"trivy:fixedVersion": ""}})
+        ));
+        assert!(!is_fixable(
+            &json!({"properties": {"trivy:fixedVersion": "null"}})
+        ));
+        assert!(is_fixable(
+            &json!({"properties": {"github:fixAvailable": true}})
+        ));
+        assert!(is_fixable(
+            &json!({"properties": {"github:fixAvailable": "true"}})
+        ));
+        assert!(!is_fixable(
+            &json!({"properties": {"github:fixAvailable": false}})
+        ));
         assert!(is_fixable(&json!({"fix": {"description": "x"}})));
         assert!(is_fixable(&json!({}))); // SAST default
     }

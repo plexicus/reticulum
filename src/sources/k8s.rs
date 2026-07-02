@@ -52,11 +52,7 @@ pub struct K8sInventory {
 
 /// Scan for raw manifests, appending one config unit per workload and a
 /// Service entry (for finding attribution) when none exists for that id.
-pub fn discover(
-    root: &Path,
-    charts: &mut Vec<Chart>,
-    services: &mut Vec<Service>,
-) -> K8sInventory {
+pub fn discover(root: &Path, charts: &mut Vec<Chart>, services: &mut Vec<Service>) -> K8sInventory {
     let mut inv = K8sInventory::default();
     let helm_dirs = collect_helm_dirs(root);
 
@@ -146,7 +142,9 @@ fn collect_helm_dirs(root: &Path) -> Vec<PathBuf> {
         .filter_map(Result::ok)
         .filter(|e| {
             e.file_type().is_file()
-                && e.file_name().to_string_lossy().eq_ignore_ascii_case("chart.yaml")
+                && e.file_name()
+                    .to_string_lossy()
+                    .eq_ignore_ascii_case("chart.yaml")
         })
         .filter_map(|e| e.path().parent().map(Path::to_path_buf))
         .collect()
@@ -251,7 +249,10 @@ pub fn analyze(inv: &K8sInventory, charts: &mut [Chart], engine: &RuleEngine) {
             related.push(np_idx);
             if has_open_egress(&np.doc) {
                 chart.risk.set_flag("hasInternetEgress", true);
-                chart.risk.applied_rule_ids.push("k8s-netpol-open-egress".to_string());
+                chart
+                    .risk
+                    .applied_rule_ids
+                    .push("k8s-netpol-open-egress".to_string());
                 chart.risk.exposure_paths.push(format!(
                     "NetworkPolicy/{} egress 0.0.0.0/0 ← {}/{}",
                     np.name, workload.kind, workload.name
@@ -423,11 +424,19 @@ fn print_profile(chart: &Chart) {
     );
     println!(
         "      • Privileged         : {}",
-        if chart.risk.is_privileged { "YES" } else { "NO" }
+        if chart.risk.is_privileged {
+            "YES"
+        } else {
+            "NO"
+        }
     );
     println!(
         "      • Internet Egress    : {}",
-        if chart.risk.has_internet_egress { "YES" } else { "NO" }
+        if chart.risk.has_internet_egress {
+            "YES"
+        } else {
+            "NO"
+        }
     );
     for path in &chart.risk.exposure_paths {
         println!("      ⇢ EXPOSURE PATH: {}", path);
@@ -504,15 +513,13 @@ spec:
 
     #[test]
     fn open_egress_detection() {
-        let open = yaml(
-            "spec:\n  egress:\n    - to:\n        - ipBlock:\n            cidr: 0.0.0.0/0\n",
-        );
+        let open =
+            yaml("spec:\n  egress:\n    - to:\n        - ipBlock:\n            cidr: 0.0.0.0/0\n");
         assert!(has_open_egress(&open));
         let unrestricted = yaml("spec:\n  egress:\n    - {}\n");
         assert!(has_open_egress(&unrestricted));
-        let closed = yaml(
-            "spec:\n  egress:\n    - to:\n        - ipBlock:\n            cidr: 10.0.0.0/8\n",
-        );
+        let closed =
+            yaml("spec:\n  egress:\n    - to:\n        - ipBlock:\n            cidr: 10.0.0.0/8\n");
         assert!(!has_open_egress(&closed));
         let none = yaml("spec: {}\n");
         assert!(!has_open_egress(&none));

@@ -7,7 +7,10 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 pub fn analyze_exposure(chart: &mut Chart, engine: &RuleEngine) {
-    println!("  [Analyzer] Analyzing chart: {} → {}", chart.name, chart.path);
+    println!(
+        "  [Analyzer] Analyzing chart: {} → {}",
+        chart.name, chart.path
+    );
     chart.risk.reset();
 
     // 1. Evaluate Metadata Rules
@@ -31,11 +34,19 @@ pub fn analyze_exposure(chart: &mut Chart, engine: &RuleEngine) {
     );
     println!(
         "      • Privileged         : {}",
-        if chart.risk.is_privileged { "YES" } else { "NO" }
+        if chart.risk.is_privileged {
+            "YES"
+        } else {
+            "NO"
+        }
     );
     println!(
         "      • Dangerous Caps     : {}",
-        if chart.risk.has_dangerous_caps { "YES" } else { "NO" }
+        if chart.risk.has_dangerous_caps {
+            "YES"
+        } else {
+            "NO"
+        }
     );
     println!(
         "      • Svc Token Mount    : {}",
