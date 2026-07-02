@@ -5,6 +5,7 @@
 //! License: MIT
 
 mod analyzer;
+mod graph;
 mod ingestor;
 mod mapper;
 mod model;
@@ -46,6 +47,10 @@ struct Args {
     /// Base directory containing rule sets (exposure/, security/, scoring/, custom/)
     #[arg(long = "rules")]
     rules: Option<String>,
+
+    /// Path to save an exposure graph (Mermaid flowchart)
+    #[arg(long = "graph")]
+    graph: Option<String>,
 
     /// This help information
     #[arg(short = 'h', long = "help")]
@@ -92,6 +97,17 @@ fn load_rule_sets(engine: &mut RuleEngine, base: &Path) {
         if dir.exists() {
             engine.load_rules(&dir);
         }
+    }
+}
+
+fn write_graph(args: &Args, m: &Mapper) {
+    let Some(path) = args.graph.as_deref().filter(|s| !s.is_empty()) else {
+        return;
+    };
+    let mermaid = graph::render_mermaid(&m.services, &m.charts);
+    match fs::write(path, mermaid) {
+        Ok(()) => ui::print_success(&format!("Exposure graph saved to: {}", path)),
+        Err(e) => ui::print_error(&format!("Error writing graph: {}", e)),
     }
 }
 
@@ -194,6 +210,7 @@ fn main() -> ExitCode {
     if args.scan_only {
         ui::print_warning("Mode: Exposure Analysis Only (Skipping SARIF ingestion)");
 
+        write_graph(&args, &m);
         let root = build_report(&m, "exposure-audit");
         match args.output.as_deref() {
             Some(out) if !out.is_empty() => {
@@ -220,6 +237,8 @@ fn main() -> ExitCode {
         &engine,
         args.sarif_output.as_deref().filter(|s| !s.is_empty()),
     );
+
+    write_graph(&args, &m);
 
     // --- Generate JSON Report (Full Scan) ---
     if let Some(out) = args.output.as_deref().filter(|s| !s.is_empty()) {
