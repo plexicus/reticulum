@@ -3,6 +3,7 @@
 use crate::model::{Chart, Finding};
 use crate::rules::*;
 use regex::Regex;
+use serde::Deserialize;
 use serde_yaml::Value as Yaml;
 use std::fs;
 use std::path::Path;
@@ -396,8 +397,6 @@ fn apply_action(chart: &mut Chart, rule: &Rule) {
         println!("      → TAGS APPLIED: {:?}", rule.action.tags);
     }
 }
-
-use serde::Deserialize;
 
 #[cfg(test)]
 mod tests {
