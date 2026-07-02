@@ -9,6 +9,7 @@ mod ingestor;
 mod mapper;
 mod model;
 mod rules;
+mod sources;
 mod ui;
 
 use clap::Parser;
@@ -86,7 +87,7 @@ fn find_rules_base(cli_rules: Option<&str>) -> Option<PathBuf> {
 
 fn load_rule_sets(engine: &mut RuleEngine, base: &Path) {
     // Load rules from organized directories; custom last (can override defaults)
-    for sub in ["exposure", "security", "scoring", "custom"] {
+    for sub in ["exposure", "security", "scoring", "manifest", "custom"] {
         let dir = base.join(sub);
         if dir.exists() {
             engine.load_rules(&dir);
@@ -162,26 +163,33 @@ fn main() -> ExitCode {
         ),
     }
 
-    ui::print_phase("Phase 1: Service Discovery", "Mapping services and Helm charts");
+    ui::print_phase(
+        "Phase 1: Service Discovery",
+        "Mapping services, Helm charts, K8s manifests and compose stacks",
+    );
     let mut m = Mapper::new();
     m.walk(&abs_repo_path);
+    let k8s_inv = sources::k8s::discover(&abs_repo_path, &mut m.charts, &mut m.services);
+    let compose_inv = sources::compose::discover(&abs_repo_path, &mut m.charts, &mut m.services);
     m.link();
 
     ui::print_phase(
         "Phase 2: Exposure Analysis",
         "Analyzing Kubernetes deployment configurations",
     );
-    // Analyze each chart that is linked to at least one service (D iterated
-    // services and analyzed s.chart; dedupe so shared charts run once).
+    // Analyze each Helm chart that is linked to at least one service (dedupe
+    // so shared charts run once). K8s/compose units have their own analyzers.
     let mut analyzed = vec![false; m.charts.len()];
     for s in &m.services {
         if let Some(idx) = s.chart {
-            if !analyzed[idx] {
+            if !analyzed[idx] && m.charts[idx].source == model::SourceKind::Helm {
                 analyzed[idx] = true;
                 analyzer::analyze_exposure(&mut m.charts[idx], &engine);
             }
         }
     }
+    sources::k8s::analyze(&k8s_inv, &mut m.charts, &engine);
+    sources::compose::analyze(&compose_inv, &mut m.charts, &engine);
 
     if args.scan_only {
         ui::print_warning("Mode: Exposure Analysis Only (Skipping SARIF ingestion)");

@@ -1,12 +1,12 @@
 //! Dot-notation path parsing and YAML navigation.
 //!
 //! Supports:
-//! - `a.b.c`            plain nested keys
-//! - `a\.b.c`           escaped dots for keys that contain a literal `.`
-//!                      (e.g. `annotations.eks\.amazonaws\.com/role-arn`)
-//! - `containers.*.securityContext` wildcard over every mapping value or
-//!                      sequence element at that level
-//! - `containers.0.name` numeric index into sequences
+//! - `a.b.c` — plain nested keys
+//! - `a\.b.c` — escaped dots for keys that contain a literal `.`
+//!   (e.g. `annotations.eks\.amazonaws\.com/role-arn`)
+//! - `containers.*.securityContext` — wildcard over every mapping value or
+//!   sequence element at that level
+//! - `containers.0.name` — numeric index into sequences
 
 use serde_yaml::Value as Yaml;
 

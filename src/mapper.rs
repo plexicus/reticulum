@@ -71,6 +71,10 @@ impl Mapper {
     pub fn link(&mut self) {
         println!("=== Linking Services to Charts ===");
         for service in &mut self.services {
+            // Services created by source discoverers arrive pre-linked
+            if service.chart.is_some() {
+                continue;
+            }
             let mut best_match: Option<usize> = None;
             let mut best_score = 0;
 

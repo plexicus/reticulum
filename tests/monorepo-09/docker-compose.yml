@@ -1,0 +1,22 @@
+services:
+  web:
+    build: ./web
+    ports:
+      - "8080:80"
+
+  admin:
+    build:
+      context: ./admin
+    privileged: true
+    cap_add:
+      - SYS_ADMIN
+    ports:
+      - "0.0.0.0:9000:9000"
+
+  worker:
+    build: ./worker
+
+  db:
+    image: postgres:14
+    ports:
+      - "127.0.0.1:5432:5432"

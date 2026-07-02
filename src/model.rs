@@ -7,6 +7,25 @@
 use serde_json::{json, Value};
 use std::fmt;
 
+/// Where a config unit was discovered.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum SourceKind {
+    #[default]
+    Helm, // Helm chart (Chart.yaml + values)
+    K8s,     // Raw Kubernetes manifests
+    Compose, // docker-compose service
+}
+
+impl SourceKind {
+    pub fn as_str(&self) -> &'static str {
+        match self {
+            SourceKind::Helm => "helm",
+            SourceKind::K8s => "k8s",
+            SourceKind::Compose => "compose",
+        }
+    }
+}
+
 /// The Decision Matrix Levels
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Priority {
@@ -56,6 +75,11 @@ pub struct RiskProfile {
     pub multipliers: Vec<f32>,
     pub boosts: Vec<i32>,
     pub applied_rule_ids: Vec<String>, // Track which rules were applied
+
+    // --- Traceability ---
+    /// Human-readable chains explaining HOW exposure was established,
+    /// e.g. "Ingress/web-ingress → Service/web → Deployment/web".
+    pub exposure_paths: Vec<String>,
 }
 
 impl Default for RiskProfile {
@@ -70,6 +94,7 @@ impl Default for RiskProfile {
             multipliers: Vec::new(),
             boosts: Vec::new(),
             applied_rule_ids: Vec::new(),
+            exposure_paths: Vec::new(),
         }
     }
 }
@@ -153,6 +178,9 @@ impl RiskProfile {
         if !self.applied_rule_ids.is_empty() {
             j["appliedRuleIds"] = json!(self.applied_rule_ids);
         }
+        if !self.exposure_paths.is_empty() {
+            j["exposurePaths"] = json!(self.exposure_paths);
+        }
         // Raw score for the report based on a baseline (50), just for visibility
         j["baseRiskScore"] = json!(self.calculate_score(50));
         j
@@ -163,15 +191,21 @@ impl RiskProfile {
 pub struct Chart {
     pub name: String,
     pub path: String,
+    pub source: SourceKind,
     pub risk: RiskProfile,
     pub tags: Vec<String>,
 }
 
 impl Chart {
     pub fn new(name: &str, path: &str) -> Chart {
+        Chart::with_source(name, path, SourceKind::Helm)
+    }
+
+    pub fn with_source(name: &str, path: &str, source: SourceKind) -> Chart {
         Chart {
             name: name.to_string(),
             path: path.to_string(),
+            source,
             risk: RiskProfile::default(),
             tags: Vec::new(),
         }
@@ -210,6 +244,7 @@ impl Service {
         match chart {
             Some(c) => {
                 j["chartName"] = json!(c.name);
+                j["source"] = json!(c.source.as_str());
                 j["riskProfile"] = c.risk.to_json();
             }
             None => {

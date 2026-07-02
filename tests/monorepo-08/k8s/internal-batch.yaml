@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: internal-batch
+  labels:
+    app: internal-batch
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: internal-batch
+  template:
+    metadata:
+      labels:
+        app: internal-batch
+    spec:
+      containers:
+        - name: batch
+          image: internal-batch:1.0
+          securityContext:
+            privileged: true
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: batch-egress
+spec:
+  podSelector:
+    matchLabels:
+      app: internal-batch
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0

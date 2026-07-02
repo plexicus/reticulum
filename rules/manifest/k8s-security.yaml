@@ -1,0 +1,76 @@
+id: "k8s-privileged-container"
+name: "Privileged Container (K8s manifest)"
+description: "A container in the pod template runs privileged"
+severity: "critical"
+tags: ["security", "privileged", "k8s"]
+target: "manifest"
+match:
+  - key: "spec.template.spec.containers.*.securityContext.privileged"
+    op: "eq"
+    value: true
+action:
+  risk_profile:
+    set_flag: "isPrivileged"
+    score_boost: 20
+  tags: ["privileged"]
+
+---
+
+id: "k8s-host-network"
+name: "Host Network (K8s manifest)"
+description: "Pod attaches to the host network namespace"
+severity: "critical"
+tags: ["security", "network", "k8s"]
+target: "manifest"
+any:
+  - key: "spec.template.spec.hostNetwork"
+    op: "eq"
+    value: true
+  - key: "spec.hostNetwork"
+    op: "eq"
+    value: true
+action:
+  risk_profile:
+    set_flag: "isPrivileged"
+    score_multiplier: 1.5
+  tags: ["host-network"]
+
+---
+
+id: "k8s-dangerous-caps"
+name: "Dangerous Capabilities (K8s manifest)"
+description: "A container requests high-risk Linux capabilities"
+severity: "high"
+tags: ["security", "capabilities", "k8s"]
+target: "manifest"
+any:
+  - key: "spec.template.spec.containers.*.securityContext.capabilities.add"
+    op: "contains"
+    value: "SYS_ADMIN"
+  - key: "spec.template.spec.containers.*.securityContext.capabilities.add"
+    op: "contains"
+    value: "NET_ADMIN"
+  - key: "spec.template.spec.containers.*.securityContext.capabilities.add"
+    op: "contains"
+    value: "SYS_PTRACE"
+action:
+  risk_profile:
+    set_flag: "hasDangerousCaps"
+    score_boost: 15
+  tags: ["dangerous-caps"]
+
+---
+
+id: "k8s-host-path-mount"
+name: "hostPath Volume Mount (K8s manifest)"
+description: "Pod mounts a hostPath volume from the node filesystem"
+severity: "high"
+tags: ["security", "storage", "k8s"]
+target: "manifest"
+match:
+  - key: "spec.template.spec.volumes.*.hostPath"
+    op: "exists"
+action:
+  risk_profile:
+    score_boost: 10
+  tags: ["host-path"]
