@@ -112,6 +112,7 @@ pub fn print_help() {
     println!("  \x1b[96m    --sarif-output\x1b[0m  Path to save enriched SARIF \x1b[2m(optional)\x1b[0m");
     println!("  \x1b[96m    --scan-only\x1b[0m     Perform exposure analysis only \x1b[2m(ignores SARIF)\x1b[0m");
     println!("  \x1b[96m    --rules\x1b[0m         Base directory containing rule sets \x1b[2m(default: ./rules or next to the binary)\x1b[0m");
+    println!("  \x1b[96m    --graph\x1b[0m         Path to save an exposure graph \x1b[2m(Mermaid flowchart)\x1b[0m");
     println!("  \x1b[96m-h, --help\x1b[0m          This help information\n");
     println!("\x1b[1mEXAMPLES:\x1b[0m");
     println!("  \x1b[2m# Full analysis with SARIF input\x1b[0m");
