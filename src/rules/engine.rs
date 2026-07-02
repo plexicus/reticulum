@@ -297,6 +297,14 @@ fn check_values_match(root: &Yaml, m: &RuleMatch) -> bool {
             }
         }
         Yaml::String(s) => check_string_match(s, m),
+        // "List contains" semantics documented on MatchOp::Contains
+        Yaml::Sequence(seq) if m.op == MatchOp::Contains => {
+            if let MatchValue::Str(expected) = &m.value {
+                seq.iter().any(|item| item.as_str() == Some(expected))
+            } else {
+                false
+            }
+        }
         _ => false,
     }
 }
@@ -499,6 +507,24 @@ action:
             key: "does.not.exist".into(),
             op: MatchOp::Exists,
             value: MatchValue::None,
+        };
+        assert!(!check_values_match(&values, &missing));
+    }
+
+    #[test]
+    fn contains_matches_list_elements() {
+        let values = yaml("features:\n  - metrics\n  - tracing\n");
+        let m = RuleMatch {
+            key: "features".into(),
+            op: MatchOp::Contains,
+            value: MatchValue::Str("tracing".into()),
+        };
+        assert!(check_values_match(&values, &m));
+
+        let missing = RuleMatch {
+            key: "features".into(),
+            op: MatchOp::Contains,
+            value: MatchValue::Str("debug".into()),
         };
         assert!(!check_values_match(&values, &missing));
     }

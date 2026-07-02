@@ -115,7 +115,11 @@ fn calculate_match_score(s: &Service, c: &Chart) -> i32 {
     if s.id.eq_ignore_ascii_case(&c.name) {
         score += 100;
     }
-    if c.path.starts_with(&s.directory) || s.directory.starts_with(&c.path) {
+    // AUDIT FIX: component-wise containment; the D string prefix check
+    // false-matched sibling dirs like apps/api vs apps/api-gateway.
+    let chart_path = Path::new(&c.path);
+    let service_dir = Path::new(&s.directory);
+    if chart_path.starts_with(service_dir) || service_dir.starts_with(chart_path) {
         score += 80;
     }
 
@@ -153,5 +157,14 @@ mod tests {
         let s = Service::new("api", "/repo/apps/api/Dockerfile", "/repo/apps/api");
         let c = Chart::new("other", "/repo/apps/api/chart");
         assert_eq!(calculate_match_score(&s, &c), 80);
+    }
+
+    #[test]
+    fn match_score_sibling_dirs_do_not_false_match() {
+        // AUDIT FIX regression test: string prefix matching linked
+        // apps/api-gateway to the chart of apps/api.
+        let s = Service::new("api", "/repo/apps/api/Dockerfile", "/repo/apps/api");
+        let c = Chart::new("gateway", "/repo/apps/api-gateway");
+        assert_eq!(calculate_match_score(&s, &c), 0);
     }
 }

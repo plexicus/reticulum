@@ -57,7 +57,14 @@ pub fn is_fixable(result: &Value) -> bool {
     true
 }
 
+/// Severity is on the CVSS-like 0-10 scale. Untrusted SARIF input may carry
+/// out-of-range values (e.g. "1e40" parses to infinity); clamp so the derived
+/// base score stays within the documented 0-100 range.
 pub fn extract_severity(result: &Value, rules: &Value) -> f32 {
+    extract_severity_raw(result, rules).clamp(0.0, 10.0)
+}
+
+fn extract_severity_raw(result: &Value, rules: &Value) -> f32 {
     // 1. GitHub security-severity
     if let Some(s) = result
         .get("properties")
@@ -140,9 +147,16 @@ fn resolve_finding_path(file_path: &str, repo_path: &Path) -> PathBuf {
     let file_path = file_path.strip_prefix("file://").unwrap_or(file_path);
     let raw = Path::new(file_path);
 
+    // Join() would discard repo_path entirely for absolute inputs (common
+    // from containerized scanners); anchor them by their relative part.
+    let raw_rel: PathBuf = raw
+        .components()
+        .filter(|c| matches!(c, Component::Normal(_)))
+        .collect();
+
     // 2. Dual Resolution Strategy
     let p1 = absolutize(raw); // Assume relative to CWD
-    let p2 = absolutize(&repo_path.join(raw)); // Assume relative to repoPath
+    let p2 = absolutize(&repo_path.join(&raw_rel)); // Assume relative to repoPath
 
     // Prefer the one that actually exists on disk.
     // AUDIT FIX: D compared string prefixes (`startsWith`), which lets
@@ -407,6 +421,32 @@ mod tests {
         // AUDIT FIX: unparseable string falls through instead of crashing
         let r = json!({"properties": {"security-severity": "n/a"}, "level": "error"});
         assert_eq!(extract_severity(&r, &json!([])), 7.5);
+    }
+
+    #[test]
+    fn severity_out_of_range_is_clamped() {
+        // Untrusted SARIF: "1e40" parses to f32::INFINITY
+        let r = json!({"properties": {"security-severity": "1e40"}});
+        assert_eq!(extract_severity(&r, &json!([])), 10.0);
+        let r = json!({"properties": {"security-severity": "-5"}});
+        assert_eq!(extract_severity(&r, &json!([])), 0.0);
+    }
+
+    #[test]
+    fn absolute_finding_path_is_anchored_to_repo() {
+        // A containerized scanner reports "/sub/file.txt"; the file exists
+        // at <repo>/sub/file.txt. Path::join would have discarded the repo
+        // base for absolute inputs.
+        let repo = std::env::temp_dir().join("reticulum-ingestor-abs-test");
+        let _ = fs::remove_dir_all(&repo);
+        fs::create_dir_all(repo.join("sub")).unwrap();
+        fs::write(repo.join("sub/file.txt"), "x").unwrap();
+        let repo = normalize(&repo);
+
+        let resolved = resolve_finding_path("/sub/file.txt", &repo);
+        assert_eq!(resolved, repo.join("sub/file.txt"));
+
+        let _ = fs::remove_dir_all(&repo);
     }
 
     #[test]

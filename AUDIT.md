@@ -68,10 +68,14 @@ explicit warning is printed when no rules directory is found (`src/main.rs`).
 ### 6. String-prefix path matching false positives (medium)
 `ingestor.d` used string `startsWith` to decide whether a finding path is
 inside a service directory, so `/repo/app-extra/file.py` matched service
-`/repo/app`. Same issue in the resolution strategy checks.
+`/repo/app`. Same issue in the resolution strategy checks, and in
+`mapper.d:81` where chart↔service linking could attach a service to the wrong
+Helm chart when sibling directories share a prefix (e.g. `apps/api` vs
+`apps/api-gateway`), corrupting every score derived from that chart's profile.
 
-**Fix:** component-wise `Path::starts_with`
-(test `path_starts_with_is_component_wise`).
+**Fix:** component-wise `Path::starts_with` in both the ingestor and the
+mapper (tests `path_starts_with_is_component_wise`,
+`match_score_sibling_dirs_do_not_false_match`).
 
 ### 7. `RiskProfile.reset()` did not clear `appliedRuleIds` (low)
 `model.d:118` reset all flags and score lists but left `appliedRuleIds`
@@ -97,7 +101,34 @@ Nothing in the repo consumed the typo (checked `analyze_results.py`).
 **Fix:** emits `"HelmLinked"`. **This is an intentional output change** —
 external consumers matching on the typo must update.
 
-### 10. Swallowed errors via `catch (Throwable)` (code quality)
+### 10. Unvalidated severity range from untrusted SARIF (medium)
+Numeric severities were used as-is: a `security-severity` of `"1e40"` (or any
+out-of-range value) produced an absurd `baseScore` in the report — in D it
+flowed through unchecked casts, in the first Rust draft it saturated to
+`i32::MAX`. Found by the migration review pass.
+
+**Fix:** severity clamped to the CVSS 0–10 range before deriving the 0–100
+base score (test `severity_out_of_range_is_clamped`).
+
+### 11. Absolute scanner paths defeated repo-relative resolution (medium)
+`buildPath(repoPath, filePath)` in D — and `Path::join` in Rust — discard the
+base entirely when `filePath` is absolute, so findings reported with absolute
+container paths (common from dockerized scanners) only resolved via the
+last-resort prefix-strip loop, or were misattributed. Found by the migration
+review pass.
+
+**Fix:** absolute inputs are anchored by their relative components before
+joining (test `absolute_finding_path_is_anchored_to_repo`).
+
+### 12. `contains` op silently unsupported on YAML lists (low)
+The rule DSL documents `contains` as "String contains / List contains", but a
+`values`-target match against a sequence-typed key (e.g. a tag list) always
+evaluated false in D. Found by the migration review pass.
+
+**Fix:** `contains` now matches list elements
+(test `contains_matches_list_elements`).
+
+### 13. Swallowed errors via `catch (Throwable)` (code quality)
 The D code caught `Throwable` (including assertion failures / fatal errors) in
 9 places, often with an empty body, hiding real failures (e.g. values-file
 enumeration errors in `analyzer.d:53`).
