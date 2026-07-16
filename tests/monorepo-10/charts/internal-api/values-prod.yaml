@@ -1,0 +1,3 @@
+# Prod keeps this service internal — no public ingress.
+ingress:
+  enabled: false

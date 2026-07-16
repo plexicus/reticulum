@@ -1,0 +1,9 @@
+# RETICULUM TRIGGER: dev exposes this service publicly via ingress
+ingress:
+  enabled: true
+  className: "nginx"
+  hosts:
+    - host: internal-api.dev.example.com
+      paths:
+        - path: /
+          pathType: ImplementationSpecific

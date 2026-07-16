@@ -1,0 +1,12 @@
+image:
+  repository: mycompany/internal-api
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+# Base: no public ingress. Overridden per-environment below.
+ingress:
+  enabled: false
+
+service:
+  type: ClusterIP
+  port: 80

@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: decoy-workload
+  labels:
+    app: decoy-workload
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: decoy-workload
+  template:
+    metadata:
+      labels:
+        app: decoy-workload
+    spec:
+      containers:
+        - name: decoy
+          image: decoy-workload:1.0
+          securityContext:
+            privileged: true

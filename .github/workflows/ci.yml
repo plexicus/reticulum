@@ -65,6 +65,29 @@ jobs:
           print("monorepo-06 scoring OK", scores)
           EOF
 
+      - name: End-to-end smoke (env selector + path allowlist)
+        run: |
+          ./target/release/reticulum -p tests/monorepo-10 --scan-only -o /tmp/scan-10-union.json
+          ./target/release/reticulum -p tests/monorepo-10 --scan-only --env prod -o /tmp/scan-10-prod.json
+          ./target/release/reticulum -p tests/monorepo-10 --scan-only --exclude "examples/**" -o /tmp/scan-10-excluded.json
+          python3 - <<'EOF'
+          import json
+
+          union = {s["id"]: s for s in json.load(open("/tmp/scan-10-union.json"))["services"]}
+          prod = {s["id"]: s for s in json.load(open("/tmp/scan-10-prod.json"))["services"]}
+          excluded = {s["id"]: s for s in json.load(open("/tmp/scan-10-excluded.json"))["services"]}
+
+          # No --env: union of every overlay — dev's ingress.enabled leaks in.
+          assert union["internal-api"]["riskProfile"]["isPublic"], "union must merge the dev overlay"
+          # --env prod: only base + prod overlay considered — stays internal.
+          assert not prod["internal-api"]["riskProfile"]["isPublic"], "prod-only view must stay internal"
+          # No --exclude: the examples/ decoy is discovered like any other manifest.
+          assert union["decoy-workload"]["riskProfile"]["isPrivileged"]
+          # --exclude examples/**: the decoy never contributes a service.
+          assert "decoy-workload" not in excluded, "excluded path must not contribute a service"
+          print("monorepo-10 env selector + path allowlist OK")
+          EOF
+
   docker:
     name: Docker build
     runs-on: ubuntu-latest
