@@ -1,6 +1,6 @@
 id: "scoring-internal"
 name: "Internal Service Scoring"
-description: "Applies penalty for internal services (default)"
+description: "Applies penalty for internal services (default). Skipped by the engine when a public-exposure rule already confirmed this service is reachable (see RuleEngine::evaluate_values)."
 severity: "info"
 tags: ["scoring", "internal"]
 target: "values"

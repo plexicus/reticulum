@@ -78,6 +78,22 @@ impl RuleEngine {
             if rule.target != RuleTarget::Values {
                 continue;
             }
+            // AUDIT FIX: `rules/exposure/*.yaml` always sorts before
+            // `rules/scoring/*.yaml` (directory load order), so a confirmed
+            // public-exposure rule (isPublic + x1.3+) has already run by the
+            // time an internal-service de-prioritizer (e.g. ClusterIP x0.5)
+            // is checked. Combining both nets a multiplier below neutral,
+            // scoring a publicly exposed service *below* an unexposed
+            // orphan. Once exposure is confirmed, de-prioritizers must not
+            // fire for that same service.
+            let is_deprioritizer = rule
+                .action
+                .risk_profile
+                .score_multiplier
+                .is_some_and(|m| m < 1.0);
+            if is_deprioritizer && chart.risk.is_public {
+                continue;
+            }
             if rule.matches_with(|m| check_values_match(values, m)) {
                 apply_action(chart, rule);
             }
@@ -830,5 +846,61 @@ action:
             "properties": {"trivy:packageName": "openssl-dev"}
         }));
         assert!(!engine.evaluate_finding(&mut f, &chart));
+    }
+
+    #[test]
+    fn public_clusterip_service_is_not_deprioritized_below_orphan() {
+        // AUDIT FIX regression: Ingress (x1.3, sets isPublic) + ClusterIP
+        // internal de-prioritizer (x0.5) used to combine into 0.65, scoring
+        // a publicly exposed service below an unexposed orphan.
+        let engine = engine_from(
+            r#"
+id: "exposure-ingress-enabled"
+name: "Public Ingress Exposure"
+target: "values"
+match:
+  - key: "ingress.enabled"
+    op: "eq"
+    value: true
+  - key: "ingress.hosts"
+    op: "exists"
+action:
+  risk_profile:
+    set_flag: "isPublic"
+    score_multiplier: 1.3
+---
+id: "scoring-internal"
+name: "Internal Service Scoring"
+target: "values"
+match:
+  - key: "service.type"
+    op: "eq"
+    value: "ClusterIP"
+action:
+  risk_profile:
+    score_multiplier: 0.5
+"#,
+        );
+        let mut chart = Chart::new("payment-api", "/tmp/payment-api");
+        let values = yaml(
+            "ingress:\n  enabled: true\n  hosts:\n    - api.payments.com\nservice:\n  type: ClusterIP\n",
+        );
+        engine.evaluate_values(&mut chart, &values);
+
+        assert!(chart.risk.is_public);
+        // The ClusterIP de-prioritizer must not have fired once exposure was confirmed.
+        assert_eq!(chart.risk.multipliers, vec![1.3]);
+        assert_eq!(
+            chart.risk.applied_rule_ids,
+            vec!["exposure-ingress-enabled"]
+        );
+
+        let orphan_score = crate::model::RiskProfile::default().calculate_score(75);
+        let public_score = chart.risk.calculate_score(75);
+        assert!(public_score >= 75);
+        assert!(
+            public_score > orphan_score,
+            "Ingress-exposed ClusterIP ({public_score}) must score strictly higher than an orphan ({orphan_score})"
+        );
     }
 }
