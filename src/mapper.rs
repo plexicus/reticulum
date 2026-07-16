@@ -1,6 +1,7 @@
 //! Service discovery: walk the repo, find Dockerfiles and Helm charts, link them.
 
 use crate::model::{Chart, Service};
+use crate::pathfilter::{relative_str, PathFilter};
 use serde_yaml::Value as Yaml;
 use std::fs;
 use std::path::Path;
@@ -17,7 +18,7 @@ impl Mapper {
         Mapper::default()
     }
 
-    pub fn walk(&mut self, root_dir: &Path) {
+    pub fn walk(&mut self, root_dir: &Path, filter: &PathFilter) {
         println!("=== Discovery Walk: {} ===", root_dir.display());
         if !root_dir.exists() {
             println!("Error: Root directory does not exist.");
@@ -31,6 +32,9 @@ impl Mapper {
             .filter(|e| e.file_type().is_file())
         {
             let entry_path = entry.path();
+            if !filter.is_allowed(&relative_str(root_dir, entry_path)) {
+                continue;
+            }
             let fname = entry.file_name().to_string_lossy().to_string();
             let fdir = entry_path.parent().unwrap_or(Path::new(""));
             let lower_name = fname.to_lowercase();

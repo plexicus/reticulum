@@ -10,6 +10,7 @@
 //! exposure chains like `Ingress/web → Service/web-svc → Deployment/web`.
 
 use crate::model::{Chart, Service, SourceKind};
+use crate::pathfilter::{relative_str, PathFilter};
 use crate::rules::RuleEngine;
 use serde_yaml::Value as Yaml;
 use std::collections::HashSet;
@@ -52,7 +53,12 @@ pub struct K8sInventory {
 
 /// Scan for raw manifests, appending one config unit per workload and a
 /// Service entry (for finding attribution) when none exists for that id.
-pub fn discover(root: &Path, charts: &mut Vec<Chart>, services: &mut Vec<Service>) -> K8sInventory {
+pub fn discover(
+    root: &Path,
+    charts: &mut Vec<Chart>,
+    services: &mut Vec<Service>,
+    filter: &PathFilter,
+) -> K8sInventory {
     let mut inv = K8sInventory::default();
     let helm_dirs = collect_helm_dirs(root);
 
@@ -65,6 +71,7 @@ pub fn discover(root: &Path, charts: &mut Vec<Chart>, services: &mut Vec<Service
             e.file_type().is_file()
                 && (name.ends_with(".yaml") || name.ends_with(".yml"))
                 && !crate::sources::compose::is_compose_file(&name)
+                && filter.is_allowed(&relative_str(root, e.path()))
         })
         .map(|e| e.into_path())
         .collect();

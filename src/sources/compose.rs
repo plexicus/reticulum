@@ -6,6 +6,7 @@
 //! DSL reaches compose stacks too.
 
 use crate::model::{Chart, Service, SourceKind};
+use crate::pathfilter::{relative_str, PathFilter};
 use crate::rules::RuleEngine;
 use serde_yaml::{Mapping, Value as Yaml};
 use std::fs;
@@ -49,6 +50,7 @@ pub fn discover(
     root: &Path,
     charts: &mut Vec<Chart>,
     services: &mut Vec<Service>,
+    filter: &PathFilter,
 ) -> ComposeInventory {
     let mut inv = ComposeInventory::default();
 
@@ -59,6 +61,7 @@ pub fn discover(
         .filter(|e| {
             e.file_type().is_file()
                 && is_compose_file(&e.file_name().to_string_lossy().to_lowercase())
+                && filter.is_allowed(&relative_str(root, e.path()))
         })
         .map(|e| e.into_path())
         .collect();
