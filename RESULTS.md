@@ -22,7 +22,7 @@ This document details the performance of Reticulum across multiple test monorepo
 - **Escalated:** 0%
 - **Avg Score Reduction:** -24.5 pts
 
-**Insight:** Even though `payment-api` is public, Reticulum lowered its score because it lacks other risk factors (privileged, root), making the "High" tool scores disproportionate to the actual risk.
+**Insight:** `payment-api` is public via Ingress, so its MEDIUM-severity findings are boosted (score 50 → 65) rather than lowered — public exposure raises priority even without other risk factors (privileged, root). Contrast with `payment-worker`, which stays internal-only and gets de-prioritized as expected.
 
 ---
 
