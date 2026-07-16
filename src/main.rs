@@ -111,18 +111,34 @@ fn write_graph(args: &Args, m: &Mapper) {
     }
 }
 
-fn build_report(m: &Mapper, scan_type: &str) -> Value {
+fn build_report(
+    m: &Mapper,
+    scan_type: &str,
+    ingest: Option<&ingestor::SarifIngestResult>,
+) -> Value {
     let services: Vec<Value> = m
         .services
         .iter()
         .map(|s| s.to_json(s.chart.map(|idx| &m.charts[idx])))
         .collect();
 
-    json!({
+    let mut root = json!({
         "services": services,
         "totalServices": m.services.len(),
         "scanType": scan_type,
-    })
+    });
+
+    if let Some(ingest) = ingest {
+        root["unmatchedFindings"] = json!(ingest.unmatched_findings);
+        if ingest.unmatched_findings > 0 {
+            root["warnings"] = json!([format!(
+                "{} SARIF result(s) resolved outside every known service directory and were not scored",
+                ingest.unmatched_findings
+            )]);
+        }
+    }
+
+    root
 }
 
 fn write_json_report(path: &str, root: &Value, success_msg: &str) {
@@ -212,7 +228,7 @@ fn main() -> ExitCode {
         ui::print_warning("Mode: Exposure Analysis Only (Skipping SARIF ingestion)");
 
         write_graph(&args, &m);
-        let root = build_report(&m, "exposure-audit");
+        let root = build_report(&m, "exposure-audit", None);
         match args.output.as_deref() {
             Some(out) if !out.is_empty() => {
                 write_json_report(out, &root, "Exposure report saved to")
@@ -230,7 +246,7 @@ fn main() -> ExitCode {
         "Ingesting SARIF and applying contextual scoring",
     );
     let sarif_input = args.sarif.as_deref().unwrap_or("");
-    ingestor::process_sarif(
+    let ingest_result = ingestor::process_sarif(
         sarif_input,
         &mut m.services,
         &m.charts,
@@ -239,11 +255,15 @@ fn main() -> ExitCode {
         args.sarif_output.as_deref().filter(|s| !s.is_empty()),
     );
 
+    if ingest_result.sarif_missing {
+        return ExitCode::FAILURE;
+    }
+
     write_graph(&args, &m);
 
     // --- Generate JSON Report (Full Scan) ---
     if let Some(out) = args.output.as_deref().filter(|s| !s.is_empty()) {
-        let root = build_report(&m, "full-analysis");
+        let root = build_report(&m, "full-analysis", Some(&ingest_result));
         write_json_report(out, &root, "Full analysis report saved to");
     }
 

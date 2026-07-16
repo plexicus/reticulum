@@ -232,6 +232,17 @@ fn extract_file_path(result: &Value) -> String {
         .to_string()
 }
 
+/// Outcome of a SARIF ingestion pass, surfaced in the JSON report and used
+/// by the caller to decide the process exit code.
+#[derive(Debug, Default)]
+pub struct SarifIngestResult {
+    /// The `--sarif` path did not exist on disk.
+    pub sarif_missing: bool,
+    /// Number of SARIF results whose path did not resolve inside any known
+    /// service directory (silently dropped before this fix).
+    pub unmatched_findings: usize,
+}
+
 pub fn process_sarif(
     filename: &str,
     services: &mut [Service],
@@ -239,9 +250,13 @@ pub fn process_sarif(
     repo_path: &Path,
     engine: &RuleEngine,
     sarif_output: Option<&str>,
-) {
+) -> SarifIngestResult {
     if !Path::new(filename).exists() {
-        return;
+        ui::print_error(&format!("SARIF file not found: {}", filename));
+        return SarifIngestResult {
+            sarif_missing: true,
+            unmatched_findings: 0,
+        };
     }
 
     println!("=== Processing SARIF file: {} ===", filename);
@@ -249,22 +264,23 @@ pub fn process_sarif(
         Ok(c) => c,
         Err(e) => {
             ui::print_error(&format!("Error reading SARIF file: {}", e));
-            return;
+            return SarifIngestResult::default();
         }
     };
     let mut sarif: Value = match serde_json::from_str(&content) {
         Ok(j) => j,
         Err(e) => {
             ui::print_error(&format!("Error parsing SARIF file: {}", e));
-            return;
+            return SarifIngestResult::default();
         }
     };
 
     let mut first_finding = true;
+    let mut unmatched_findings: usize = 0;
 
     let runs = match sarif.get_mut("runs").and_then(|r| r.as_array_mut()) {
         Some(r) => r,
-        None => return,
+        None => return SarifIngestResult::default(),
     };
 
     for run in runs.iter_mut() {
@@ -295,6 +311,8 @@ pub fn process_sarif(
             let file_path = extract_file_path(result);
             let finding_path = resolve_finding_path(&file_path, repo_path);
 
+            let mut matched_service = false;
+
             for service in services.iter_mut() {
                 let svc_dir = normalize(Path::new(&service.directory));
                 let svc_docker = normalize(Path::new(&service.dockerfile_path));
@@ -303,6 +321,7 @@ pub fn process_sarif(
                 if !is_inside {
                     continue;
                 }
+                matched_service = true;
 
                 let chart = service.chart.map(|idx| &charts[idx]);
 
@@ -372,6 +391,10 @@ pub fn process_sarif(
 
                 service.findings.push(f);
             }
+
+            if !matched_service {
+                unmatched_findings += 1;
+            }
         }
     }
 
@@ -384,6 +407,18 @@ pub fn process_sarif(
             },
             Err(e) => println!("Error serializing SARIF output: {}", e),
         }
+    }
+
+    if unmatched_findings > 0 {
+        ui::print_warning(&format!(
+            "{} SARIF result(s) resolved outside every known service directory and were not scored",
+            unmatched_findings
+        ));
+    }
+
+    SarifIngestResult {
+        sarif_missing: false,
+        unmatched_findings,
     }
 }
 
@@ -505,5 +540,89 @@ mod tests {
         // AUDIT FIX regression test: "/repo/app-extra" is NOT inside "/repo/app"
         let p = PathBuf::from("/repo/app-extra/file.py");
         assert!(!p.starts_with(Path::new("/repo/app")));
+    }
+
+    #[test]
+    fn missing_sarif_file_is_reported_and_no_findings_ingested() {
+        // H76: a missing --sarif path must be surfaced (and the caller
+        // exits non-zero), instead of silently returning as a no-op.
+        let mut services = vec![Service::new("svc", "svc/Dockerfile", "svc")];
+        let charts: Vec<Chart> = Vec::new();
+        let engine = RuleEngine::new();
+        let repo = std::env::temp_dir().join("reticulum-ingestor-missing-sarif-test");
+
+        let result = process_sarif(
+            "/nonexistent/path/does-not-exist.sarif",
+            &mut services,
+            &charts,
+            &repo,
+            &engine,
+            None,
+        );
+
+        assert!(result.sarif_missing);
+        assert_eq!(result.unmatched_findings, 0);
+        assert!(services[0].findings.is_empty());
+    }
+
+    #[test]
+    fn result_outside_every_service_dir_is_counted_as_unmatched() {
+        // H76: a SARIF result whose path resolves outside every known
+        // service directory must be counted, not silently dropped.
+        let repo = std::env::temp_dir().join("reticulum-ingestor-unmatched-test");
+        let _ = fs::remove_dir_all(&repo);
+        fs::create_dir_all(repo.join("svc")).unwrap();
+        fs::write(repo.join("svc/app.py"), "x").unwrap();
+        let repo = normalize(&repo);
+        let svc_dir = repo.join("svc");
+
+        let sarif_path = repo.join("results.sarif");
+        let sarif = json!({
+            "runs": [{
+                "tool": {"driver": {"rules": []}},
+                "results": [
+                    {
+                        "ruleId": "matched-rule",
+                        "level": "error",
+                        "locations": [{"physicalLocation": {
+                            "artifactLocation": {"uri": "svc/app.py"},
+                            "region": {"startLine": 1}
+                        }}]
+                    },
+                    {
+                        "ruleId": "unmatched-rule",
+                        "level": "error",
+                        "locations": [{"physicalLocation": {
+                            "artifactLocation": {"uri": "outside/app.py"},
+                            "region": {"startLine": 1}
+                        }}]
+                    }
+                ]
+            }]
+        });
+        fs::write(&sarif_path, serde_json::to_string(&sarif).unwrap()).unwrap();
+
+        let mut services = vec![Service::new(
+            "svc",
+            svc_dir.join("Dockerfile").to_str().unwrap(),
+            svc_dir.to_str().unwrap(),
+        )];
+        let charts: Vec<Chart> = Vec::new();
+        let engine = RuleEngine::new();
+
+        let result = process_sarif(
+            sarif_path.to_str().unwrap(),
+            &mut services,
+            &charts,
+            &repo,
+            &engine,
+            None,
+        );
+
+        assert!(!result.sarif_missing);
+        assert_eq!(result.unmatched_findings, 1);
+        assert_eq!(services[0].findings.len(), 1);
+
+        let _ = fs::remove_dir_all(&repo);
     }
 }
